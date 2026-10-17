@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.1
+ * Versão: v.3.4.2
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.1';
+    this.version = 'v.3.4.2';
   }
 
   /**
@@ -7056,6 +7056,7 @@ class AutoReportApp {
       this.renderEvaluationStep();
       this.renderEvaluationCharts();
       this.renderWordClouds();
+      this.renderFigureComments();
       this.saveCurrentStepData();
       this.showToast(`${parsed.length} avaliações processadas com sucesso!`, 'success');
     } catch (err) {
@@ -7093,6 +7094,7 @@ class AutoReportApp {
     this.renderEvaluationStep();
     this.renderEvaluationCharts();
     this.renderWordClouds();
+    this.renderFigureComments();
     this.saveCurrentStepData();
     this.showToast('Planilha de avaliações limpa com sucesso!', 'success');
   }
@@ -7152,43 +7154,54 @@ class AutoReportApp {
   }
 
   /**
-   * Renderiza os campos de comentários e sugestões padrão da Etapa 8 para as Figuras 3 a 8
+   * Renderiza os campos de comentários e sugestões padrão da Etapa 8 para as Figuras 3 a 8,
+   * integrando modelos analíticos de conteúdo (Bardin), síntese oficial FNDE e indicadores descritivos.
    */
   renderFigureComments() {
     if (!this.currentTraining) return;
     if (!this.currentTraining.evaluationComments) {
       this.currentTraining.evaluationComments = {};
     }
+    if (!this.currentTraining.evaluationCommentTemplates) {
+      this.currentTraining.evaluationCommentTemplates = {};
+    }
 
     const figKeys = ['fig3', 'fig4', 'fig5', 'fig6', 'fig7', 'fig8'];
     figKeys.forEach(key => {
       const textarea = document.getElementById(`eval-comment-${key}`);
       const badge = document.getElementById(`eval-comment-${key}-badge`);
+      const templateSelect = document.getElementById(`eval-comment-${key}-template`);
       if (!textarea) return;
 
-      const savedComment = this.currentTraining.evaluationComments[key];
-      const defaultComment = window.statsEngine ? window.statsEngine.getDefaultEvaluationComment(key, this.currentTraining) : '';
+      const activeTemplateId = this.currentTraining.evaluationCommentTemplates[key] || 'categorial';
+      if (templateSelect) {
+        templateSelect.value = activeTemplateId;
+      }
 
-      if (savedComment !== undefined && savedComment !== null && savedComment.trim() !== '') {
+      const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(key, this.currentTraining) : {};
+      const currentTemplateObj = allTemplates[activeTemplateId] || allTemplates.categorial || { name: 'Análise de Conteúdo', badge: 'Análise de Conteúdo', text: '' };
+      const expectedDefaultText = currentTemplateObj.text || '';
+
+      const savedComment = this.currentTraining.evaluationComments[key];
+      const hasOldBug = savedComment && (savedComment.includes('"0", "1", "2"') || savedComment.includes('"0", "1"') || savedComment.includes('"0"'));
+
+      // Verificar se o texto salvo coincide com algum template padrão conhecido
+      const isKnownDefault = Object.values(allTemplates).some(t => t && t.text && t.text.trim() === String(savedComment || '').trim());
+
+      if (savedComment !== undefined && savedComment !== null && savedComment.trim() !== '' && !hasOldBug && !isKnownDefault) {
+        // Usuário digitou um texto manual customizado
         textarea.value = savedComment;
-        if (savedComment.trim() === defaultComment.trim()) {
-          if (badge) {
-            badge.textContent = 'Sugestão Padrão (Exemplo Oficial)';
-            badge.style.background = 'rgba(59, 130, 246, 0.15)';
-            badge.style.color = 'var(--accent-blue-text)';
-          }
-        } else {
-          if (badge) {
-            badge.textContent = 'Comentário Personalizado';
-            badge.style.background = 'rgba(245, 158, 11, 0.15)';
-            badge.style.color = 'var(--accent-amber-text)';
-          }
+        if (badge) {
+          badge.textContent = 'Comentário Personalizado';
+          badge.style.background = 'rgba(245, 158, 11, 0.15)';
+          badge.style.color = 'var(--accent-amber-text)';
         }
       } else {
-        // Preencher com a sugestão padrão derivada dos relatórios de exemplo
-        textarea.value = defaultComment;
+        // Preencher com a sugestão analítica padrão do modelo ativo
+        textarea.value = expectedDefaultText;
+        this.currentTraining.evaluationComments[key] = expectedDefaultText;
         if (badge) {
-          badge.textContent = 'Sugestão Padrão (Exemplo Oficial)';
+          badge.textContent = `Sugestão Padrão: ${currentTemplateObj.badge || currentTemplateObj.name}`;
           badge.style.background = 'rgba(59, 130, 246, 0.15)';
           badge.style.color = 'var(--accent-blue-text)';
         }
@@ -7197,7 +7210,45 @@ class AutoReportApp {
   }
 
   /**
-   * Atualiza o comentário de uma figura da Etapa 8 quando editado pelo usuário
+   * Altera o modelo de análise padrão de uma figura da Etapa 8 (Análise de Conteúdo, Síntese Oficial ou Descritiva)
+   */
+  changeFigureCommentTemplate(figKey, templateId) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationCommentTemplates) {
+      this.currentTraining.evaluationCommentTemplates = {};
+    }
+    if (!this.currentTraining.evaluationComments) {
+      this.currentTraining.evaluationComments = {};
+    }
+
+    this.currentTraining.evaluationCommentTemplates[figKey] = templateId;
+
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const selectedTemplate = allTemplates[templateId] || allTemplates.categorial;
+    const newText = selectedTemplate ? selectedTemplate.text : '';
+
+    this.currentTraining.evaluationComments[figKey] = newText;
+
+    const textarea = document.getElementById(`eval-comment-${figKey}`);
+    if (textarea) {
+      textarea.value = newText;
+    }
+
+    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
+    if (badge && selectedTemplate) {
+      badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
+      badge.style.background = 'rgba(59, 130, 246, 0.15)';
+      badge.style.color = 'var(--accent-blue-text)';
+    }
+
+    this.saveCurrentStepData();
+    if (selectedTemplate) {
+      this.showToast(`Modelo analítico aplicado: ${selectedTemplate.name}`, 'info');
+    }
+  }
+
+  /**
+   * Atualiza o comentário de uma figura da Etapa 8 quando editado livremente pelo usuário
    */
   handleFigureCommentChange(figKey, value) {
     if (!this.currentTraining) return;
@@ -7206,12 +7257,15 @@ class AutoReportApp {
     }
     this.currentTraining.evaluationComments[figKey] = value;
 
-    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
-    const defaultComment = window.statsEngine ? window.statsEngine.getDefaultEvaluationComment(figKey, this.currentTraining) : '';
+    const activeTemplateId = (this.currentTraining.evaluationCommentTemplates && this.currentTraining.evaluationCommentTemplates[figKey]) || 'categorial';
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const currentTemplateObj = allTemplates[activeTemplateId] || allTemplates.categorial;
+    const defaultComment = currentTemplateObj ? currentTemplateObj.text : '';
 
+    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
     if (badge) {
       if (value.trim() === defaultComment.trim()) {
-        badge.textContent = 'Sugestão Padrão (Exemplo Oficial)';
+        badge.textContent = `Sugestão Padrão: ${currentTemplateObj?.badge || 'Análise de Conteúdo'}`;
         badge.style.background = 'rgba(59, 130, 246, 0.15)';
         badge.style.color = 'var(--accent-blue-text)';
       } else {
@@ -7230,14 +7284,21 @@ class AutoReportApp {
   }
 
   /**
-   * Restaura o comentário de uma figura para a sugestão padrão dos relatórios de exemplo oficiais
+   * Restaura o comentário de uma figura para o modelo analítico atualmente selecionado
    */
   restoreFigureComment(figKey) {
     if (!this.currentTraining) return;
-    const defaultComment = window.statsEngine ? window.statsEngine.getDefaultEvaluationComment(figKey, this.currentTraining) : '';
     if (!this.currentTraining.evaluationComments) {
       this.currentTraining.evaluationComments = {};
     }
+
+    const templateSelect = document.getElementById(`eval-comment-${figKey}-template`);
+    const activeTemplateId = templateSelect ? templateSelect.value : ((this.currentTraining.evaluationCommentTemplates && this.currentTraining.evaluationCommentTemplates[figKey]) || 'categorial');
+
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const selectedTemplate = allTemplates[activeTemplateId] || allTemplates.categorial;
+    const defaultComment = selectedTemplate ? selectedTemplate.text : '';
+
     this.currentTraining.evaluationComments[figKey] = defaultComment;
 
     const textarea = document.getElementById(`eval-comment-${figKey}`);
@@ -7246,14 +7307,14 @@ class AutoReportApp {
     }
 
     const badge = document.getElementById(`eval-comment-${figKey}-badge`);
-    if (badge) {
-      badge.textContent = 'Sugestão Padrão (Exemplo Oficial)';
+    if (badge && selectedTemplate) {
+      badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
       badge.style.background = 'rgba(59, 130, 246, 0.15)';
       badge.style.color = 'var(--accent-blue-text)';
     }
 
     this.saveCurrentStepData();
-    this.showToast('Comentário restaurado para a sugestão padrão dos relatórios de exemplo!', 'info');
+    this.showToast(`Comentário restaurado para o padrão (${selectedTemplate ? selectedTemplate.name : 'Análise de Conteúdo'})!`, 'info');
   }
 
   renderEvaluationCharts() {

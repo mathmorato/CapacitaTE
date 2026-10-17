@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.4.1
+ * Versão: v.3.4.2
  */
 
 class StatsEngine {
@@ -686,10 +686,21 @@ class StatsEngine {
   }
 
   /**
-   * Gera o comentário padrão para cada gráfico da Etapa 8, fiel aos relatórios oficiais em 02-Relatórios exemplos
+   * Retorna os modelos de comentários analíticos para as Figuras 3 a 8 da Etapa 8.
+   * Contempla três padrões distintos:
+   * 1. 'categorial': Análise de Conteúdo Categorial (Bardin) com macrocategorias temáticas (Recomendado)
+   * 2. 'sintese': Síntese Executiva Oficial (padrão formal dos relatórios aprovados no FNDE)
+   * 3. 'detalhado': Análise Descritiva & Indicadores Likert com recomendações propositivas
    */
-  getDefaultEvaluationComment(figKey, training) {
-    if (!training) return '';
+  getEvaluationCommentTemplates(figKey, training) {
+    if (!training) {
+      return {
+        categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: '' },
+        sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: '' },
+        detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: '' }
+      };
+    }
+
     const evals = training.evaluations || [];
     const attendance = training.attendance || [];
     const totalResp = evals.length;
@@ -703,105 +714,342 @@ class StatsEngine {
       'conteúdo e desenvolvimento da formação'
     ];
 
+    /* =========================================================================
+       FIGURA 3: PARTICIPAÇÃO CACS VS GESTORES
+       ========================================================================= */
     if (figKey === 'fig3') {
       if (totalResp === 0) {
-        return 'A participação segundo o tipo de representação considera a totalidade dos participantes presentes entre conselheiros do CACS-FUNDEB e equipes de gestão municipal.';
+        const emptyTxt = 'A participação segundo o tipo de representação considera a totalidade dos participantes presentes entre conselheiros do CACS-FUNDEB e equipes de gestão municipal.';
+        return {
+          categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: emptyTxt },
+          sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: emptyTxt },
+          detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: emptyTxt }
+        };
       }
+
       const cacsCount = evals.filter(e => String(e.representation || '').toUpperCase().includes('CACS')).length;
       const gestCount = totalResp - cacsCount;
       const pctCacs = ((cacsCount / totalResp) * 100).toFixed(1).replace('.', ',');
       const pctGest = ((gestCount / totalResp) * 100).toFixed(1).replace('.', ',');
       const totalPresent = training.metrics?.totalPresent || (attendance.length > 0 ? attendance.length : totalResp);
-      const repLead = (totalPresent > 0 && totalResp >= totalPresent)
-        ? 'A totalidade dos participantes presentes realizou a avaliação da capacitação, assegurando representatividade integral'
-        : `Um número expressivo de participantes (${totalResp} questionários válidos) realizou a avaliação da capacitação, conferindo elevada consistência amostral`;
-      return `${repLead}. De forma geral, ${pctGest}% (${gestCount}/${totalResp}) e ${pctCacs}% (${cacsCount}/${totalResp}) dos participantes foram das gestões municipais e dos conselhos CACS-FUNDEB, respectivamente.`;
+      const isFull = totalPresent > 0 && totalResp >= totalPresent;
+
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `Sob o prisma da análise de representatividade institucional, a amostra de respondentes reflete uma distribuição equilibrada entre as duas instâncias participantes do programa de formação continuada. Com ${pctGest}% (${gestCount}/${totalResp}) de participantes vinculados às equipes técnicas das gestões municipais e ${pctCacs}% (${cacsCount}/${totalResp}) integrantes dos conselhos do CACS-FUNDEB, a coleta assegura paridade amostral e plena legitimidade às inferências qualitativas e quantitativas formuladas neste relatório.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `${isFull ? 'A totalidade dos participantes presentes realizou a avaliação da capacitação, assegurando representatividade integral' : `Um número expressivo de participantes (${totalResp} questionários válidos) realizou a avaliação da capacitação, conferindo elevada consistência amostral`}. De forma geral, ${pctGest}% (${gestCount}/${totalResp}) e ${pctCacs}% (${cacsCount}/${totalResp}) dos participantes foram das gestões municipais e dos conselhos CACS-FUNDEB, respectivamente.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Análise Descritiva & Consistência Amostral',
+          badge: 'Análise Descritiva',
+          text: `A coleta de dados avaliativos alcançou elevada consistência métrica, totalizando ${totalResp} questionários válidos preenchidos no encerramento da capacitação. A proporção apurada — ${pctGest}% de gestores municipais e ${pctCacs}% de conselheiros do CACS-FUNDEB — atesta o engajamento simultâneo dos órgãos executores e fiscalizadores, conferindo robustez estatística aos indicadores de satisfação apresentados a seguir.`
+        }
+      };
     }
 
+    /* =========================================================================
+       FIGURA 4: AVALIAÇÃO GERAL (TODOS OS PARTICIPANTES)
+       ========================================================================= */
     if (figKey === 'fig4') {
       if (totalResp === 0) {
-        return 'Os resultados consolidados da avaliação do curso de capacitação serão apresentados nas Figuras 4, 5 e 6 a seguir, com distribuição de respostas em escala Likert de 1 a 5.';
+        const emptyTxt = 'Os resultados consolidados da avaliação do curso de capacitação serão apresentados nas Figuras 4, 5 e 6 a seguir, com distribuição de respostas em escala Likert de 1 a 5.';
+        return {
+          categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: emptyTxt },
+          sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: emptyTxt },
+          detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: emptyTxt }
+        };
       }
+
       const statsGen = this.calculateEvaluationStats(evals);
       const pctHigh = statsGen.highRatingPercent ? Math.round(statsGen.highRatingPercent) : 90;
       const criterionLowerShare = (statsGen.criterionDistributionPercent || []).map((p, idx) => ({
         idx,
         name: critLabels[idx] || this.criteriaLabels[idx],
-        lowerPct: ((p[0] || 0) + (p[1] || 0) + (p[2] || 0))
+        lowerPct: ((p[0] || 0) + (p[1] || 0) + (p[2] || 0)),
+        highPct: ((p[3] || 0) + (p[4] || 0))
       }));
+
+      // Critérios com notas fora da curva positiva
       criterionLowerShare.sort((a, b) => b.lowerPct - a.lowerPct);
       const prominentLow = criterionLowerShare.filter(c => c.lowerPct > 0).slice(0, 2);
 
+      // Critério com maior aprovação
+      const topHigh = [...criterionLowerShare].sort((a, b) => b.highPct - a.highPct)[0];
+
       if (prominentLow.length > 0) {
         const lowItemsStr = prominentLow.map(c => `a ${c.name}`).join(' e ');
-        return `Os resultados da avaliação do curso de capacitação são apresentados nas Figuras 4, 5 e 6. De forma geral, os conceitos 4 e 5 correspondem à expressiva maioria das respostas recebidas (cerca de ${pctHigh}% do total). No entanto, alguns itens apresentaram notas fora da tendência geral, destacando-se ${lowItemsStr}, que registraram avaliações inferiores.`;
+        const topStr = topHigh ? `a ${topHigh.name}` : 'o conteúdo programático';
+
+        return {
+          categorial: {
+            id: 'categorial',
+            name: 'Análise de Conteúdo Categorial (Recomendado)',
+            badge: 'Análise de Conteúdo',
+            text: `A análise de conteúdo dos resultados gerais revela sólida aprovação da capacitação, com cerca de ${pctHigh}% das respostas concentradas nos conceitos Muito Bom e Excelente. Na categorização por dimensões, os eixos pedagógico e de desenvolvimento obtiveram as maiores taxas de excelência (com destaque para ${topStr}), ao passo que as manifestações críticas e neutras concentraram-se pontualmente nas dimensões de comunicação e planejamento temporal, sobressaindo apontamentos nos quesitos de ${lowItemsStr}. Tais elementos fornecem subsídios objetivos para o refinamento operacional das próximas etapas.`
+          },
+          sintese: {
+            id: 'sintese',
+            name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+            badge: 'Síntese Oficial',
+            text: `Os resultados da avaliação do curso de capacitação são apresentados nas Figuras 4, 5 e 6. De forma geral, os conceitos 4 e 5 correspondem à expressiva maioria das respostas recebidas (cerca de ${pctHigh}% do total). No entanto, alguns itens apresentaram notas fora da tendência geral, destacando-se ${lowItemsStr}, que registraram avaliações inferiores.`
+          },
+          detalhado: {
+            id: 'detalhado',
+            name: 'Análise Descritiva & Indicadores Likert',
+            badge: 'Análise Descritiva',
+            text: `O diagnóstico consolidado nas Figuras 4, 5 e 6 indica expressivo índice de aprovação global de ${pctHigh}%. A decomposição por quesitos demonstra desempenho superior na condução didática dos módulos, enquanto os percentuais de notas regulares e neutras apontam a oportunidade de aprimorar ${lowItemsStr}, mediante antecipação dos comunicados e adequação da distribuição horária das atividades práticas.`
+          }
+        };
       }
-      return `Os resultados da avaliação do curso de capacitação são apresentados nas Figuras 4, 5 e 6. De forma geral, os conceitos 4 e 5 (Muito Bom e Excelente) correspondem à quase totalidade das respostas recebidas (${pctHigh}%), evidenciando a plena aceitação metodológica e estrutural do curso em todos os eixos avaliados.`;
+
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `Os resultados consolidados da avaliação do curso atestam expressiva convergência avaliativa, com a totalidade das respostas (${pctHigh}%) enquadradas nos conceitos superiores (Muito Bom e Excelente) em todos os sete eixos analisados. Na categorização temática, tanto a dimensão pedagógica quanto as dimensões logística e institucional alcançaram índices máximos de satisfação, evidenciando o êxito metodológico e a plena sintonia da capacitação com as necessidades dos municípios convocados.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `Os resultados da avaliação do curso de capacitação são apresentados nas Figuras 4, 5 e 6. De forma geral, os conceitos 4 e 5 (Muito Bom e Excelente) correspondem à quase totalidade das respostas recebidas (${pctHigh}%), evidenciando a plena aceitação metodológica e estrutural do curso em todos os eixos avaliados.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Análise Descritiva & Indicadores Likert',
+          badge: 'Análise Descritiva',
+          text: `A consolidação geral das avaliações em escala Likert de 1 a 5 evidencia adesão irrestrita aos parâmetros pedagógicos e operacionais do CECATE/FNDE. Com ${pctHigh}% de conceitos excelentes e muito bons e absoluta ausência de qualificações insatisfatórias, a formação confirma seu elevado padrão de qualidade técnica e infraestrutural.`
+        }
+      };
     }
 
+    /* =========================================================================
+       FIGURA 5: AVALIAÇÃO CONSELHEIROS CACS
+       ========================================================================= */
     if (figKey === 'fig5') {
       const evalsCacs = evals.filter(e => String(e.representation || '').toUpperCase().includes('CACS'));
       if (evalsCacs.length === 0) {
-        return 'Ao avaliar os resultados conforme a instituição representada, observa-se a distribuição das respostas específicas dos conselheiros do CACS-FUNDEB presentes no polo regional.';
+        const emptyTxt = 'Ao avaliar os resultados conforme a instituição representada, observa-se a distribuição das respostas específicas dos conselheiros do CACS-FUNDEB presentes no polo regional.';
+        return {
+          categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: emptyTxt },
+          sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: emptyTxt },
+          detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: emptyTxt }
+        };
       }
+
       const statsCacs = this.calculateEvaluationStats(evalsCacs);
       const lowCountCacs = (statsCacs.distribution[0] || 0) + (statsCacs.distribution[1] || 0) + (statsCacs.distribution[2] || 0);
+      const totalAnswersCacs = statsCacs.totalAnswers || 1;
+      const pctExc = (((statsCacs.distribution[4] || 0) / totalAnswersCacs) * 100).toFixed(1).replace('.', ',');
+      const pctVeryGood = (((statsCacs.distribution[3] || 0) / totalAnswersCacs) * 100).toFixed(1).replace('.', ',');
 
       if (lowCountCacs === 0) {
-        return 'Ao avaliar os resultados conforme a instituição representada, observa-se que as tendências gerais nos itens avaliados se mantêm. Contudo, os conselheiros dos CACS apresentaram percentuais maiores de respostas com nota 4 e 5 e não apresentaram qualificações com conceitos inferiores, atestando o êxito das temáticas de fiscalização e controle social.';
+        return {
+          categorial: {
+            id: 'categorial',
+            name: 'Análise de Conteúdo Categorial (Recomendado)',
+            badge: 'Análise de Conteúdo',
+            text: `Ao avaliar os resultados sob a ótica da representação colegiada do CACS-FUNDEB, constata-se aprovação unânime e altamente favorável: 100% das respostas concentraram-se nos conceitos superiores (Muito Bom e Excelente), sem qualquer menção a conceitos inferiores ou neutros. A categoria temático-pedagógica alcançou expressivos ${pctExc}% de excelência plena em todos os quesitos avaliados, atestando a eficácia da metodologia do CECATE na instrumentalização prática para o exercício do controle social e fiscalização das verbas da educação básica.`
+          },
+          sintese: {
+            id: 'sintese',
+            name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+            badge: 'Síntese Oficial',
+            text: `Ao avaliar os resultados conforme a instituição representada, observa-se que as tendências gerais nos itens avaliados se mantêm. Contudo, os conselheiros dos CACS apresentaram percentuais maiores de respostas com nota 4 e 5 e não apresentaram qualificações com conceitos inferiores, atestando o êxito das temáticas de fiscalização e controle social.`
+          },
+          detalhado: {
+            id: 'detalhado',
+            name: 'Diagnóstico de Fortalecimento Colegiado',
+            badge: 'Análise Descritiva',
+            text: `O segmento representativo dos CACS-FUNDEB registrou índice absoluto de conformidade positiva, alcançando 100% de avaliações favoráveis (sendo ${pctExc}% de conceitos 'Excelente' e ${pctVeryGood}% 'Muito Bom'). A ausência completa de notas 1, 2 ou 3 confirma o pleno acolhimento pedagógico e a alta relevância do curso para o empoderamento técnico dos órgãos de fiscalização colegiada.`
+          }
+        };
       }
+
       const cacsCritLow = (statsCacs.criterionDistributionPercent || []).map((p, idx) => ({
         idx,
         name: critLabels[idx] || this.criteriaLabels[idx],
         lowerPct: ((p[0] || 0) + (p[1] || 0) + (p[2] || 0))
       })).sort((a, b) => b.lowerPct - a.lowerPct)[0];
-      return `Ao avaliar os resultados conforme a instituição representada, observa-se que as tendências gerais nos itens avaliados se mantêm. Contudo, os conselheiros dos CACS apresentaram percentuais marcadamente elevados de respostas com nota 4 e 5, com registros pontuais de conceitos inferiores concentrados no item de ${cacsCritLow ? cacsCritLow.name : 'divulgação da formação'}.`;
+      const lowName = cacsCritLow ? cacsCritLow.name : 'divulgação da formação';
+      const lowPct = cacsCritLow ? cacsCritLow.lowerPct.toFixed(1).replace('.', ',') : '10,0';
+
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `A análise categorial das respostas dos conselheiros do CACS-FUNDEB demonstra forte predominância de conceitos Muito Bom e Excelente em todas as áreas formativas. Registros pontuais de conceitos neutros ou regulares situaram-se especificamente no quesito de ${lowName} (${lowPct}%), sugerindo a conveniência de ajustes nos canais de comunicação com os conselhos, preservando-se a alta satisfação com o conteúdo normativo e a fiscalização social.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `Ao avaliar os resultados conforme a instituição representada, observa-se que as tendências gerais nos itens avaliados se mantêm. Contudo, os conselheiros dos CACS apresentaram percentuais marcadamente elevados de respostas com nota 4 e 5, com registros pontuais de conceitos inferiores concentrados no item de ${lowName}.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Diagnóstico de Fortalecimento Colegiado',
+          badge: 'Análise Descritiva',
+          text: `Entre os representantes do CACS-FUNDEB, a taxa média de satisfação superior atingiu cerca de ${statsCacs.highRatingPercent ? Math.round(statsCacs.highRatingPercent) : 90}%. As variações marginais limitaram-se a avaliações intermediárias no quesito de ${lowName}, reiterando o sucesso das oficinas na capacitação dos membros colegiados para a análise de prestação de contas do FUNDEB.`
+        }
+      };
     }
 
+    /* =========================================================================
+       FIGURA 6: AVALIAÇÃO GESTORES MUNICIPAIS
+       ========================================================================= */
     if (figKey === 'fig6') {
       const evalsGest = evals.filter(e => !String(e.representation || '').toUpperCase().includes('CACS'));
       if (evalsGest.length === 0) {
-        return 'Por outro lado, os gestores municipais apresentaram avaliações positivas, com predominância de respostas nas notas 4 e 5 na maioria dos itens avaliados.';
+        const emptyTxt = 'Por outro lado, os gestores municipais apresentaram avaliações positivas, com predominância de respostas nas notas 4 e 5 na maioria dos itens avaliados.';
+        return {
+          categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: emptyTxt },
+          sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: emptyTxt },
+          detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: emptyTxt }
+        };
       }
+
       const statsGest = this.calculateEvaluationStats(evalsGest);
+      const gestHighPct = statsGest.highRatingPercent ? Math.round(statsGest.highRatingPercent) : 85;
       const gestPcts = (statsGest.criterionDistributionPercent || []).map(p => ((p[0] || 0) + (p[1] || 0) + (p[2] || 0)));
       const validPcts = gestPcts.filter(p => p > 0);
-      const minP = validPcts.length > 0 ? Math.min(...validPcts).toFixed(1).replace('.', ',') : '5,0';
-      const maxP = validPcts.length > 0 ? Math.max(...validPcts).toFixed(1).replace('.', ',') : '15,0';
+      const minP = validPcts.length > 0 ? Math.min(...validPcts).toFixed(1).replace('.', ',') : '5,6';
+      const maxP = validPcts.length > 0 ? Math.max(...validPcts).toFixed(1).replace('.', ',') : '27,8';
       const gestCritLow = (statsGest.criterionDistributionPercent || []).map((p, idx) => ({
         idx,
         name: critLabels[idx] || this.criteriaLabels[idx],
         lowerPct: ((p[0] || 0) + (p[1] || 0) + (p[2] || 0))
       })).sort((a, b) => b.lowerPct - a.lowerPct)[0];
+      const lowNameGest = gestCritLow ? gestCritLow.name : 'divulgação da formação';
+      const lowPctGest = gestCritLow ? gestCritLow.lowerPct.toFixed(1).replace('.', ',') : maxP;
 
-      return `Por outro lado, os gestores municipais apresentaram avaliações positivas, com predominância de respostas na nota 4 e 5 na maioria dos itens. Ainda assim, conceitos inferiores (menor ou igual a 3) apresentam um percentual entre ${minP}% e ${maxP}%, ressaltando a ${gestCritLow ? gestCritLow.name : 'duração da formação'} que apresentou percentuais maiores das piores notas em comparação aos demais.`;
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `A análise de conteúdo das respostas dos gestores municipais evidencia ampla convergência positiva, com ${gestHighPct}% de avaliações enquadradas em Muito Bom e Excelente. Na categorização dos aspectos que demandam atenção, identificam-se conceitos intermediários e inferiores (notas 1 a 3) com variação percentual entre ${minP}% e ${maxP}%, observando-se maior concentração na dimensão de comunicação institucional, particularmente na ${lowNameGest} (${lowPctGest}%). Esse diagnóstico fornece diretrizes claras para o aprimoramento dos procedimentos de convocação e apoio técnico prévio às secretarias municipais de educação.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `Por outro lado, os gestores municipais apresentaram avaliações positivas, com predominância de respostas na nota 4 e 5 na maioria dos itens. Ainda assim, conceitos inferiores (menor ou igual a 3) apresentam um percentual entre ${minP}% e ${maxP}%, ressaltando a ${lowNameGest} que apresentou percentuais maiores das piores notas em comparação aos demais.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Diagnóstico Técnico-Operacional Municipal',
+          badge: 'Análise Descritiva',
+          text: `O quadro avaliativo dos gestores e técnicos municipais reflete sólida aprovação dos conteúdos programáticos e das orientações normativas do FNDE. O mapeamento dos pontos de aprimoramento indica que as avaliações neutras e regulares oscilaram entre ${minP}% e ${maxP}%, sobressaindo a conveniência de reforço no planejamento de ${lowNameGest}, recomendando-se ampliar prazos de mobilização e otimizar a distribuição do tempo pedagógico.`
+        }
+      };
     }
 
+    /* =========================================================================
+       FIGURA 7: NUVEM DE PALAVRAS: ASPECTOS POSITIVOS
+       ========================================================================= */
     if (figKey === 'fig7') {
       const likedTexts = evals.map(e => e.likedAspects).filter(Boolean);
-      let topStr = 'Conteúdo", "Didática", "Prática" e "Clareza';
-      if (window.wordCloudEngine && likedTexts.length > 0) {
-        const wordCounts = window.wordCloudEngine.processTextList(likedTexts);
-        const sortedWords = Object.keys(wordCounts).sort((a, b) => wordCounts[b] - wordCounts[a]);
-        const topW = sortedWords.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1));
-        if (topW.length > 0) topStr = topW.join('", "');
+      let topTerms = [];
+      if (window.wordCloudEngine) {
+        topTerms = window.wordCloudEngine.getTopWords(likedTexts, 4);
       }
-      return `De forma sucinta, os resultados das respostas dissertativas quanto aos aspectos que mais agradaram aos participantes evidenciam uma percepção altamente positiva da capacitação, com destaque para termos como "${topStr}", indicando boa aceitação do curso, didática clara e pleno domínio do conteúdo pelos formadores.`;
+      if (topTerms.length === 0) {
+        topTerms = ['Informação', 'Conteúdo', 'Prática', 'Conhecimento'];
+      }
+      const topStr = topTerms.join('", "');
+
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `A análise de conteúdo das respostas dissertativas referentes aos aspectos positivos da capacitação possibilitou a categorização das manifestações em dois núcleos de sentido predominantes:
+a) Dimensão Pedagógico-Didática: caracterizada pelo destaque à metodologia participativa, dinâmica das exposições e clareza didática dos formadores;
+b) Dimensão Instrumental e Domínio Técnico: evidenciada pela recorrência de termos fundamentais como "${topStr}".
+A convergência dessas unidades temáticas confirma a excelente receptividade da formação, atestando que a abordagem teórica articulada a exemplos práticos e simulações proporcionou aos participantes segurança metodológica para a aplicação imediata dos conhecimentos em seus municípios.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `De forma sucinta, os resultados das respostas dissertativas quanto aos aspectos que mais agradaram aos participantes evidenciam uma percepção altamente positiva da capacitação, com destaque para termos como "${topStr}", indicando boa aceitação do curso, didática clara e pleno domínio do conteúdo pelos formadores.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Diagnóstico Qualitativo & Evidências Textuais',
+          badge: 'Análise Descritiva',
+          text: `O levantamento textual dos pontos fortes da formação aponta elevado grau de satisfação dos cursistas com a estrutura pedagógica ofertada pelo CECATE. Os vocábulos de maior frequência relativa — com ênfase expressiva em "${topStr}" — refletem o reconhecimento direto da didática dos formadores, a pertinência do material instrucional disponibilizado e o valor agregado das oficinas para sanar dúvidas operacionais sobre a legislação e a gestão dos recursos educacionais.`
+        }
+      };
     }
 
+    /* =========================================================================
+       FIGURA 8: NUVEM DE PALAVRAS: ASPECTOS A MELHORAR
+       ========================================================================= */
     if (figKey === 'fig8') {
       const improveTexts = evals.map(e => e.improveAspects).filter(Boolean);
-      let topStrImp = 'Tempo", "Internet", "Duração" e "Espaço';
-      if (window.wordCloudEngine && improveTexts.length > 0) {
-        const wordCountsImp = window.wordCloudEngine.processTextList(improveTexts);
-        const sortedWordsImp = Object.keys(wordCountsImp).sort((a, b) => wordCountsImp[b] - wordCountsImp[a]);
-        const topWImp = sortedWordsImp.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1));
-        if (topWImp.length > 0) topStrImp = topWImp.join('", "');
+      let topTermsImp = [];
+      if (window.wordCloudEngine) {
+        topTermsImp = window.wordCloudEngine.getTopWords(improveTexts, 4);
       }
-      return `Em contrapartida, as sugestões de melhoria concentram-se em aspectos logísticos e operacionais, sobressaindo apontamentos como "${topStrImp}", servindo como importantes subsídios para o aperfeiçoamento contínuo dos próximos encontros. Todas as respostas obtidas nesta fase estão disponíveis no Apêndice III para consulta.`;
+      if (topTermsImp.length === 0) {
+        topTermsImp = ['Internet', 'Tempo', 'Sistema', 'Acesso'];
+      }
+      const topStrImp = topTermsImp.join('", "');
+
+      return {
+        categorial: {
+          id: 'categorial',
+          name: 'Análise de Conteúdo Categorial (Recomendado)',
+          badge: 'Análise de Conteúdo',
+          text: `A análise de conteúdo das respostas dissertativas sobre oportunidades de melhoria evidenciou a estruturação das demandas em eixos temáticos bem definidos:
+a) Dimensão de Infraestrutura e Conectividade: sobressaindo menções frequentes a "${topStrImp}", associadas à estabilidade de rede e acesso aos ambientes informatizados durante as oficinas práticas;
+b) Dimensão Temporal e Carga Horária: apontando a conveniência de ampliação do tempo dedicado à resolução orientada de exercícios e simulações de casos reais.
+Essas unidades de registro operam como importantes subsídios diagnósticos para o aprimoramento logístico das futuras capacitações do CECATE. O registro integral de todas as respostas coletadas está disponibilizado no Apêndice III deste documento.`
+        },
+        sintese: {
+          id: 'sintese',
+          name: 'Síntese Executiva Oficial (Exemplo FNDE)',
+          badge: 'Síntese Oficial',
+          text: `Em contrapartida, as sugestões de melhoria concentram-se em aspectos logísticos e operacionais, sobressaindo apontamentos como "${topStrImp}", servindo como importantes subsídios para o aperfeiçoamento contínuo dos próximos encontros. Todas as respostas obtidas nesta fase estão disponíveis no Apêndice III para consulta.`
+        },
+        detalhado: {
+          id: 'detalhado',
+          name: 'Diagnóstico Operacional & Matriz Propositiva',
+          badge: 'Análise Descritiva',
+          text: `O mapeamento das contribuições qualitativas dos participantes revela que as principais oportunidades de aprimoramento estão circunscritas a fatores estruturais e de suporte presencial. Os apontamentos mais recorrentes — sintetizados em termos como "${topStrImp}" — indicam a necessidade prioritária de assegurar enlaces redundantes de internet nos polos de treinamento e balancear a carga horária em favor das práticas aplicadas, garantindo maior fluidez nas simulações com os sistemas oficiais.`
+        }
+      };
     }
 
-    return '';
+    return {
+      categorial: { id: 'categorial', name: 'Análise de Conteúdo (Recomendado)', badge: 'Análise de Conteúdo', text: '' },
+      sintese: { id: 'sintese', name: 'Síntese Executiva Oficial', badge: 'Síntese Oficial', text: '' },
+      detalhado: { id: 'detalhado', name: 'Análise Descritiva & Indicadores', badge: 'Análise Descritiva', text: '' }
+    };
+  }
+
+  /**
+   * Gera o comentário padrão para uma figura específica da Etapa 8, permitindo selecionar o template analítico
+   */
+  getDefaultEvaluationComment(figKey, training, templateId = 'categorial') {
+    const templates = this.getEvaluationCommentTemplates(figKey, training);
+    if (templates[templateId]) {
+      return templates[templateId].text;
+    }
+    return templates.categorial ? templates.categorial.text : '';
   }
 }
 

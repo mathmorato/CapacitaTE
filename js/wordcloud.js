@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Nuvens de Palavras Qualitativas
- * Versão: v.3.4.1
+ * Versão: v.3.4.2
  */
 
 class WordCloudEngine {
@@ -116,6 +116,64 @@ class WordCloudEngine {
     return Object.entries(wordCounts)
       .map(([text, count]) => ({ text, count }))
       .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * Retorna os termos mais frequentes formatados (capitalizados) para uso em textos e análises
+   */
+  getTopWords(texts = [], limit = 4) {
+    const list = this.processTextList(texts);
+    // Filtrar quaisquer termos numéricos ou inválidos
+    const filtered = list.filter(item => {
+      const t = String(item.text || '').trim();
+      return t.length >= 3 && !/^\d+$/.test(t);
+    });
+    return filtered.slice(0, limit).map(item => {
+      const raw = String(item.text).trim();
+      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    });
+  }
+
+  /**
+   * Agrupa termos qualitativos em macrocategorias temáticas para Análise de Conteúdo (Bardin)
+   */
+  categorizeTextResponses(texts = [], type = 'positive') {
+    const wordList = this.processTextList(texts);
+    const topTerms = this.getTopWords(texts, 6);
+
+    const categories = {
+      pedagogica: { name: 'Pedagógica e Didática', count: 0, terms: [] },
+      tecnica: { name: 'Instrumental e Conteúdo Técnico', count: 0, terms: [] },
+      tecnologica: { name: 'Infraestrutura Tecnológica e Conectividade', count: 0, terms: [] },
+      temporal: { name: 'Gestão do Tempo e Carga Horária', count: 0, terms: [] },
+      logistica: { name: 'Logística, Acomodação e Conforto', count: 0, terms: [] }
+    };
+
+    const dict = {
+      pedagogica: ['didática', 'didatica', 'explicação', 'explicacao', 'clareza', 'paciência', 'paciencia', 'dinâmica', 'dinamica', 'formadores', 'formador', 'palestrantes', 'palestrante', 'domínio', 'dominio', 'metodologia', 'ensino', 'atendimento', 'acolhimento'],
+      tecnica: ['conteúdo', 'conteudo', 'prática', 'pratica', 'informação', 'informacao', 'conhecimento', 'sistema', 'legislação', 'legislacao', 'fundeb', 'siope', 'fiscalização', 'fiscalizacao', 'prestação', 'prestacao', 'contas', 'conselho', 'conselhos', 'cacs', 'atuação'],
+      tecnologica: ['internet', 'computador', 'computadores', 'acesso', 'rede', 'conexão', 'conexao', 'sinal', 'máquinas', 'maquinas', 'lento', 'travando', 'login', 'senha', 'equipamento', 'equipamentos', 'sistema'],
+      temporal: ['tempo', 'duração', 'duracao', 'horário', 'horario', 'dias', 'horas', 'corrido', 'pressa', 'pouco', 'estender', 'intervalo', 'pausa'],
+      logistica: ['café', 'cafe', 'cafezinho', 'lanche', 'alimentação', 'alimentacao', 'almoço', 'almoco', 'local', 'espaço', 'espaco', 'sala', 'ar-condicionado', 'climatização', 'climatizacao', 'frio', 'calor', 'cadeira', 'cadeiras', 'transporte', 'distância', 'distancia', 'som', 'microfone']
+    };
+
+    wordList.forEach(item => {
+      const w = item.text.toLowerCase();
+      Object.entries(dict).forEach(([catKey, keys]) => {
+        if (keys.some(k => w.includes(k) || k.includes(w))) {
+          categories[catKey].count += item.count;
+          if (!categories[catKey].terms.includes(item.text)) {
+            categories[catKey].terms.push(item.text);
+          }
+        }
+      });
+    });
+
+    return {
+      topTerms,
+      categories,
+      wordList
+    };
   }
 
   /**

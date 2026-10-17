@@ -85,7 +85,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          v.3.4.1
+          v.3.4.2
         </div>
       </div>
     </aside>
@@ -1047,14 +1047,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig3" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 3 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig3-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig3')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig3-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig3-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig3', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Análise Descritiva & Amostral</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig3-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig3')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1079,14 +1087,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig4" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 4 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig4-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig4')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig4-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig4-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig4', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Análise Descritiva & Indicadores</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig4-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig4')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1111,14 +1127,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig5" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 5 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig5-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig5')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig5-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig5-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig5', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico de Fortalecimento Colegiado</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig5-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig5')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1143,14 +1167,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig6" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 6 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig6-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig6')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig6-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig6-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig6', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Técnico-Operacional Municipal</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig6-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig6')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1175,14 +1207,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig7" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 7 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig7-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig7')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig7-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig7-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig7', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Qualitativo & Evidências</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig7-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig7')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1207,14 +1247,22 @@
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
-                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
                         <label for="eval-comment-fig8" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
                           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           <span>Comentário da Figura 8 para o Relatório:</span>
                         </label>
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                          <span class="nav-badge" id="eval-comment-fig8-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão (Exemplo Oficial)</span>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig8')" title="Restaurar texto padrão dos relatórios de exemplo" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig8-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig8-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig8', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Operacional & Propostas</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig8-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig8')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
                             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                             Restaurar Padrão
                           </button>
@@ -1707,7 +1755,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.1 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.2 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1717,7 +1765,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.4.1</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.4.2</span>
         </div>
       </footer>
     </div>
