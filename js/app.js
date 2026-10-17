@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.0
+ * Versão: v.3.4.1
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.0';
+    this.version = 'v.3.4.1';
   }
 
   /**
@@ -6848,7 +6848,7 @@ class AutoReportApp {
             <div style="background:rgba(245, 158, 11, 0.05); border:1px solid var(--accent-amber-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
               <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.15rem;">Cruzamento Presença</div>
               <div style="font-size:1.15rem; font-weight:800; color:var(--text-primary);">${ipCount} <span style="font-size:0.75rem; font-weight:600; color:var(--accent-emerald-text);">(${ipPercent}%)</span></div>
-              <div style="font-size:0.72rem; color:var(--text-muted);">${apCount} apenas presentes</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">${apCount} presentes sem inscrição</div>
             </div>
 
             <div style="background:rgba(99, 102, 241, 0.05); border:1px solid rgba(99, 102, 241, 0.25); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
@@ -6886,12 +6886,12 @@ class AutoReportApp {
       const isUnmappedVinculo = !p.representation;
       const isRowIncomplete = isUnmappedMun || isUnmappedVinculo;
 
-      // Status simplificado com siglas AP, AI, IP mantendo as cores
-      let statusBadge = `<span class="nav-badge badge-emerald" style="font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Inscrito e Presente"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>IP</span>`;
+      // Status unificado e descritivo com cores e ícones de linha
+      let statusBadge = `<span class="nav-badge badge-emerald" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Inscrito e Presente: realizou inscrição e compareceu ao evento (presença confirmada)"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Inscrito e Presente</span>`;
       if (p.status === 'Apenas Inscrito') {
-        statusBadge = `<span class="nav-badge badge-blue" style="font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Apenas Inscrito"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle></svg>AI</span>`;
+        statusBadge = `<span class="nav-badge badge-blue" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Apenas inscrito: realizou inscrição, porém não compareceu ao evento (ausente)"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Apenas inscrito</span>`;
       } else if (p.status === 'Apenas Presente') {
-        statusBadge = `<span class="nav-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--accent-amber-text); font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Apenas Presente"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle></svg>AP</span>`;
+        statusBadge = `<span class="nav-badge badge-amber" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Presente sem estar inscrito: compareceu ao evento, mas não realizou inscrição prévia"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Presente sem estar inscrito</span>`;
       }
 
       // Município: só pede para selecionar se não foi localizado na planilha
@@ -6950,19 +6950,31 @@ class AutoReportApp {
             <span style="font-size:0.85rem; color:var(--text-secondary);">
               Exibindo <strong>${consolidatedList.length}</strong> participantes (Inscritos: <strong>${regList.length}</strong> | Presentes: <strong>${attList.length}</strong>):
             </span>
-            <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(148, 163, 184, 0.08); padding:0.35rem 0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
-              <span style="font-weight:700; color:var(--text-primary);">Legenda:</span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--accent-amber-text); font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">AP</span>
-                <span>Apenas presente inscrito</span>
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(148, 163, 184, 0.08); padding:0.4rem 0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+              <span style="font-weight:700; color:var(--text-primary); display:inline-flex; align-items:center; gap:0.35rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Legenda:
               </span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge badge-blue" style="font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">AI</span>
-                <span>Apenas inscrito</span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Inscrito e Presente: participante realizou a inscrição e compareceu ao evento (presença confirmada)">
+                <span class="nav-badge badge-emerald" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Inscrito e Presente
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${ipCount})</span>
               </span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge badge-emerald" style="font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">IP</span>
-                <span>Inscrito e Presente</span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Presente sem estar inscrito: compareceu presencialmente ao evento sem inscrição prévia">
+                <span class="nav-badge badge-amber" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  Presente sem estar inscrito
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${apCount})</span>
+              </span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Apenas inscrito: realizou inscrição, porém não compareceu ao evento (ausente)">
+                <span class="nav-badge badge-blue" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  Apenas inscrito
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${aiCount})</span>
               </span>
             </div>
           </div>
@@ -6982,7 +6994,7 @@ class AutoReportApp {
                       <span class="sort-icon-badge">${this.getAttendanceSortIcon('cpf')}</span>
                     </div>
                   </th>
-                  <th class="th-sortable" onclick="app.sortAttendanceTable('status')" style="cursor:pointer; user-select:none; width:95px; text-align:center;" title="Clique para classificar por Status">
+                  <th class="th-sortable" onclick="app.sortAttendanceTable('status')" style="cursor:pointer; user-select:none; min-width:190px; text-align:center;" title="Clique para classificar por Status">
                     <div style="display:inline-flex; align-items:center; justify-content:center; gap:0.45rem;">
                       <span>Status</span>
                       <span class="sort-icon-badge">${this.getAttendanceSortIcon('status')}</span>
