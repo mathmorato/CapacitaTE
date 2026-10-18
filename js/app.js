@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.4
+ * Versão: v.3.4.5
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.4';
+    this.version = 'v.3.4.5';
   }
 
   /**
@@ -7151,6 +7151,7 @@ class AutoReportApp {
     }
 
     this.renderFigureComments();
+    this.renderWordCloudControls();
   }
 
   /**
@@ -7380,25 +7381,254 @@ class AutoReportApp {
           ctx8.restore();
         }
       }
+      this.renderWordCloudControls();
       return;
     }
 
     const likedTexts = evals.map(e => e.likedAspects).filter(Boolean);
     const improveTexts = evals.map(e => e.improveAspects).filter(Boolean);
 
+    const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+
     // Nuvem de Aspectos Positivos (Figura 7)
     const likedWords = window.wordCloudEngine.processTextList(likedTexts);
     const canvas7 = document.getElementById('wordcloud-fig7-canvas');
     if (canvas7) {
-      window.wordCloudEngine.renderToCanvas(canvas7, likedWords, { palette: 'positive', isDark, width: 550, height: 320 });
+      window.wordCloudEngine.renderToCanvas(canvas7, likedWords, { palette: 'positive', isDark, width: 650, height: 340, maxWords: 45, fontFamily: cloudFont });
     }
 
     // Nuvem de Aspectos a Melhorar (Figura 8)
     const improveWords = window.wordCloudEngine.processTextList(improveTexts);
     const canvas8 = document.getElementById('wordcloud-fig8-canvas');
     if (canvas8) {
-      window.wordCloudEngine.renderToCanvas(canvas8, improveWords, { palette: 'improve', isDark, width: 550, height: 320 });
+      window.wordCloudEngine.renderToCanvas(canvas8, improveWords, { palette: 'improve', isDark, width: 650, height: 340, maxWords: 45, fontFamily: cloudFont });
     }
+
+    this.renderWordCloudControls();
+  }
+
+  /**
+   * Renderiza os controles de tipografia, títulos e fontes das Figuras 7 e 8 (Nuvens de Palavras)
+   * mantendo a integridade do padrão institucional ABNT e suporte a personalização com restauração rápida.
+   */
+  renderWordCloudControls() {
+    if (!this.currentTraining) return;
+    const t = this.currentTraining;
+
+    // 1. Tipografia selecionada
+    const fontSelect = document.getElementById('wordcloud-font-select');
+    if (fontSelect) {
+      fontSelect.value = t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+    }
+
+    // 2. Figura 7 - Título
+    const fig7DefaultTitle = 'Aspectos que gostaram da capacitação.';
+    const fig7SavedTitle = (t.customWordCloudTitles && t.customWordCloudTitles.fig7) ? t.customWordCloudTitles.fig7.trim() : '';
+    const fig7CleanTitle = this.cleanFigureTitle(7, fig7SavedTitle || fig7DefaultTitle, fig7DefaultTitle);
+    const fig7IsCustomTitle = Boolean(fig7SavedTitle && fig7CleanTitle !== fig7DefaultTitle);
+    const fig7InputTitle = document.getElementById('wordcloud-title-fig7');
+    if (fig7InputTitle) fig7InputTitle.value = fig7CleanTitle;
+    const fig7TitleBadge = document.getElementById('wordcloud-fig7-title-badge');
+    if (fig7TitleBadge) {
+      fig7TitleBadge.textContent = fig7IsCustomTitle ? 'Personalizado' : 'Padrão Oficial';
+      fig7TitleBadge.className = fig7IsCustomTitle ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig7TitleRestoreBtn = document.getElementById('wordcloud-fig7-title-restore-btn');
+    if (fig7TitleRestoreBtn) {
+      fig7TitleRestoreBtn.style.display = fig7IsCustomTitle ? 'inline-flex' : 'none';
+    }
+    const fig7TitlePreview = document.getElementById('wordcloud-fig7-title-preview');
+    if (fig7TitlePreview) {
+      fig7TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(7, fig7CleanTitle)}</strong>`;
+    }
+
+    // 3. Figura 7 - Fonte
+    const fig7DefaultSource = 'Elaborada pelos autores.';
+    const fig7SavedSource = (t.customWordCloudSources && t.customWordCloudSources.fig7) ? t.customWordCloudSources.fig7.trim() : '';
+    const fig7CleanSource = this.cleanFigureSource(fig7SavedSource || fig7DefaultSource, fig7DefaultSource);
+    const fig7IsCustomSource = Boolean(fig7SavedSource && fig7CleanSource !== fig7DefaultSource);
+    const fig7InputSource = document.getElementById('wordcloud-source-fig7');
+    if (fig7InputSource) fig7InputSource.value = fig7CleanSource;
+    const fig7SourceBadge = document.getElementById('wordcloud-fig7-source-badge');
+    if (fig7SourceBadge) {
+      fig7SourceBadge.textContent = fig7IsCustomSource ? 'Personalizada' : 'Padrão Oficial';
+      fig7SourceBadge.className = fig7IsCustomSource ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig7SourceRestoreBtn = document.getElementById('wordcloud-fig7-source-restore-btn');
+    if (fig7SourceRestoreBtn) {
+      fig7SourceRestoreBtn.style.display = fig7IsCustomSource ? 'inline-flex' : 'none';
+    }
+    const fig7SourcePreview = document.getElementById('wordcloud-fig7-source-preview');
+    if (fig7SourcePreview) {
+      fig7SourcePreview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(fig7CleanSource)}</em>`;
+    }
+
+    // 4. Figura 8 - Título
+    const fig8DefaultTitle = 'Aspectos que devem melhorar da capacitação.';
+    const fig8SavedTitle = (t.customWordCloudTitles && t.customWordCloudTitles.fig8) ? t.customWordCloudTitles.fig8.trim() : '';
+    const fig8CleanTitle = this.cleanFigureTitle(8, fig8SavedTitle || fig8DefaultTitle, fig8DefaultTitle);
+    const fig8IsCustomTitle = Boolean(fig8SavedTitle && fig8CleanTitle !== fig8DefaultTitle);
+    const fig8InputTitle = document.getElementById('wordcloud-title-fig8');
+    if (fig8InputTitle) fig8InputTitle.value = fig8CleanTitle;
+    const fig8TitleBadge = document.getElementById('wordcloud-fig8-title-badge');
+    if (fig8TitleBadge) {
+      fig8TitleBadge.textContent = fig8IsCustomTitle ? 'Personalizado' : 'Padrão Oficial';
+      fig8TitleBadge.className = fig8IsCustomTitle ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig8TitleRestoreBtn = document.getElementById('wordcloud-fig8-title-restore-btn');
+    if (fig8TitleRestoreBtn) {
+      fig8TitleRestoreBtn.style.display = fig8IsCustomTitle ? 'inline-flex' : 'none';
+    }
+    const fig8TitlePreview = document.getElementById('wordcloud-fig8-title-preview');
+    if (fig8TitlePreview) {
+      fig8TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(8, fig8CleanTitle)}</strong>`;
+    }
+
+    // 5. Figura 8 - Fonte
+    const fig8DefaultSource = 'Elaborada pelos autores.';
+    const fig8SavedSource = (t.customWordCloudSources && t.customWordCloudSources.fig8) ? t.customWordCloudSources.fig8.trim() : '';
+    const fig8CleanSource = this.cleanFigureSource(fig8SavedSource || fig8DefaultSource, fig8DefaultSource);
+    const fig8IsCustomSource = Boolean(fig8SavedSource && fig8CleanSource !== fig8DefaultSource);
+    const fig8InputSource = document.getElementById('wordcloud-source-fig8');
+    if (fig8InputSource) fig8InputSource.value = fig8CleanSource;
+    const fig8SourceBadge = document.getElementById('wordcloud-fig8-source-badge');
+    if (fig8SourceBadge) {
+      fig8SourceBadge.textContent = fig8IsCustomSource ? 'Personalizada' : 'Padrão Oficial';
+      fig8SourceBadge.className = fig8IsCustomSource ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig8SourceRestoreBtn = document.getElementById('wordcloud-fig8-source-restore-btn');
+    if (fig8SourceRestoreBtn) {
+      fig8SourceRestoreBtn.style.display = fig8IsCustomSource ? 'inline-flex' : 'none';
+    }
+    const fig8SourcePreview = document.getElementById('wordcloud-fig8-source-preview');
+    if (fig8SourcePreview) {
+      fig8SourcePreview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(fig8CleanSource)}</em>`;
+    }
+  }
+
+  handleWordCloudFontChange(fontName) {
+    if (!this.currentTraining) return;
+    const selected = fontName || 'Plus Jakarta Sans';
+    this.currentTraining.customWordCloudFont = selected;
+    this.currentTraining.wordCloudFontFamily = selected;
+    this.renderWordClouds();
+    this.autoSaveTraining();
+  }
+
+  restoreWordCloudFont() {
+    if (!this.currentTraining) return;
+    this.currentTraining.customWordCloudFont = 'Plus Jakarta Sans';
+    this.currentTraining.wordCloudFontFamily = 'Plus Jakarta Sans';
+    const fontSelect = document.getElementById('wordcloud-font-select');
+    if (fontSelect) fontSelect.value = 'Plus Jakarta Sans';
+    this.renderWordClouds();
+    this.autoSaveTraining();
+  }
+
+  handleWordCloudTitleInput(figKey, value) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudTitles) {
+      this.currentTraining.customWordCloudTitles = {};
+    }
+    const figNum = figKey === 'fig7' ? 7 : 8;
+    const defaultTitle = figKey === 'fig7' ? 'Aspectos que gostaram da capacitação.' : 'Aspectos que devem melhorar da capacitação.';
+    const clean = this.cleanFigureTitle(figNum, value, defaultTitle);
+    this.currentTraining.customWordCloudTitles[figKey] = clean;
+
+    const isCustom = clean !== defaultTitle;
+    const badge = document.getElementById(`wordcloud-${figKey}-title-badge`);
+    if (badge) {
+      badge.textContent = isCustom ? 'Personalizado' : 'Padrão Oficial';
+      badge.className = isCustom ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-title-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = isCustom ? 'inline-flex' : 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
+    if (preview) {
+      preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, clean)}</strong>`;
+    }
+    this.autoSaveTraining();
+  }
+
+  restoreWordCloudTitle(figKey) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudTitles) {
+      this.currentTraining.customWordCloudTitles = {};
+    }
+    const figNum = figKey === 'fig7' ? 7 : 8;
+    const defaultTitle = figKey === 'fig7' ? 'Aspectos que gostaram da capacitação.' : 'Aspectos que devem melhorar da capacitação.';
+    this.currentTraining.customWordCloudTitles[figKey] = defaultTitle;
+
+    const input = document.getElementById(`wordcloud-title-${figKey}`);
+    if (input) input.value = defaultTitle;
+    const badge = document.getElementById(`wordcloud-${figKey}-title-badge`);
+    if (badge) {
+      badge.textContent = 'Padrão Oficial';
+      badge.className = 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-title-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
+    if (preview) {
+      preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, defaultTitle)}</strong>`;
+    }
+    this.autoSaveTraining();
+  }
+
+  handleWordCloudSourceInput(figKey, value) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudSources) {
+      this.currentTraining.customWordCloudSources = {};
+    }
+    const defaultSource = 'Elaborada pelos autores.';
+    const clean = this.cleanFigureSource(value, defaultSource);
+    this.currentTraining.customWordCloudSources[figKey] = clean;
+
+    const isCustom = clean !== defaultSource;
+    const badge = document.getElementById(`wordcloud-${figKey}-source-badge`);
+    if (badge) {
+      badge.textContent = isCustom ? 'Personalizada' : 'Padrão Oficial';
+      badge.className = isCustom ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-source-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = isCustom ? 'inline-flex' : 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
+    if (preview) {
+      preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(clean)}</em>`;
+    }
+    this.autoSaveTraining();
+  }
+
+  restoreWordCloudSource(figKey) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudSources) {
+      this.currentTraining.customWordCloudSources = {};
+    }
+    const defaultSource = 'Elaborada pelos autores.';
+    this.currentTraining.customWordCloudSources[figKey] = defaultSource;
+
+    const input = document.getElementById(`wordcloud-source-${figKey}`);
+    if (input) input.value = defaultSource;
+    const badge = document.getElementById(`wordcloud-${figKey}-source-badge`);
+    if (badge) {
+      badge.textContent = 'Padrão Oficial';
+      badge.className = 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-source-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
+    if (preview) {
+      preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(defaultSource)}</em>`;
+    }
+    this.autoSaveTraining();
   }
 
   /* ==========================================================================
@@ -9118,6 +9348,29 @@ class AutoReportApp {
     const fig7Comment = (t.evaluationComments && t.evaluationComments.fig7) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', t) : '');
     const fig8Comment = (t.evaluationComments && t.evaluationComments.fig8) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', t) : '');
 
+    // Títulos e Fontes personalizáveis das Nuvens de Palavras (Figuras 7 e 8)
+    const fig7TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig7)
+      ? t.customWordCloudTitles.fig7.trim()
+      : 'Aspectos que gostaram da capacitação.';
+    const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
+    const fig7SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig7)
+      ? t.customWordCloudSources.fig7.trim()
+      : 'Elaborada pelos autores.';
+    const fig7Source = fig7SourceRaw.toLowerCase().startsWith('fonte:')
+      ? fig7SourceRaw
+      : `Fonte: ${fig7SourceRaw}${/[.!?]$/.test(fig7SourceRaw) ? '' : '.'}`;
+
+    const fig8TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig8)
+      ? t.customWordCloudTitles.fig8.trim()
+      : 'Aspectos que devem melhorar da capacitação.';
+    const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
+    const fig8SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig8)
+      ? t.customWordCloudSources.fig8.trim()
+      : 'Elaborada pelos autores.';
+    const fig8Source = fig8SourceRaw.toLowerCase().startsWith('fonte:')
+      ? fig8SourceRaw
+      : `Fonte: ${fig8SourceRaw}${/[.!?]$/.test(fig8SourceRaw) ? '' : '.'}`;
+
     // Tecnologias Educacionais (Figuras 1 e 2 e extras para o preview)
     const eduTech = t.educationalTech || {};
     const eduText = (eduTech.text && eduTech.text.trim()) ? eduTech.text.trim() :
@@ -9307,18 +9560,18 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig7Comment}</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin:2rem 0; page-break-inside:avoid;">
           <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">Figura 7. Aspectos que gostaram da capacitação.</p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${fig7Title}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig7Source}</p>
           </div>
           <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">Figura 8. Aspectos que devem melhorar da capacitação.</p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${fig8Title}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig8Source}</p>
           </div>
         </div>
         <p style="text-align:justify; line-height:1.6; margin-top:0.5rem; margin-bottom:1.5rem;">${fig8Comment}</p>
@@ -9407,6 +9660,7 @@ class AutoReportApp {
     if (window.wordCloudEngine) {
       const positiveTexts = evals.map(e => e.likedAspects || e.liked || '').filter(Boolean);
       const improveTexts = evals.map(e => e.improveAspects || e.improve || '').filter(Boolean);
+      const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
 
       const canvas7 = document.getElementById('report-preview-fig7-canvas');
       if (canvas7) {
@@ -9415,7 +9669,8 @@ class AutoReportApp {
           isDark, 
           width: 550, 
           height: 320, 
-          maxWords: 35 
+          maxWords: 35,
+          fontFamily: cloudFont
         });
       }
 
@@ -9426,7 +9681,8 @@ class AutoReportApp {
           isDark, 
           width: 550, 
           height: 320, 
-          maxWords: 35 
+          maxWords: 35,
+          fontFamily: cloudFont
         });
       }
     }

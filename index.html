@@ -85,7 +85,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          v.3.4.4
+          v.3.4.5
         </div>
       </div>
     </aside>
@@ -1199,11 +1199,103 @@
                     </div>
                   </div>
 
+                  <!-- BARRA DE CONFIGURAÇÃO TIPOGRÁFICA & ESTILO DAS NUVENS DE PALAVRAS -->
+                  <div class="glass-card" style="padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-left:4px solid var(--accent-purple);">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                      <div style="width:36px; height:36px; border-radius:var(--radius-md); background:rgba(139, 92, 246, 0.15); color:var(--accent-purple); display:flex; align-items:center; justify-content:center;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                      </div>
+                      <div>
+                        <div style="font-size:0.9rem; font-weight:700; color:var(--text-color);">Tipografia das Nuvens de Palavras</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Defina a fonte das palavras geradas nas Figuras 7 e 8</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                      <label for="wordcloud-font-select" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin:0;">Fonte Tipográfica:</label>
+                      <select id="wordcloud-font-select" class="form-control" onchange="app.handleWordCloudFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:210px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna - Padrão)</option>
+                        <option value="Times New Roman">Times New Roman (Institucional / ABNT)</option>
+                        <option value="Arial">Arial (Corporativa & Neutra)</option>
+                        <option value="Segoe UI">Segoe UI (Fluida & Nítida)</option>
+                        <option value="Georgia">Georgia (Editorial Elegante)</option>
+                        <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                        <option value="Impact">Impact (Destaque Forte)</option>
+                      </select>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreWordCloudFont()" title="Restaurar fonte padrão Plus Jakarta Sans" style="padding:0.35rem 0.65rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                        Padrão
+                      </button>
+                    </div>
+                  </div>
+
                   <!-- FIGURA 7 -->
                   <div class="glass-card" style="padding:1.25rem;">
-                    <h4 style="font-size:0.9rem; margin-bottom:0.75rem;">Figura 7. Nuvem de Palavras: Aspectos Positivos</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                      <h4 style="font-size:0.9rem; margin:0;" id="wordcloud-fig7-card-title">Figura 7. Nuvem de Palavras: Aspectos Positivos</h4>
+                    </div>
                     <div style="display:flex; justify-content:center; background:var(--bg-input); border-radius:var(--radius-md); padding:0.5rem;">
                       <canvas id="wordcloud-fig7-canvas" width="650" height="320" style="max-width:100%; height:auto;"></canvas>
+                    </div>
+
+                    <!-- TÍTULO E FONTE DA FIGURA 7 (PADRÃO OFICIAL COM PERSONALIZAÇÃO) -->
+                    <div style="margin-top:1rem; padding:0.85rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-color); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:0.75rem;">
+                      
+                      <!-- Título da Figura 7 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-title-fig7" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                            <span>Título da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig7-title-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig7-title-restore-btn" onclick="app.restoreWordCloudTitle('fig7')" title="Restaurar título padrão da Figura 7" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Figura 7.</span>
+                          <input type="text" id="wordcloud-title-fig7" class="form-control"
+                                 value="Aspectos que gostaram da capacitação."
+                                 placeholder="Aspectos que gostaram da capacitação."
+                                 oninput="app.handleWordCloudTitleInput('fig7', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig7-title-preview">
+                          Legenda no relatório: <strong>Figura 7. Aspectos que gostaram da capacitação.</strong>
+                        </div>
+                      </div>
+
+                      <!-- Fonte da Figura 7 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-source-fig7" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span>Fonte da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig7-source-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig7-source-restore-btn" onclick="app.restoreWordCloudSource('fig7')" title="Restaurar fonte padrão da Figura 7" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Fonte:</span>
+                          <input type="text" id="wordcloud-source-fig7" class="form-control"
+                                 value="Elaborada pelos autores."
+                                 placeholder="Ex: Elaborada pelos autores."
+                                 oninput="app.handleWordCloudSourceInput('fig7', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig7-source-preview">
+                          Fonte no relatório: <em>Fonte: Elaborada pelos autores.</em>
+                        </div>
+                      </div>
+
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
@@ -1241,9 +1333,72 @@
 
                   <!-- FIGURA 8 -->
                   <div class="glass-card" style="padding:1.25rem;">
-                    <h4 style="font-size:0.9rem; margin-bottom:0.75rem;">Figura 8. Nuvem de Palavras: Aspectos a Melhorar</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                      <h4 style="font-size:0.9rem; margin:0;" id="wordcloud-fig8-card-title">Figura 8. Nuvem de Palavras: Aspectos a Melhorar</h4>
+                    </div>
                     <div style="display:flex; justify-content:center; background:var(--bg-input); border-radius:var(--radius-md); padding:0.5rem;">
                       <canvas id="wordcloud-fig8-canvas" width="650" height="320" style="max-width:100%; height:auto;"></canvas>
+                    </div>
+
+                    <!-- TÍTULO E FONTE DA FIGURA 8 (PADRÃO OFICIAL COM PERSONALIZAÇÃO) -->
+                    <div style="margin-top:1rem; padding:0.85rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-color); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:0.75rem;">
+                      
+                      <!-- Título da Figura 8 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-title-fig8" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                            <span>Título da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig8-title-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig8-title-restore-btn" onclick="app.restoreWordCloudTitle('fig8')" title="Restaurar título padrão da Figura 8" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Figura 8.</span>
+                          <input type="text" id="wordcloud-title-fig8" class="form-control"
+                                 value="Aspectos que devem melhorar da capacitação."
+                                 placeholder="Aspectos que devem melhorar da capacitação."
+                                 oninput="app.handleWordCloudTitleInput('fig8', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig8-title-preview">
+                          Legenda no relatório: <strong>Figura 8. Aspectos que devem melhorar da capacitação.</strong>
+                        </div>
+                      </div>
+
+                      <!-- Fonte da Figura 8 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-source-fig8" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span>Fonte da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig8-source-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig8-source-restore-btn" onclick="app.restoreWordCloudSource('fig8')" title="Restaurar fonte padrão da Figura 8" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Fonte:</span>
+                          <input type="text" id="wordcloud-source-fig8" class="form-control"
+                                 value="Elaborada pelos autores."
+                                 placeholder="Ex: Elaborada pelos autores."
+                                 oninput="app.handleWordCloudSourceInput('fig8', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig8-source-preview">
+                          Fonte no relatório: <em>Fonte: Elaborada pelos autores.</em>
+                        </div>
+                      </div>
+
                     </div>
 
                     <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
@@ -1759,7 +1914,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.4 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.5 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1769,7 +1924,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.4.4</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.4.5</span>
         </div>
       </footer>
     </div>

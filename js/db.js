@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.4
+ * Versão: v.3.4.5
  */
 
 const SUPABASE_CONFIG = {
@@ -402,6 +402,9 @@ class TrainingDB {
       isCustomized: training.isCustomized === true,
       customPhotoTitles: training.customPhotoTitles || {},
       customPhotoSources: training.customPhotoSources || {},
+      customWordCloudTitles: training.customWordCloudTitles || {},
+      customWordCloudSources: training.customWordCloudSources || {},
+      wordCloudFontFamily: training.wordCloudFontFamily || 'Plus Jakarta Sans',
       team: team.sort((a, b) => (a.order || 0) - (b.order || 0)),
       municipalities: municipalities.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       courseModules: courseModules.sort((a, b) => (a.order || 0) - (b.order || 0)),
@@ -458,6 +461,9 @@ class TrainingDB {
       },
       customPhotoTitles: data.customPhotoTitles || {},
       customPhotoSources: data.customPhotoSources || {},
+      customWordCloudTitles: data.customWordCloudTitles || {},
+      customWordCloudSources: data.customWordCloudSources || {},
+      wordCloudFontFamily: data.wordCloudFontFamily || 'Plus Jakarta Sans',
       status: data.status || 'in_progress',
       progressPercent: data.progressPercent || 0,
       createdAt: data.createdAt || now,

@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.4
+ * Versão: v.3.4.5
  */
 
 class ReportDocxGenerator {
@@ -565,10 +565,18 @@ class ReportDocxGenerator {
       figuresList.push({ label: 'Figura 6. Avaliação da capacitação dos gestores municipais.', page: String(pFig6), bookmarkId: 'fig_6' });
     }
     if (pFig7 != null) {
-      figuresList.push({ label: 'Figura 7. Aspectos que gostaram da capacitação.', page: String(pFig7), bookmarkId: 'fig_7' });
+      const fig7TitleRaw = (training?.customWordCloudTitles && training.customWordCloudTitles.fig7)
+        ? training.customWordCloudTitles.fig7.trim()
+        : 'Aspectos que gostaram da capacitação.';
+      const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
+      figuresList.push({ label: fig7Title, page: String(pFig7), bookmarkId: 'fig_7' });
     }
     if (pFig8 != null) {
-      figuresList.push({ label: 'Figura 8. Aspectos que devem melhorar da capacitação.', page: String(pFig8), bookmarkId: 'fig_8' });
+      const fig8TitleRaw = (training?.customWordCloudTitles && training.customWordCloudTitles.fig8)
+        ? training.customWordCloudTitles.fig8.trim()
+        : 'Aspectos que devem melhorar da capacitação.';
+      const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
+      figuresList.push({ label: fig8Title, page: String(pFig8), bookmarkId: 'fig_8' });
     }
     photos.forEach((ph, idx) => {
       const cap = ph.caption || `Figura ${idx + 9}. Registro fotográfico oficial da capacitação.`;
@@ -2549,7 +2557,17 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig7) {
-        const fig7Nodes = this.createImageParagraph(chartsData.fig7, 480, 260, 'Figura 7. Aspectos que gostaram da capacitação.', docxDeps, 'fig_7');
+        const fig7TitleRaw = (training.customWordCloudTitles && training.customWordCloudTitles.fig7)
+          ? training.customWordCloudTitles.fig7.trim()
+          : 'Aspectos que gostaram da capacitação.';
+        const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
+        const fig7SourceRaw = (training.customWordCloudSources && training.customWordCloudSources.fig7)
+          ? training.customWordCloudSources.fig7.trim()
+          : 'Elaborada pelos autores.';
+        const fig7Source = fig7SourceRaw.toLowerCase().startsWith('fonte:')
+          ? fig7SourceRaw
+          : `Fonte: ${fig7SourceRaw}${/[.!?]$/.test(fig7SourceRaw) ? '' : '.'}`;
+        const fig7Nodes = this.createImageParagraph(chartsData.fig7, 480, 260, fig7Title, docxDeps, 'fig_7', fig7Source);
         if (fig7Nodes) docChildren.push(...fig7Nodes);
       }
 
@@ -2564,7 +2582,17 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig8) {
-        const fig8Nodes = this.createImageParagraph(chartsData.fig8, 480, 260, 'Figura 8. Aspectos que devem melhorar da capacitação.', docxDeps, 'fig_8');
+        const fig8TitleRaw = (training.customWordCloudTitles && training.customWordCloudTitles.fig8)
+          ? training.customWordCloudTitles.fig8.trim()
+          : 'Aspectos que devem melhorar da capacitação.';
+        const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
+        const fig8SourceRaw = (training.customWordCloudSources && training.customWordCloudSources.fig8)
+          ? training.customWordCloudSources.fig8.trim()
+          : 'Elaborada pelos autores.';
+        const fig8Source = fig8SourceRaw.toLowerCase().startsWith('fonte:')
+          ? fig8SourceRaw
+          : `Fonte: ${fig8SourceRaw}${/[.!?]$/.test(fig8SourceRaw) ? '' : '.'}`;
+        const fig8Nodes = this.createImageParagraph(chartsData.fig8, 480, 260, fig8Title, docxDeps, 'fig_8', fig8Source);
         if (fig8Nodes) docChildren.push(...fig8Nodes);
       }
 
