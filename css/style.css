@@ -4101,6 +4101,207 @@ body.light-theme .photo-source-addon.extra {
   color: #6d28d9;
 }
 
+/* ==========================================================================
+   ETAPA 10: APÊNDICES MULTI-DOCUMENTOS (LEITURA SEQUENCIAL)
+   ========================================================================== */
+.appendix-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.appendix-doc-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.appendix-doc-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.appendix-doc-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.appendix-seq-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.appendix-file-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.appendix-file-type-badge.pdf {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.appendix-file-type-badge.docx,
+.appendix-file-type-badge.doc {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.appendix-file-type-badge.image {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.appendix-file-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.appendix-file-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appendix-file-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.appendix-doc-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.appendix-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  padding: 0;
+}
+
+.appendix-btn-icon:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.appendix-btn-icon:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.appendix-btn-icon.delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Light Theme para Apêndices */
+body.light-theme .appendix-doc-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+body.light-theme .appendix-doc-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+body.light-theme .appendix-seq-badge {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+body.light-theme .appendix-file-type-badge.pdf {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+body.light-theme .appendix-file-type-badge.docx,
+body.light-theme .appendix-file-type-badge.doc {
+  background: #dbeafe;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+body.light-theme .appendix-file-type-badge.image {
+  background: #d1fae5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+body.light-theme .appendix-file-name {
+  color: #1e293b;
+}
+
+body.light-theme .appendix-btn-icon {
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+body.light-theme .appendix-btn-icon:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+body.light-theme .appendix-btn-icon.delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+
 
 
 
