@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.6
+ * Versão: v.3.4.5
  */
 
 const SUPABASE_CONFIG = {
@@ -617,8 +617,7 @@ class TrainingDB {
           source: med.source || (data.customPhotoSources && med.slotId && data.customPhotoSources[med.slotId] ? (data.customPhotoSources[med.slotId].toLowerCase().startsWith('fonte:') ? data.customPhotoSources[med.slotId].trim() : `Fonte: ${data.customPhotoSources[med.slotId].trim()}`) : 'Fonte: Elaborada pelos autores.'),
           fileName: med.fileName || `foto_${idx + 1}.jpg`,
           fileSize: med.fileSize || 0,
-          fileType: med.fileType || '',
-          pageImages: Array.isArray(med.pageImages) ? med.pageImages : []
+          fileType: med.fileType || ''
         });
       }
     }

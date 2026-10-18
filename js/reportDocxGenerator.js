@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.6
+ * Versão: v.3.4.5
  */
 
 class ReportDocxGenerator {
@@ -377,8 +377,8 @@ class ReportDocxGenerator {
     const munCount = (training?.municipalities || training?.municipios || []).length || 12;
     const modCount = (training?.courseModules || training?.modulos || []).length || 4;
     const photos = this.getOrderedPhotos(training);
-    const fndeDocs = (training?.media || []).filter(m => m.type === 'doc_fnde').sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
-    const cecateDocs = (training?.media || []).filter(m => m.type === 'doc_cecate').sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
+    const fndeDocs = (training?.media || []).filter(m => m.type === 'doc_fnde');
+    const cecateDocs = (training?.media || []).filter(m => m.type === 'doc_cecate');
 
     // 1. INTRODUÇÃO
     const pIntro = addElement(880, false);
@@ -485,12 +485,7 @@ class ReportDocxGenerator {
     if (currentDxa > 0) { page++; currentDxa = 0; }
     const pApendice1 = addElement(880, false);
     if (fndeDocs.length > 0) {
-      fndeDocs.forEach(d => {
-        const pagesCount = (d.pageImages && d.pageImages.length > 0) ? d.pageImages.length : 1;
-        for (let p = 0; p < pagesCount; p++) {
-          addElement(7500, false);
-        }
-      });
+      fndeDocs.forEach(() => addElement(7500, false));
     } else {
       addElement(350, true);
     }
@@ -498,12 +493,7 @@ class ReportDocxGenerator {
     if (currentDxa > 0) { page++; currentDxa = 0; }
     const pApendice2 = addElement(880, false);
     if (cecateDocs.length > 0) {
-      cecateDocs.forEach(d => {
-        const pagesCount = (d.pageImages && d.pageImages.length > 0) ? d.pageImages.length : 1;
-        for (let p = 0; p < pagesCount; p++) {
-          addElement(7500, false);
-        }
-      });
+      cecateDocs.forEach(() => addElement(7500, false));
     } else {
       addElement(350, true);
     }
@@ -2714,12 +2704,8 @@ class ReportDocxGenerator {
       );
 
       // APÊNDICES I E II
-      const fndeDocs = (training.media || [])
-        .filter(m => m.type === 'doc_fnde')
-        .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
-      const cecateDocs = (training.media || [])
-        .filter(m => m.type === 'doc_cecate')
-        .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
+      const fndeDocs = (training.media || []).filter(m => m.type === 'doc_fnde');
+      const cecateDocs = (training.media || []).filter(m => m.type === 'doc_cecate');
 
       // APÊNDICE I: CONVOCAÇÕES DO FNDE
       docChildren.push(
@@ -2749,16 +2735,15 @@ class ReportDocxGenerator {
           })
         );
       } else {
-        fndeDocs.forEach((d, docIdx) => {
+        fndeDocs.forEach((d) => {
           const pages = (d.pageImages && d.pageImages.length > 0) ? d.pageImages : (d.blob?.startsWith('data:image/') ? [d.blob] : []);
-          const docLabel = fndeDocs.length > 1 ? `Documento ${docIdx + 1}: ` : 'Documento: ';
           docChildren.push(
             new Paragraph({
-              spacing: { before: docIdx > 0 ? 320 : 200, after: 120 },
+              spacing: { before: 200, after: 100 },
               keepNext: true,
               keepLines: true,
               children: [
-                new TextRun({ text: `${docLabel}${d.fileName || d.caption || 'Ofício de Convocação FNDE'}`, bold: true, size: 22, color: '0F172A' })
+                new TextRun({ text: `Documento: ${d.fileName || d.caption || 'Ofício de Convocação FNDE'}`, bold: true, size: 22, color: '0F172A' })
               ]
             })
           );
@@ -2807,16 +2792,15 @@ class ReportDocxGenerator {
           })
         );
       } else {
-        cecateDocs.forEach((d, docIdx) => {
+        cecateDocs.forEach((d) => {
           const pages = (d.pageImages && d.pageImages.length > 0) ? d.pageImages : (d.blob?.startsWith('data:image/') ? [d.blob] : []);
-          const docLabel = cecateDocs.length > 1 ? `Documento ${docIdx + 1}: ` : 'Documento: ';
           docChildren.push(
             new Paragraph({
-              spacing: { before: docIdx > 0 ? 320 : 200, after: 120 },
+              spacing: { before: 200, after: 100 },
               keepNext: true,
               keepLines: true,
               children: [
-                new TextRun({ text: `${docLabel}${d.fileName || d.caption || 'Convocação CECATE-CO'}`, bold: true, size: 22, color: '0F172A' })
+                new TextRun({ text: `Documento: ${d.fileName || d.caption || 'Convocação CECATE-CO'}`, bold: true, size: 22, color: '0F172A' })
               ]
             })
           );

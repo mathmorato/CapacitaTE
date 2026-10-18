@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.6
+ * Versão: v.3.4.5
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.6';
+    this.version = 'v.3.4.5';
   }
 
   /**
@@ -8630,75 +8630,25 @@ class AutoReportApp {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  renderAppendixItem(d, idx, total, type) {
-    const pageCount = (d.pageImages && d.pageImages.length > 0) ? d.pageImages.length : 1;
-    const pageBadge = `<span style="font-size:0.75rem; background:rgba(59,130,246,0.12); color:var(--accent-primary); border:1px solid rgba(59,130,246,0.25); border-radius:6px; padding:0.12rem 0.45rem; font-weight:600; display:inline-flex; align-items:center; gap:0.25rem;">
-      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-      ${pageCount} ${pageCount === 1 ? 'página' : 'páginas'}
-    </span>`;
-    const sizeStr = d.fileSize ? `<span style="font-size:0.75rem; color:var(--text-muted);">${this.formatFileSize(d.fileSize)}</span>` : '';
-
+  renderAppendixItem(d) {
     return `
-      <div class="appendix-file-item" style="display:flex; flex-direction:column; gap:0.55rem; background:var(--bg-surface); border:1px solid var(--border-color); padding:0.75rem 0.9rem; border-radius:var(--radius-sm); margin-top:0.4rem; transition:border-color 0.2s ease;">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-          <div style="display:inline-flex; align-items:center; gap:0.5rem; min-width:0; flex:1;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-primary); flex-shrink:0;">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-            <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.fileName}">
-              ${total > 1 ? `<span style="color:var(--accent-primary); font-weight:700;">Doc ${idx + 1}:</span> ` : ''}${d.fileName}
-            </span>
-          </div>
-          <div style="display:inline-flex; align-items:center; gap:0.4rem;">
-            ${pageBadge}
-            ${sizeStr}
-          </div>
+      <div class="appendix-file-item" style="display:flex; flex-direction:column; gap:0.6rem; background:var(--bg-surface); border:1px solid var(--border-color); padding:0.75rem 0.9rem; border-radius:var(--radius-sm); margin-top:0.4rem;">
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; min-width:0; width:100%;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-secondary); flex-shrink:0;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.fileName}">
+            ${d.fileName}
+          </span>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; border-top:1px solid var(--border-color); padding-top:0.45rem;">
-          <div style="display:inline-flex; align-items:center; gap:0.35rem;">
-            ${total > 1 ? `
-              <button type="button" class="btn btn-secondary btn-sm" onclick="app.moveAppendixDoc('${d.id}', -1)" ${idx === 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''} style="padding:0.2rem 0.45rem; font-size:0.75rem;" title="Mover para cima (anteceder)">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="app.moveAppendixDoc('${d.id}', 1)" ${idx === total - 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''} style="padding:0.2rem 0.45rem; font-size:0.75rem;" title="Mover para baixo (suceder)">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </button>
-            ` : ''}
-          </div>
+        <div style="display:flex; justify-content:flex-end; width:100%; border-top:1px solid var(--border-color); padding-top:0.45rem;">
           <button type="button" class="btn btn-secondary btn-sm btn-action-delete" onclick="app.confirmRemoveAppendix('${d.id}')" style="padding:0.25rem 0.65rem; font-size:0.75rem; font-weight:600; display:inline-flex; align-items:center; gap:0.3rem;" title="Remover documento">
             ${window.icons.delete} Remover
           </button>
         </div>
       </div>
     `;
-  }
-
-  moveAppendixDoc(docId, direction) {
-    if (!this.currentTraining || !this.currentTraining.media) return;
-    const doc = this.currentTraining.media.find(m => m.id === docId);
-    if (!doc) return;
-    const sameTypeDocs = this.currentTraining.media
-      .filter(m => m.type === doc.type)
-      .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
-    const currentIndex = sameTypeDocs.findIndex(m => m.id === docId);
-    const targetIndex = currentIndex + direction;
-    if (targetIndex < 0 || targetIndex >= sameTypeDocs.length) return;
-
-    const targetDoc = sameTypeDocs[targetIndex];
-    const prevOrder = doc.order !== undefined ? doc.order : currentIndex;
-    const newOrder = targetDoc.order !== undefined ? targetDoc.order : targetIndex;
-
-    doc.order = newOrder;
-    targetDoc.order = prevOrder;
-    if (doc.order === targetDoc.order) {
-      doc.order = targetIndex;
-      targetDoc.order = currentIndex;
-    }
-
-    this.renderAppendicesStep();
-    this.saveCurrentStepData();
-    this.showToast('Ordem do documento atualizada com sucesso!', 'info');
   }
 
   confirmRemoveAppendix(docId) {
@@ -8730,58 +8680,40 @@ class AutoReportApp {
     const cecateContainer = document.getElementById('wizard-appendix-cecate-list');
     if (!this.currentTraining) return;
 
-    const fndeDocs = (this.currentTraining.media || [])
-      .filter(m => m.type === 'doc_fnde')
-      .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
-    const cecateDocs = (this.currentTraining.media || [])
-      .filter(m => m.type === 'doc_cecate')
-      .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
+    const fndeDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_fnde');
+    const cecateDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_cecate');
 
-    // Atualizar badges de contagem
-    const badgeFnde = document.getElementById('appendix-fnde-count');
-    if (badgeFnde) {
-      badgeFnde.textContent = fndeDocs.length === 1 ? '1 documento' : `${fndeDocs.length} documentos`;
-    }
-    const badgeCecate = document.getElementById('appendix-cecate-count');
-    if (badgeCecate) {
-      badgeCecate.textContent = cecateDocs.length === 1 ? '1 documento' : `${cecateDocs.length} documentos`;
-    }
-
-    // Gerenciar dropzones e botões de adicionar mais documentos
+    // Ocultar janelas de inserção quando já houver documentos anexados
     const dropzoneFnde = document.getElementById('dropzone-appendix-fnde');
-    const addMoreFnde = document.getElementById('add-more-container-appendix-fnde');
     if (dropzoneFnde) {
       if (fndeDocs.length > 0) {
-        dropzoneFnde.style.display = 'none';
-        if (addMoreFnde) addMoreFnde.style.display = 'block';
+        dropzoneFnde.style.setProperty('display', 'none', 'important');
       } else {
+        dropzoneFnde.style.removeProperty('display');
         dropzoneFnde.style.display = 'flex';
-        if (addMoreFnde) addMoreFnde.style.display = 'none';
       }
     }
 
     const dropzoneCecate = document.getElementById('dropzone-appendix-cecate');
-    const addMoreCecate = document.getElementById('add-more-container-appendix-cecate');
     if (dropzoneCecate) {
       if (cecateDocs.length > 0) {
-        dropzoneCecate.style.display = 'none';
-        if (addMoreCecate) addMoreCecate.style.display = 'block';
+        dropzoneCecate.style.setProperty('display', 'none', 'important');
       } else {
+        dropzoneCecate.style.removeProperty('display');
         dropzoneCecate.style.display = 'flex';
-        if (addMoreCecate) addMoreCecate.style.display = 'none';
       }
     }
 
     if (fndeContainer) {
       fndeContainer.innerHTML = fndeDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma convocação do FNDE anexada.</p>`
-        : fndeDocs.map((d, idx) => this.renderAppendixItem(d, idx, fndeDocs.length, 'doc_fnde')).join('');
+        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do FNDE anexada.</p>`
+        : fndeDocs.map(d => this.renderAppendixItem(d)).join('');
     }
 
     if (cecateContainer) {
       cecateContainer.innerHTML = cecateDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem; padding:0.5rem 0;">Nenhuma convocação do CECATE anexada.</p>`
-        : cecateDocs.map((d, idx) => this.renderAppendixItem(d, idx, cecateDocs.length, 'doc_cecate')).join('');
+        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do CECATE anexada.</p>`
+        : cecateDocs.map(d => this.renderAppendixItem(d)).join('');
     }
   }
 
@@ -9324,31 +9256,26 @@ class AutoReportApp {
     }
 
     // 6. Apêndices (FNDE e CECATE) com visualização das páginas dos documentos
-    const fndeDocs = (t.media || [])
-      .filter(m => m.type === 'doc_fnde')
-      .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
-    const cecateDocs = (t.media || [])
-      .filter(m => m.type === 'doc_cecate')
-      .sort((a, b) => (a.order !== undefined ? a.order : 0) - (b.order !== undefined ? b.order : 0));
+    const fndeDocs = (t.media || []).filter(m => m.type === 'doc_fnde');
+    const cecateDocs = (t.media || []).filter(m => m.type === 'doc_cecate');
 
-    const renderAppendixDocHtml = (d, idx, total) => {
+    const renderAppendixDocHtml = (d) => {
       const pages = (d.pageImages && d.pageImages.length > 0) ? d.pageImages : (d.blob?.startsWith('data:image/') ? [d.blob] : []);
       let visualHtml = '';
       if (pages.length > 0) {
-        visualHtml = pages.map((pg, pageIdx) => `
+        visualHtml = pages.map((pg, idx) => `
           <div style="margin: 1.25rem 0; text-align: center; page-break-inside: avoid;">
-            <img src="${pg}" alt="${d.fileName} - Pág ${pageIdx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
-            ${pages.length > 1 ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;">Página ${pageIdx + 1} de ${pages.length}</p>` : ''}
+            <img src="${pg}" alt="${d.fileName} - Pág ${idx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
+            ${pages.length > 1 ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;">Página ${idx + 1} de ${pages.length}</p>` : ''}
           </div>
         `).join('');
       }
-      const docTitle = total > 1 ? `Documento ${idx + 1}: ${d.fileName}` : d.fileName;
       return `
         <div class="appendix-document-block" style="margin-bottom: 2rem; page-break-inside: avoid;">
           <div style="display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.9rem; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-sm); margin-bottom:0.75rem;">
             <div style="display:inline-flex; align-items:center; gap:0.5rem; min-width:0;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-secondary); flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${docTitle}</span>
+              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${d.fileName}</span>
             </div>
             ${d.blob ? `<a href="${d.blob}" download="${d.fileName}" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.55rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">Baixar Arquivo</a>` : ''}
           </div>
@@ -9359,11 +9286,11 @@ class AutoReportApp {
 
     const fndeHtml = fndeDocs.length === 0
       ? `<p style="color:var(--text-muted); font-style:italic;">Nenhum documento de convocação do FNDE anexado.</p>`
-      : fndeDocs.map((d, idx) => renderAppendixDocHtml(d, idx, fndeDocs.length)).join('');
+      : fndeDocs.map(d => renderAppendixDocHtml(d)).join('');
 
     const cecateHtml = cecateDocs.length === 0
       ? `<p style="color:var(--text-muted); font-style:italic;">Nenhuma convocação ou comunicado do CECATE anexado.</p>`
-      : cecateDocs.map((d, idx) => renderAppendixDocHtml(d, idx, cecateDocs.length)).join('');
+      : cecateDocs.map(d => renderAppendixDocHtml(d)).join('');
 
     const evalList = (t.evaluations || []).filter(e => 
       (e.likedAspects && String(e.likedAspects).trim()) || (e.improveAspects && String(e.improveAspects).trim())
