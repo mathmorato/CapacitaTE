@@ -4054,6 +4054,54 @@ body.light-theme .btn-restore-title:hover {
   border-color: #94a3b8;
 }
 
+/* Grupo de Edição da Fonte da Figura */
+.photo-source-addon {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-blue-text, #60a5fa);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+.photo-source-addon.pending {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+}
+
+.photo-source-addon.extra {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.35);
+  color: #a78bfa;
+}
+
+body.light-theme .photo-source-addon {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+body.light-theme .photo-source-addon.pending {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+body.light-theme .photo-source-addon.extra {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
+}
+
+
 
 
 

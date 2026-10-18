@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.3
+ * Versão: v.3.4.4
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.3';
+    this.version = 'v.3.4.4';
   }
 
   /**
@@ -7437,7 +7437,18 @@ class AutoReportApp {
       // Slot específico
       const file = imageFiles[0];
       const dataUrl = await this.fileToDataUrl(file);
-      if (!this.currentTraining.media) this.currentTraining.media = [];
+      const slots = this.getStandardPhotoSlots();
+      const slot = slots.find(s => s.slotId === slotId);
+      let captionToUse = defaultCaption;
+      let titleToUse = defaultCaption;
+      let sourceToUse = 'Fonte: Elaborada pelos autores.';
+
+      if (slot) {
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        captionToUse = slotInfo.caption;
+        titleToUse = slotInfo.title;
+        sourceToUse = slotInfo.sourceFormatted;
+      }
 
       this.currentTraining.media = this.currentTraining.media.filter(m => m.slotId !== slotId && m.id !== slotId);
       this.currentTraining.media.push({
@@ -7445,7 +7456,9 @@ class AutoReportApp {
         slotId: slotId,
         type: 'photo',
         blob: dataUrl,
-        caption: defaultCaption,
+        caption: captionToUse,
+        title: titleToUse,
+        source: sourceToUse,
         fileName: file.name
       });
       this.renderPhotosStep();
@@ -7595,13 +7608,50 @@ class AutoReportApp {
   }
 
   /**
-   * Retorna os dados vigentes (título e legenda) de um slot de foto, considerando se há título personalizado
+   * Remove prefixos redundantes de fonte digitados pelo usuário (ex: 'Fonte: ', 'Fonte. ')
+   * mantendo apenas o texto descritivo da fonte (padrão oficial: 'Elaborada pelos autores.').
+   */
+  cleanFigureSource(rawSource, defaultSource = 'Elaborada pelos autores.') {
+    if (!rawSource || typeof rawSource !== 'string') {
+      rawSource = defaultSource || 'Elaborada pelos autores.';
+    }
+    let clean = rawSource.trim();
+    clean = clean.replace(/^fonte\s*[\.:\-–—]?\s*/i, '').trim();
+    if (!clean && defaultSource) {
+      clean = defaultSource.replace(/^fonte\s*[\.:\-–—]?\s*/i, '').trim();
+    }
+    return clean;
+  }
+
+  /**
+   * Formata a citação oficial de fonte da figura segundo a norma ABNT/institucional: 'Fonte: {Texto}.'
+   */
+  formatFigureSource(cleanSource, defaultSource = 'Elaborada pelos autores.') {
+    const clean = this.cleanFigureSource(cleanSource, defaultSource);
+    let sourceWithDot = clean.trim();
+    if (sourceWithDot && !/[.!?]$/.test(sourceWithDot)) {
+      sourceWithDot += '.';
+    }
+    return `Fonte: ${sourceWithDot}`;
+  }
+
+  /**
+   * Retorna os dados vigentes (título, legenda e fonte) de um slot de foto, considerando se há personalização
    */
   getPhotoSlotInfo(slot) {
     if (!this.currentTraining) {
-      return { title: slot.defaultTitle, caption: slot.defaultCaption, isCustom: false, photo: null };
+      return { 
+        title: slot.defaultTitle, 
+        caption: slot.defaultCaption, 
+        isCustom: false, 
+        photo: null,
+        sourceClean: 'Elaborada pelos autores.',
+        sourceFormatted: 'Fonte: Elaborada pelos autores.',
+        isCustomSource: false
+      };
     }
     const customTitles = this.currentTraining.customPhotoTitles || {};
+    const customSources = this.currentTraining.customPhotoSources || {};
     const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
     let photo = photos.find(p => p.slotId === slot.slotId);
     if (!photo && slot.slotId.includes('_day_')) {
@@ -7622,7 +7672,18 @@ class AutoReportApp {
     const title = isCustom ? savedCustom.trim() : defaultPureTitle;
     const caption = this.formatFigureCaption(slot.figNum, title, defaultPureTitle);
 
-    return { title, caption, isCustom, photo };
+    // Fonte da figura (mantém padrão oficial institucional)
+    const defaultPureSource = 'Elaborada pelos autores.';
+    let savedCustomSource = customSources[slot.slotId];
+    if (!savedCustomSource && photo && photo.source && photo.source !== 'Fonte: Elaborada pelos autores.') {
+      savedCustomSource = this.cleanFigureSource(photo.source, defaultPureSource);
+    }
+
+    const isCustomSource = Boolean(savedCustomSource && savedCustomSource.trim() !== defaultPureSource);
+    const sourceClean = isCustomSource ? savedCustomSource.trim() : defaultPureSource;
+    const sourceFormatted = this.formatFigureSource(sourceClean, defaultPureSource);
+
+    return { title, caption, isCustom, photo, sourceClean, sourceFormatted, isCustomSource };
   }
 
   handlePhotoTitleInput(slotId, figNum, newTitle) {
@@ -7698,6 +7759,154 @@ class AutoReportApp {
     this.showToast('Título restaurado para o padrão oficial!', 'info');
   }
 
+  handlePhotoSourceInput(slotId, newSource) {
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    // Atualiza preview de fonte
+    const previewEl = document.getElementById(`photo-source-preview-${slotId}`);
+    if (previewEl) {
+      previewEl.textContent = fullSource;
+    }
+  }
+
+  updatePhotoSource(slotId, figNum, newSource) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customPhotoSources) this.currentTraining.customPhotoSources = {};
+
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    this.currentTraining.customPhotoSources[slotId] = cleanSource;
+
+    // Se já houver foto anexada neste slot, sincroniza nela
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (photo) {
+      photo.source = fullSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte da Figura ${figNum} atualizada no padrão oficial!`, 'success');
+  }
+
+  restorePhotoSource(slotId) {
+    if (!this.currentTraining) return;
+    if (this.currentTraining.customPhotoSources) {
+      delete this.currentTraining.customPhotoSources[slotId];
+    }
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+
+    if (photo) {
+      photo.source = 'Fonte: Elaborada pelos autores.';
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Fonte restaurada para o padrão oficial!', 'info');
+  }
+
+  handleExtraPhotoSourceInput(photoId, newSource) {
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    const previewEl = document.getElementById(`photo-source-preview-${photoId}`);
+    if (previewEl) {
+      previewEl.textContent = fullSource;
+    }
+  }
+
+  updateExtraPhotoSource(photoId, extraFigNum, newSource) {
+    if (!this.currentTraining) return;
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    const photo = photos.find(p => p.id === photoId);
+    if (photo) {
+      photo.source = fullSource;
+      photo.customSource = cleanSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte da Figura ${extraFigNum} atualizada no padrão oficial!`, 'success');
+  }
+
+  restoreExtraPhotoSource(photoId) {
+    if (!this.currentTraining) return;
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    const photo = photos.find(p => p.id === photoId);
+    if (photo) {
+      photo.source = 'Fonte: Elaborada pelos autores.';
+      delete photo.customSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Fonte restaurada para o padrão oficial!', 'info');
+  }
+
+  openBatchSourceModal() {
+    const overlay = document.getElementById('app-batch-source-modal-overlay');
+    const input = document.getElementById('batch-source-modal-input');
+    if (input) {
+      input.value = 'Elaborada pelos autores.';
+    }
+    if (overlay) {
+      overlay.style.display = 'flex';
+      setTimeout(() => { if (input) input.focus(); }, 100);
+    }
+  }
+
+  closeBatchSourceModal() {
+    const overlay = document.getElementById('app-batch-source-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  applyBatchSourceModalAction() {
+    const input = document.getElementById('batch-source-modal-input');
+    const val = input ? input.value : 'Elaborada pelos autores.';
+    this.applySourceToAllPhotos(val);
+    this.closeBatchSourceModal();
+  }
+
+  applySourceToAllPhotos(rawSource) {
+    if (!this.currentTraining) return;
+    const cleanSource = this.cleanFigureSource(rawSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    if (!this.currentTraining.customPhotoSources) this.currentTraining.customPhotoSources = {};
+
+    const slots = this.getStandardPhotoSlots();
+    slots.forEach(slot => {
+      this.currentTraining.customPhotoSources[slot.slotId] = cleanSource;
+    });
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    photos.forEach(photo => {
+      photo.source = fullSource;
+      if (photo.slotId && !slots.some(s => s.slotId === photo.slotId)) {
+        photo.customSource = cleanSource;
+      }
+    });
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte aplicada a todas as fotografias (${fullSource})!`, 'success');
+  }
+
   async handleSinglePhotoUpload(slotId, defaultCaption, event) {
     const file = event.target.files?.[0];
     if (!file || !this.currentTraining) return;
@@ -7706,16 +7915,18 @@ class AutoReportApp {
 
     const dataUrl = await this.fileToDataUrl(file);
 
-    // Recupera título e legenda vigentes (considerando personalização prévia do usuário)
+    // Recupera título, legenda e fonte vigentes (considerando personalização prévia do usuário)
     const slots = this.getStandardPhotoSlots();
     const slot = slots.find(s => s.slotId === slotId);
     let captionToUse = defaultCaption;
     let titleToUse = defaultCaption;
+    let sourceToUse = 'Fonte: Elaborada pelos autores.';
 
     if (slot) {
       const slotInfo = this.getPhotoSlotInfo(slot);
       captionToUse = slotInfo.caption;
       titleToUse = slotInfo.title;
+      sourceToUse = slotInfo.sourceFormatted;
     }
 
     // Remover se já existia foto neste slot
@@ -7728,6 +7939,7 @@ class AutoReportApp {
       blob: dataUrl,
       caption: captionToUse,
       title: titleToUse,
+      source: sourceToUse,
       fileName: file.name
     });
 
@@ -7753,17 +7965,20 @@ class AutoReportApp {
       let targetSlotId;
       let targetCaption;
       let targetTitle;
+      let targetSource;
 
       if (emptySlot) {
         targetSlotId = emptySlot.slotId;
         const slotInfo = this.getPhotoSlotInfo(emptySlot);
         targetCaption = slotInfo.caption;
         targetTitle = slotInfo.title;
+        targetSource = slotInfo.sourceFormatted;
       } else {
         const extraFigNum = slots.length + 9 + i;
         targetSlotId = `fig_extra_${Date.now()}_${i}`;
         targetCaption = `Figura ${extraFigNum}. Registro complementar da capacitação.`;
         targetTitle = `Registro complementar da capacitação.`;
+        targetSource = `Fonte: Elaborada pelos autores.`;
       }
 
       this.currentTraining.media.push({
@@ -7773,6 +7988,7 @@ class AutoReportApp {
         blob: dataUrl,
         caption: targetCaption,
         title: targetTitle,
+        source: targetSource,
         fileName: file.name
       });
     }
@@ -7834,6 +8050,7 @@ class AutoReportApp {
         photo.slotId = slot.slotId;
         photo.caption = slotInfo.caption;
         photo.title = slotInfo.title;
+        photo.source = slotInfo.sourceFormatted;
       }
 
       if (photo) {
@@ -7852,7 +8069,7 @@ class AutoReportApp {
                 <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
               <div style="display:flex; align-items:center; gap:0.35rem;">
-                ${slotInfo.isCustom ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
                 <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
               </div>
             </div>
@@ -7886,6 +8103,31 @@ class AutoReportApp {
               </div>
             </div>
 
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura (mantém padrão):</label>
+                ${slotInfo.isCustomSource ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoSource('${slot.slotId}')" title="Restaurar fonte padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-source-addon">Fonte:</span>
+                <input type="text" class="photo-title-input" id="photo-source-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.sourceClean)}"
+                       placeholder="Ex: Elaborada pelos autores."
+                       oninput="app.handlePhotoSourceInput('${slot.slotId}', this.value)"
+                       onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+              </div>
+            </div>
+
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
               <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-slot-${slot.slotId}').click()" style="padding:0.3rem 0.6rem; font-size:0.78rem;">
                 Trocar Foto
@@ -7898,7 +8140,7 @@ class AutoReportApp {
           </div>
         `;
       } else {
-        // Card vazio (Dropzone padronizada com suporte a edição de título mantendo padrão)
+        // Card vazio (Dropzone padronizada com suporte a edição de título e fonte mantendo padrão)
         html += `
           <div class="glass-card" 
                ondragover="app.handleDragOver(event)"
@@ -7910,7 +8152,7 @@ class AutoReportApp {
                 <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
               <div style="display:flex; align-items:center; gap:0.35rem;">
-                ${slotInfo.isCustom ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
                 <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
               </div>
             </div>
@@ -7953,6 +8195,31 @@ class AutoReportApp {
                 <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
               </div>
             </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura (mantém padrão):</label>
+                ${slotInfo.isCustomSource ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoSource('${slot.slotId}')" title="Restaurar fonte padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-source-addon pending">Fonte:</span>
+                <input type="text" class="photo-title-input" id="photo-source-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.sourceClean)}"
+                       placeholder="Ex: Elaborada pelos autores."
+                       oninput="app.handlePhotoSourceInput('${slot.slotId}', this.value)"
+                       onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -7964,6 +8231,9 @@ class AutoReportApp {
       const extraFigNum = slots.length + 9 + idx;
       const cleanTitle = this.cleanFigureTitle(extraFigNum, photo.title || photo.caption || `Registro complementar #${idx + 1}.`, `Registro complementar #${idx + 1}.`);
       const fullCaption = photo.caption && photo.caption.startsWith(`Figura ${extraFigNum}.`) ? photo.caption : this.formatFigureCaption(extraFigNum, cleanTitle);
+      const extraCleanSource = this.cleanFigureSource(photo.customSource || photo.source || 'Elaborada pelos autores.');
+      const extraFullSource = this.formatFigureSource(extraCleanSource);
+      const isCustomExtraSource = Boolean(photo.customSource && photo.customSource !== 'Elaborada pelos autores.');
 
       html += `
         <div class="glass-card" 
@@ -7998,6 +8268,31 @@ class AutoReportApp {
             </div>
             <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
               <span>Legenda: <strong id="photo-caption-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(fullCaption)}</strong></span>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura Extra (mantém padrão):</label>
+              ${isCustomExtraSource ? `
+                <button type="button" class="btn-restore-title" onclick="app.restoreExtraPhotoSource('${photo.id}')" title="Restaurar fonte padrão oficial">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                  Restaurar Padrão
+                </button>
+              ` : `
+                <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+              `}
+            </div>
+            <div class="photo-title-input-group">
+              <span class="photo-source-addon extra">Fonte:</span>
+              <input type="text" class="photo-title-input" id="photo-source-input-${photo.id}" 
+                     value="${this.escapeHtml(extraCleanSource)}" 
+                     placeholder="Ex: Elaborada pelos autores."
+                     oninput="app.handleExtraPhotoSourceInput('${photo.id}', this.value)"
+                     onchange="app.updateExtraPhotoSource('${photo.id}', ${extraFigNum}, this.value)">
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
+              <span>Fonte: <strong id="photo-source-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(extraFullSource)}</strong></span>
             </div>
           </div>
         </div>
@@ -8686,6 +8981,7 @@ class AutoReportApp {
       if (p && p.blob) {
         const slotInfo = this.getPhotoSlotInfo(slot);
         const captionToDisplay = p.caption || slotInfo.caption || slot.defaultCaption;
+        const sourceToDisplay = p.source || slotInfo.sourceFormatted || 'Fonte: Elaborada pelos autores.';
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
@@ -8695,7 +8991,7 @@ class AutoReportApp {
               <img src="${p.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
-              Fonte: Elaborada pelos autores.
+              ${this.escapeHtml(sourceToDisplay)}
             </p>
           </div>
         `;
@@ -8707,6 +9003,8 @@ class AutoReportApp {
       if (ph.blob) {
         const extraFigNum = slots.length + 9 + idx;
         const captionToDisplay = ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.');
+        const cleanExtraSource = this.cleanFigureSource(ph.customSource || ph.source || 'Elaborada pelos autores.');
+        const sourceToDisplay = this.formatFigureSource(cleanExtraSource);
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
@@ -8716,7 +9014,7 @@ class AutoReportApp {
               <img src="${ph.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
-              Fonte: Elaborada pelos autores.
+              ${this.escapeHtml(sourceToDisplay)}
             </p>
           </div>
         `;

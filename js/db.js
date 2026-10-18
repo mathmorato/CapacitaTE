@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.3
+ * Versão: v.3.4.4
  */
 
 const SUPABASE_CONFIG = {
@@ -400,6 +400,8 @@ class TrainingDB {
       baseTemplateId: training.baseTemplateId || null,
       baseTemplateName: training.baseTemplateName || '',
       isCustomized: training.isCustomized === true,
+      customPhotoTitles: training.customPhotoTitles || {},
+      customPhotoSources: training.customPhotoSources || {},
       team: team.sort((a, b) => (a.order || 0) - (b.order || 0)),
       municipalities: municipalities.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       courseModules: courseModules.sort((a, b) => (a.order || 0) - (b.order || 0)),
@@ -455,6 +457,7 @@ class TrainingDB {
         finalConsiderations: ''
       },
       customPhotoTitles: data.customPhotoTitles || {},
+      customPhotoSources: data.customPhotoSources || {},
       status: data.status || 'in_progress',
       progressPercent: data.progressPercent || 0,
       createdAt: data.createdAt || now,
@@ -605,7 +608,7 @@ class TrainingDB {
           order: med.order !== undefined ? med.order : idx,
           section: med.section || '6. REGISTROS FOTOGRÁFICOS',
           description: med.description || '',
-          source: med.source || 'Arquivo CECATE Centro-Oeste',
+          source: med.source || (data.customPhotoSources && med.slotId && data.customPhotoSources[med.slotId] ? (data.customPhotoSources[med.slotId].toLowerCase().startsWith('fonte:') ? data.customPhotoSources[med.slotId].trim() : `Fonte: ${data.customPhotoSources[med.slotId].trim()}`) : 'Fonte: Elaborada pelos autores.'),
           fileName: med.fileName || `foto_${idx + 1}.jpg`,
           fileSize: med.fileSize || 0,
           fileType: med.fileType || ''

@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.3
+ * Versão: v.3.4.4
  */
 
 class ReportDocxGenerator {
@@ -2607,7 +2607,17 @@ class ReportDocxGenerator {
       } else {
         photos.forEach((ph, idx) => {
           const caption = ph.caption || `Figura ${idx + 9}. Registro fotográfico oficial da capacitação.`;
-          const photoNodes = this.createImageParagraph(ph.blob, 500, 300, caption, docxDeps, `fig_photo_${idx}`);
+          const customSource = (training.customPhotoSources && ph.slotId && training.customPhotoSources[ph.slotId])
+            ? (training.customPhotoSources[ph.slotId].toLowerCase().startsWith('fonte:')
+                ? training.customPhotoSources[ph.slotId].trim()
+                : `Fonte: ${training.customPhotoSources[ph.slotId].trim()}${/[.!?]$/.test(training.customPhotoSources[ph.slotId].trim()) ? '' : '.'}`)
+            : (ph.customSource
+                ? (ph.customSource.toLowerCase().startsWith('fonte:')
+                    ? ph.customSource.trim()
+                    : `Fonte: ${ph.customSource.trim()}${/[.!?]$/.test(ph.customSource.trim()) ? '' : '.'}`)
+                : null);
+          const source = ph.source || customSource || 'Fonte: Elaborada pelos autores.';
+          const photoNodes = this.createImageParagraph(ph.blob, 500, 300, caption, docxDeps, `fig_photo_${idx}`, source);
           if (photoNodes) docChildren.push(...photoNodes);
         });
       }
