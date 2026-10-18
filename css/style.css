@@ -3934,6 +3934,127 @@ body.light-theme .figure-comment-box textarea.form-control:focus {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
 }
 
+/* ==========================================================================
+   ETAPA 9: GRUPO DE EDIÇÃO DE TÍTULO DA FIGURA COM PADRÃO INSTITUCIONAL
+   ========================================================================== */
+.photo-title-input-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.photo-title-addon {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-emerald-text, #10b981);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+.photo-title-addon.pending {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+}
+
+.photo-title-addon.extra {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #3b82f6;
+}
+
+.photo-title-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.45rem 0.65rem;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.photo-title-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.btn-restore-title {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs, 4px);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.18rem 0.45rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all var(--transition-fast);
+}
+
+.btn-restore-title:hover {
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* Suporte Light Theme para grupo de título de fotos */
+body.light-theme .photo-title-addon {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+body.light-theme .photo-title-addon.pending {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+body.light-theme .photo-title-addon.extra {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+body.light-theme .photo-title-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+body.light-theme .photo-title-input:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+body.light-theme .btn-restore-title {
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+body.light-theme .btn-restore-title:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+
 
 
 

@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.2
+ * Versão: v.3.4.3
  */
 
 class ReportDocxGenerator {
@@ -277,6 +277,55 @@ class ReportDocxGenerator {
   }
 
   /**
+   * Retorna as fotos da capacitação ordenadas primeiro pelos slots padrão (Figuras 9, 10, 11 e dias)
+   * e posteriormente pelas fotos extras, garantindo consistência estrita entre o relatório e a aplicação.
+   */
+  getOrderedPhotos(training) {
+    const allPhotos = (training?.media || []).filter(m => m.type === 'photo' && m.blob);
+    if (allPhotos.length === 0) return [];
+
+    const ordered = [];
+    const used = new Set();
+    const standardSlotIds = ['fig_9', 'fig_10', 'fig_11'];
+
+    // Determina número de dias da capacitação
+    let daysCount = 2;
+    if (training?.startDate && training?.endDate) {
+      const start = new Date(training.startDate);
+      const end = new Date(training.endDate);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        const diffDays = Math.round(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        daysCount = Math.max(1, Math.min(10, diffDays));
+      }
+    }
+
+    for (let day = 1; day <= daysCount; day++) {
+      standardSlotIds.push(`fig_${11 + day}_day_${day}`);
+    }
+
+    standardSlotIds.forEach(slotId => {
+      let p = allPhotos.find(ph => ph.slotId === slotId);
+      if (!p && slotId.includes('_day_')) {
+        const dayPart = slotId.split('_day_')[1];
+        p = allPhotos.find(ph => ph.slotId && ph.slotId.endsWith(`_day_${dayPart}`));
+      }
+      if (p && !used.has(p.id || p.slotId)) {
+        used.add(p.id || p.slotId);
+        ordered.push(p);
+      }
+    });
+
+    allPhotos.forEach(p => {
+      if (!used.has(p.id || p.slotId)) {
+        used.add(p.id || p.slotId);
+        ordered.push(p);
+      }
+    });
+
+    return ordered;
+  }
+
+  /**
    * Constrói dinamicamente os tópicos do sumário, índice de figuras e índice de tabelas
    * com os títulos exatos do presente relatório e suas páginas correspondentes de forma precisa
    */
@@ -327,7 +376,7 @@ class ReportDocxGenerator {
 
     const munCount = (training?.municipalities || training?.municipios || []).length || 12;
     const modCount = (training?.courseModules || training?.modulos || []).length || 4;
-    const photos = (training?.media || []).filter(m => m.type === 'photo' && m.blob);
+    const photos = this.getOrderedPhotos(training);
     const fndeDocs = (training?.media || []).filter(m => m.type === 'doc_fnde');
     const cecateDocs = (training?.media || []).filter(m => m.type === 'doc_cecate');
 
@@ -2547,7 +2596,7 @@ class ReportDocxGenerator {
         })
       );
 
-      const photos = (training.media || []).filter(m => m.type === 'photo' && m.blob);
+      const photos = this.getOrderedPhotos(training);
       if (photos.length === 0) {
         docChildren.push(
           new Paragraph({

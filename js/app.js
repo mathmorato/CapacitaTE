@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.2
+ * Versão: v.3.4.3
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.2';
+    this.version = 'v.3.4.3';
   }
 
   /**
@@ -7529,21 +7529,173 @@ class AutoReportApp {
     const daysCount = this.getTrainingDaysCount();
 
     const slots = [
-      { slotId: 'fig_9', defaultTitle: 'Acomodação dos participantes.', defaultCaption: 'Figura 9. Acomodação dos participantes.' },
-      { slotId: 'fig_10', defaultTitle: 'Apresentação inicial do curso.', defaultCaption: 'Figura 10. Apresentação inicial do curso.' },
-      { slotId: 'fig_11', defaultTitle: 'Apresentação dos módulos teóricos.', defaultCaption: 'Figura 11. Apresentação dos módulos teóricos.' }
+      { slotId: 'fig_9', figNum: 9, defaultTitle: 'Acomodação dos participantes.', defaultCaption: 'Figura 9. Acomodação dos participantes.' },
+      { slotId: 'fig_10', figNum: 10, defaultTitle: 'Apresentação inicial do curso.', defaultCaption: 'Figura 10. Apresentação inicial do curso.' },
+      { slotId: 'fig_11', figNum: 11, defaultTitle: 'Apresentação dos módulos teóricos.', defaultCaption: 'Figura 11. Apresentação dos módulos teóricos.' }
     ];
 
     for (let day = 1; day <= daysCount; day++) {
       const figNum = 11 + day;
       slots.push({
         slotId: `fig_${figNum}_day_${day}`,
+        figNum: figNum,
         defaultTitle: `Final da capacitação do ${day}º dia.`,
         defaultCaption: `Figura ${figNum}. Final da capacitação do ${day}º dia.`
       });
     }
 
     return slots;
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Remove prefixos redundantes de figuras digitados pelo usuário (ex: 'Figura 9. ', 'Figura 9: ')
+   * mantendo apenas o texto descritivo puro do título.
+   */
+  cleanFigureTitle(figNum, rawTitle, defaultTitle = '') {
+    if (!rawTitle || typeof rawTitle !== 'string') {
+      rawTitle = defaultTitle || '';
+    }
+    let clean = rawTitle.trim();
+    if (figNum) {
+      const regex = new RegExp(`^figura\\s*${figNum}\\s*[\\.:\\-–—]?\\s*`, 'i');
+      clean = clean.replace(regex, '').trim();
+    }
+    clean = clean.replace(/^figura\s*\d+\s*[\.:\-–—]?\s*/i, '').trim();
+    if (!clean && defaultTitle) {
+      if (figNum) {
+        clean = defaultTitle.replace(new RegExp(`^figura\\s*${figNum}\\s*[\\.:\\-–—]?\\s*`, 'i'), '').trim();
+      } else {
+        clean = defaultTitle.trim();
+      }
+    }
+    return clean;
+  }
+
+  /**
+   * Formata a legenda oficial completa da figura com base no número e no título informado,
+   * assegurando a norma institucional: 'Figura {figNum}. {Título}.'
+   */
+  formatFigureCaption(figNum, rawTitle, defaultTitle = '') {
+    const clean = this.cleanFigureTitle(figNum, rawTitle, defaultTitle);
+    let titleWithDot = clean.trim();
+    if (titleWithDot && !/[.!?]$/.test(titleWithDot)) {
+      titleWithDot += '.';
+    }
+    return `Figura ${figNum}. ${titleWithDot}`;
+  }
+
+  /**
+   * Retorna os dados vigentes (título e legenda) de um slot de foto, considerando se há título personalizado
+   */
+  getPhotoSlotInfo(slot) {
+    if (!this.currentTraining) {
+      return { title: slot.defaultTitle, caption: slot.defaultCaption, isCustom: false, photo: null };
+    }
+    const customTitles = this.currentTraining.customPhotoTitles || {};
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slot.slotId);
+    if (!photo && slot.slotId.includes('_day_')) {
+      const dayPart = slot.slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (!photo) {
+      photo = photos.find(p => p.caption && p.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
+    }
+
+    const defaultPureTitle = this.cleanFigureTitle(slot.figNum, slot.defaultTitle);
+    let savedCustom = customTitles[slot.slotId];
+    if (!savedCustom && photo && photo.caption && photo.caption !== slot.defaultCaption) {
+      savedCustom = this.cleanFigureTitle(slot.figNum, photo.caption, defaultPureTitle);
+    }
+
+    const isCustom = Boolean(savedCustom && savedCustom.trim() !== defaultPureTitle);
+    const title = isCustom ? savedCustom.trim() : defaultPureTitle;
+    const caption = this.formatFigureCaption(slot.figNum, title, defaultPureTitle);
+
+    return { title, caption, isCustom, photo };
+  }
+
+  handlePhotoTitleInput(slotId, figNum, newTitle) {
+    const cleanTitle = this.cleanFigureTitle(figNum, newTitle);
+    const fullCaption = this.formatFigureCaption(figNum, cleanTitle);
+
+    // Atualiza cabeçalho do card
+    const headerTitleEl = document.getElementById(`photo-header-title-${slotId}`);
+    if (headerTitleEl) {
+      headerTitleEl.textContent = fullCaption;
+    }
+
+    // Atualiza preview de legenda
+    const previewEl = document.getElementById(`photo-caption-preview-${slotId}`);
+    if (previewEl) {
+      previewEl.textContent = fullCaption;
+    }
+  }
+
+  updatePhotoTitle(slotId, figNum, newTitle) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customPhotoTitles) this.currentTraining.customPhotoTitles = {};
+
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    const defaultTitle = slot ? slot.defaultTitle : '';
+
+    const cleanTitle = this.cleanFigureTitle(figNum, newTitle, defaultTitle);
+    const fullCaption = this.formatFigureCaption(figNum, cleanTitle, defaultTitle);
+
+    this.currentTraining.customPhotoTitles[slotId] = cleanTitle;
+
+    // Se já houver foto anexada neste slot, sincroniza nela
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (photo) {
+      photo.caption = fullCaption;
+      photo.title = cleanTitle;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Título da Figura ${figNum} atualizado no padrão oficial!`, 'success');
+  }
+
+  restorePhotoTitle(slotId) {
+    if (!this.currentTraining) return;
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+
+    if (this.currentTraining.customPhotoTitles) {
+      delete this.currentTraining.customPhotoTitles[slotId];
+    }
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+
+    if (photo && slot) {
+      photo.caption = slot.defaultCaption;
+      photo.title = slot.defaultTitle;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Título restaurado para o padrão oficial!', 'info');
   }
 
   async handleSinglePhotoUpload(slotId, defaultCaption, event) {
@@ -7554,6 +7706,18 @@ class AutoReportApp {
 
     const dataUrl = await this.fileToDataUrl(file);
 
+    // Recupera título e legenda vigentes (considerando personalização prévia do usuário)
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    let captionToUse = defaultCaption;
+    let titleToUse = defaultCaption;
+
+    if (slot) {
+      const slotInfo = this.getPhotoSlotInfo(slot);
+      captionToUse = slotInfo.caption;
+      titleToUse = slotInfo.title;
+    }
+
     // Remover se já existia foto neste slot
     this.currentTraining.media = this.currentTraining.media.filter(m => m.slotId !== slotId && m.id !== slotId);
 
@@ -7562,7 +7726,8 @@ class AutoReportApp {
       slotId: slotId,
       type: 'photo',
       blob: dataUrl,
-      caption: defaultCaption,
+      caption: captionToUse,
+      title: titleToUse,
       fileName: file.name
     });
 
@@ -7585,8 +7750,21 @@ class AutoReportApp {
 
       // Encontrar slot sem foto
       const emptySlot = slots.find(s => !this.currentTraining.media.some(m => m.slotId === s.slotId));
-      const targetSlotId = emptySlot ? emptySlot.slotId : `fig_extra_${Date.now()}_${i}`;
-      const targetCaption = emptySlot ? emptySlot.defaultCaption : `Figura Extra ${i + 1}. Registro da capacitação.`;
+      let targetSlotId;
+      let targetCaption;
+      let targetTitle;
+
+      if (emptySlot) {
+        targetSlotId = emptySlot.slotId;
+        const slotInfo = this.getPhotoSlotInfo(emptySlot);
+        targetCaption = slotInfo.caption;
+        targetTitle = slotInfo.title;
+      } else {
+        const extraFigNum = slots.length + 9 + i;
+        targetSlotId = `fig_extra_${Date.now()}_${i}`;
+        targetCaption = `Figura ${extraFigNum}. Registro complementar da capacitação.`;
+        targetTitle = `Registro complementar da capacitação.`;
+      }
 
       this.currentTraining.media.push({
         id: `photo_${Date.now()}_${i}`,
@@ -7594,6 +7772,7 @@ class AutoReportApp {
         type: 'photo',
         blob: dataUrl,
         caption: targetCaption,
+        title: targetTitle,
         fileName: file.name
       });
     }
@@ -7607,7 +7786,8 @@ class AutoReportApp {
     const photo = (this.currentTraining.media || []).find(m => m.slotId === slotId || m.id === slotId);
     const slots = this.getStandardPhotoSlots();
     const slot = slots.find(s => s.slotId === slotId);
-    const captionText = photo?.caption || slot?.defaultCaption || 'Fotografia';
+    const slotInfo = slot ? this.getPhotoSlotInfo(slot) : null;
+    const captionText = photo?.caption || slotInfo?.caption || slot?.defaultCaption || 'Fotografia';
 
     this.openConfirmModal({
       title: 'Remover Fotografia',
@@ -7631,11 +7811,10 @@ class AutoReportApp {
 
   updatePhotoCaption(slotId, newCaption) {
     if (!this.currentTraining) return;
-    const photo = (this.currentTraining.media || []).find(m => m.slotId === slotId || m.id === slotId);
-    if (photo) {
-      photo.caption = newCaption;
-      this.saveCurrentStepData();
-    }
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    const figNum = slot ? slot.figNum : 9;
+    this.updatePhotoTitle(slotId, figNum, newCaption);
   }
 
   renderPhotosStep() {
@@ -7648,32 +7827,13 @@ class AutoReportApp {
     let html = '';
 
     slots.forEach(slot => {
-      let photo = photos.find(p => p.slotId === slot.slotId);
-
-      // Fallback 1: se slotId tiver sufixo de dia
-      if (!photo && slot.slotId.includes('_day_')) {
-        const dayPart = slot.slotId.split('_day_')[1];
-        photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
-      }
-
-      // Fallback 2: se photo não tem slotId correspondente, tenta recuperar por caption
-      if (!photo) {
-        photo = photos.find(p => {
-          if (!p.caption) return false;
-          const cap = p.caption.toLowerCase();
-          if (slot.slotId === 'fig_9' && (cap.includes('figura 9') || cap.includes('acomodação') || cap.includes('acomodacao'))) return true;
-          if (slot.slotId === 'fig_10' && (cap.includes('figura 10') || cap.includes('apresentação inicial') || cap.includes('apresentacao inicial'))) return true;
-          if (slot.slotId === 'fig_11' && (cap.includes('figura 11') || cap.includes('módulos teóricos') || cap.includes('modulos teoricos'))) return true;
-          if (slot.slotId.includes('_day_1') && (cap.includes('1º dia') || cap.includes('1° dia') || cap.includes('1 dia') || cap.includes('figura 12'))) return true;
-          if (slot.slotId.includes('_day_2') && (cap.includes('2º dia') || cap.includes('2° dia') || cap.includes('2 dia') || cap.includes('figura 13'))) return true;
-          if (slot.slotId.includes('_day_3') && (cap.includes('3º dia') || cap.includes('3° dia') || cap.includes('3 dia') || cap.includes('figura 14'))) return true;
-          return false;
-        });
-      }
+      const slotInfo = this.getPhotoSlotInfo(slot);
+      let photo = slotInfo.photo;
 
       if (photo) {
         photo.slotId = slot.slotId;
-        if (!photo.caption) photo.caption = slot.defaultCaption;
+        photo.caption = slotInfo.caption;
+        photo.title = slotInfo.title;
       }
 
       if (photo) {
@@ -7689,20 +7849,41 @@ class AutoReportApp {
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <strong style="color:var(--accent-emerald-text, #10b981); font-size:0.88rem; display:flex; align-items:center; gap:0.35rem;">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <span>${slot.defaultCaption}</span>
+                <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
-              <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                ${slotInfo.isCustom ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
+              </div>
             </div>
 
             <div style="position:relative; width:100%; height:180px; border-radius:var(--radius-sm); overflow:hidden; background:var(--bg-input); border:1px solid var(--border-color);">
-              <img src="${photo.blob}" alt="${photo.caption || ''}" style="width:100%; height:100%; object-fit:cover;">
+              <img src="${photo.blob}" alt="${this.escapeHtml(slotInfo.caption)}" style="width:100%; height:100%; object-fit:cover;">
             </div>
 
             <div style="display:flex; flex-direction:column; gap:0.35rem;">
-              <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Legenda da Figura:</label>
-              <input type="text" class="form-control" value="${photo.caption || slot.defaultCaption}" 
-                     style="font-size:0.82rem; padding:0.4rem 0.6rem;"
-                     onchange="app.updatePhotoCaption('${slot.slotId}', this.value)">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura (mantém padrão):</label>
+                ${slotInfo.isCustom ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoTitle('${slot.slotId}')" title="Restaurar título padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-title-addon">Figura ${slot.figNum}.</span>
+                <input type="text" class="photo-title-input" id="photo-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.title)}"
+                       placeholder="Título descritivo da figura..."
+                       oninput="app.handlePhotoTitleInput('${slot.slotId}', ${slot.figNum}, this.value)"
+                       onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+              </div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
@@ -7717,16 +7898,21 @@ class AutoReportApp {
           </div>
         `;
       } else {
-        // Card vazio (Dropzone padronizada amarela)
+        // Card vazio (Dropzone padronizada com suporte a edição de título mantendo padrão)
         html += `
           <div class="glass-card" 
                ondragover="app.handleDragOver(event)"
                ondragleave="app.handleDragLeave(event)"
-               ondrop="app.handlePhotoDrop('${slot.slotId}', '${slot.defaultCaption}', event)"
+               ondrop="app.handlePhotoDrop('${slot.slotId}', '${slotInfo.caption}', event)"
                style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong style="color:var(--text-primary); font-size:0.88rem;">${slot.defaultCaption}</strong>
-              <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
+              <strong style="color:var(--text-primary); font-size:0.88rem;">
+                <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
+              </strong>
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                ${slotInfo.isCustom ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
+              </div>
             </div>
 
             <div class="upload-dropzone" 
@@ -7737,10 +7923,35 @@ class AutoReportApp {
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
               <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
-                Clique ou arraste a foto da ${slot.defaultTitle}
+                Clique ou arraste a foto para ${this.escapeHtml(slotInfo.caption)}
               </div>
               <div class="upload-dropzone-hint" style="font-size:0.74rem;">Formatos aceitos: JPG, PNG, WEBP</div>
               <input type="file" id="file-slot-${slot.slotId}" accept="image/*" style="display:none;" onclick="event.stopPropagation()" onchange="app.handleSinglePhotoUpload('${slot.slotId}', '${slot.defaultCaption}', event)">
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura (mantém padrão):</label>
+                ${slotInfo.isCustom ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoTitle('${slot.slotId}')" title="Restaurar título padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-title-addon pending">Figura ${slot.figNum}.</span>
+                <input type="text" class="photo-title-input" id="photo-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.title)}"
+                       placeholder="Título descritivo da figura..."
+                       oninput="app.handlePhotoTitleInput('${slot.slotId}', ${slot.figNum}, this.value)"
+                       onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+              </div>
             </div>
           </div>
         `;
@@ -7750,6 +7961,10 @@ class AutoReportApp {
     // Exibir fotos extras não pertencentes aos slots padronizados
     const extraPhotos = photos.filter(p => !slots.some(s => s.slotId === p.slotId));
     extraPhotos.forEach((photo, idx) => {
+      const extraFigNum = slots.length + 9 + idx;
+      const cleanTitle = this.cleanFigureTitle(extraFigNum, photo.title || photo.caption || `Registro complementar #${idx + 1}.`, `Registro complementar #${idx + 1}.`);
+      const fullCaption = photo.caption && photo.caption.startsWith(`Figura ${extraFigNum}.`) ? photo.caption : this.formatFigureCaption(extraFigNum, cleanTitle);
+
       html += `
         <div class="glass-card" 
              draggable="true"
@@ -7759,19 +7974,31 @@ class AutoReportApp {
              ondrop="app.handlePhotoDropCard('${photo.id}', event)"
              style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; border:1px solid rgba(59, 130, 246, 0.3); cursor:grab;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="color:var(--accent-blue-text); font-size:0.88rem;">Foto Extra #${idx + 1}</strong>
+            <strong style="color:var(--accent-blue-text); font-size:0.88rem;">
+              <span id="photo-header-title-${photo.id}">${this.escapeHtml(fullCaption)}</span>
+            </strong>
             <button type="button" class="btn btn-secondary btn-sm btn-action-delete" onclick="app.confirmRemovePhoto('${photo.id}')" style="padding:0.2rem 0.55rem; font-size:0.75rem; font-weight:600; display:inline-flex; align-items:center;">
               ${window.icons.delete} Remover
             </button>
           </div>
 
           <div style="background:var(--bg-input); border-radius:var(--radius-md); overflow:hidden; max-height:220px; display:flex; align-items:center; justify-content:center;">
-            <img src="${photo.blob}" style="width:100%; max-height:220px; object-fit:cover;" alt="${photo.caption}">
+            <img src="${photo.blob}" style="width:100%; max-height:220px; object-fit:cover;" alt="${this.escapeHtml(fullCaption)}">
           </div>
 
-          <div class="form-group" style="margin:0;">
-            <label class="form-label" style="font-size:0.78rem;">Legenda da Figura Extra:</label>
-            <input type="text" class="form-control form-control-sm" value="${photo.caption || ''}" onchange="app.updatePhotoCaption('${photo.id}', this.value)">
+          <div style="display:flex; flex-direction:column; gap:0.35rem;">
+            <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura Extra (mantém padrão):</label>
+            <div class="photo-title-input-group">
+              <span class="photo-title-addon extra">Figura ${extraFigNum}.</span>
+              <input type="text" class="photo-title-input" 
+                     value="${this.escapeHtml(cleanTitle)}" 
+                     placeholder="Título descritivo da figura..."
+                     oninput="app.handlePhotoTitleInput('${photo.id}', ${extraFigNum}, this.value)"
+                     onchange="app.updatePhotoTitle('${photo.id}', ${extraFigNum}, this.value)">
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
+              <span>Legenda: <strong id="photo-caption-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(fullCaption)}</strong></span>
+            </div>
           </div>
         </div>
       `;
@@ -8457,13 +8684,15 @@ class AutoReportApp {
       }
 
       if (p && p.blob) {
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        const captionToDisplay = p.caption || slotInfo.caption || slot.defaultCaption;
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
-              ${p.caption || slot.defaultCaption}
+              ${this.escapeHtml(captionToDisplay)}
             </p>
             <div style="text-align: center;">
-              <img src="${p.blob}" alt="${p.caption || slot.defaultCaption}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+              <img src="${p.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
               Fonte: Elaborada pelos autores.
@@ -8476,13 +8705,15 @@ class AutoReportApp {
     const extraPhotos = photos.filter(ph => !slots.some(s => s.slotId === ph.slotId));
     extraPhotos.forEach((ph, idx) => {
       if (ph.blob) {
+        const extraFigNum = slots.length + 9 + idx;
+        const captionToDisplay = ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.');
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
-              ${ph.caption || `Figura Extra ${idx + 1}. Registro fotográfico complementar.`}
+              ${this.escapeHtml(captionToDisplay)}
             </p>
             <div style="text-align: center;">
-              <img src="${ph.blob}" alt="${ph.caption || 'Foto Extra'}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+              <img src="${ph.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
               Fonte: Elaborada pelos autores.
