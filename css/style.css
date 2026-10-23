@@ -1892,6 +1892,47 @@ body.light-theme .appendix-file-item:hover {
   background: #f1f5f9;
 }
 
+/* Zona de Adicionar Mais Arquivos no Apêndice */
+.appendix-add-more-zone {
+  border: 1.5px dashed var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  margin-top: 0.65rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.appendix-add-more-zone:hover,
+.appendix-add-more-zone.dragover {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  color: #fbbf24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+
+body.light-theme .appendix-add-more-zone {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+body.light-theme .appendix-add-more-zone:hover,
+body.light-theme .appendix-add-more-zone.dragover {
+  border-color: #d97706;
+  background: #fffbeb;
+  color: #b45309;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.15);
+}
+
 .upload-dropzone-icon {
   display: flex;
   align-items: center;

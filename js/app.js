@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.6
+ * Versão: v.3.4.7
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.6';
+    this.version = 'v.3.4.7';
   }
 
   /**
@@ -8617,6 +8617,14 @@ class AutoReportApp {
       });
     }
 
+    if (event && event.target && event.target.value !== undefined) {
+      try {
+        event.target.value = '';
+      } catch (e) {
+        // Ignorar em caso de mock event
+      }
+    }
+
     this.renderAppendicesStep();
     this.saveCurrentStepData();
     this.showToast(`Documento anexado com sucesso!`, 'success');
@@ -8683,7 +8691,7 @@ class AutoReportApp {
     const fndeDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_fnde');
     const cecateDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_cecate');
 
-    // Ocultar janelas de inserção quando já houver documentos anexados
+    // Ocultar janelas de inserção principais quando já houver documentos anexados
     const dropzoneFnde = document.getElementById('dropzone-appendix-fnde');
     if (dropzoneFnde) {
       if (fndeDocs.length > 0) {
@@ -8705,15 +8713,49 @@ class AutoReportApp {
     }
 
     if (fndeContainer) {
-      fndeContainer.innerHTML = fndeDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do FNDE anexada.</p>`
-        : fndeDocs.map(d => this.renderAppendixItem(d)).join('');
+      if (fndeDocs.length === 0) {
+        fndeContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do FNDE anexada.</p>`;
+      } else {
+        const itemsHtml = fndeDocs.map(d => this.renderAppendixItem(d)).join('');
+        const addMoreHtml = `
+          <div class="appendix-add-more-zone"
+               onclick="document.getElementById('file-input-appendix-fnde').click()"
+               ondragover="app.handleDragOver(event)"
+               ondragleave="app.handleDragLeave(event)"
+               ondrop="app.handleAppendixDrop('doc_fnde', event)"
+               title="Clique ou arraste para adicionar mais arquivos de convocação do FNDE">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>+ Adicionar mais arquivos de convocação (FNDE)</span>
+          </div>
+        `;
+        fndeContainer.innerHTML = itemsHtml + addMoreHtml;
+      }
     }
 
     if (cecateContainer) {
-      cecateContainer.innerHTML = cecateDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do CECATE anexada.</p>`
-        : cecateDocs.map(d => this.renderAppendixItem(d)).join('');
+      if (cecateDocs.length === 0) {
+        cecateContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do CECATE anexada.</p>`;
+      } else {
+        const itemsHtml = cecateDocs.map(d => this.renderAppendixItem(d)).join('');
+        const addMoreHtml = `
+          <div class="appendix-add-more-zone"
+               onclick="document.getElementById('file-input-appendix-cecate').click()"
+               ondragover="app.handleDragOver(event)"
+               ondragleave="app.handleDragLeave(event)"
+               ondrop="app.handleAppendixDrop('doc_cecate', event)"
+               title="Clique ou arraste para adicionar mais arquivos de convocação do CECATE">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>+ Adicionar mais convocações / e-mails (CECATE)</span>
+          </div>
+        `;
+        cecateContainer.innerHTML = itemsHtml + addMoreHtml;
+      }
     }
   }
 
