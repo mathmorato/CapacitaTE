@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.15
+ * Versão: v.3.4.16
  */
 
 class ReportDocxGenerator {
@@ -4683,7 +4683,7 @@ class ReportDocxGenerator {
                 <p style="margin: 0 0 0.5rem 0;">Prof. Dr. Willer Luciano Carvalho</p>
                 <p style="font-weight: bold; margin: 0.5rem 0 0 0;">Equipe de Técnica</p>
                 <p style="margin: 0 0 0.4rem 0;">Eng. M.Sc. Lara Batista Ferreira de Lima</p>
-                <p style="margin: 0 0 0.4rem 0;">Eng. M.Sc. Matheus Henrique Morato de Moraes</p>
+                <p style="margin: 0 0 0.4rem 0;">Eng. Dr. Matheus Henrique Morato de Moraes</p>
                 <p style="margin: 0 0 0.4rem 0;">Prof. Dr. Liosber Medina Garcia</p>
                 <p style="margin: 0 0 0.4rem 0;">Prof. Dr. Marcos Paulino Roriz Junior</p>
                 <p style="margin: 0 0 0.4rem 0;">Prof. Dr. Robinson Andrés Giraldo Zuluaga</p>

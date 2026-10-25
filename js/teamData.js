@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
- * Versão: v.3.4.15
+ * Versão: v.3.4.16
  */
 
 window.OFFICIAL_PRONOUNS = [
@@ -90,9 +90,9 @@ window.DEFAULT_OFFICIAL_TEAM = [
     id: 'team_ufg_2',
     institutionGroup: 'UFG',
     pronoun: 'Eng.',
-    title: 'M.Sc.',
+    title: 'Dr.',
     name: 'Matheus Henrique Morato de Moraes',
-    fullName: 'Eng. M.Sc. Matheus Henrique Morato de Moraes',
+    fullName: 'Eng. Dr. Matheus Henrique Morato de Moraes',
     role: 'Equipe Técnica',
     institution: 'UFG',
     type: 'tecnica',
@@ -227,7 +227,16 @@ window.getMasterTeam = function() {
     const saved = localStorage.getItem('autoreport_master_team');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Atualização do título padrão (M.Sc. -> Dr.) na equipe mestra já salva no navegador; só altera o valor antigo
+        const matheus = parsed.find(m => m.name === 'Matheus Henrique Morato de Moraes' && m.title === 'M.Sc.');
+        if (matheus) {
+          matheus.title = 'Dr.';
+          matheus.fullName = 'Eng. Dr. Matheus Henrique Morato de Moraes';
+          localStorage.setItem('autoreport_master_team', JSON.stringify(parsed));
+        }
+        return parsed;
+      }
     }
   } catch (e) {
     console.warn('Erro ao carregar equipe mestra:', e);

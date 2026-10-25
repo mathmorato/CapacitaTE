@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.15
+ * Versão: v.3.4.16
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.15';
+    this.version = 'v.3.4.16';
   }
 
   /**
@@ -10621,9 +10621,9 @@ class AutoReportApp {
       return;
     }
 
-    // Regra estrita: impedir exclusão de registros do Histórico Protegido (Nº 6 a 14)
-    if ((training.isHistorical || training.status === 'historico') && (parseInt(training.number) >= 6 && parseInt(training.number) <= 14)) {
-      this.showToast('Registros do Histórico Protegido (Nº 6 a 14) são permanentes e não podem ser excluídos.', 'warning');
+    // Regra estrita: impedir exclusão de registros do Histórico Protegido
+    if (training.isHistorical || training.status === 'historico') {
+      this.showToast('Registros do Histórico Protegido são permanentes e não podem ser excluídos.', 'warning');
       return;
     }
 

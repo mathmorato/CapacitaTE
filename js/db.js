@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.15
+ * Versão: v.3.4.16
  */
 
 const SUPABASE_CONFIG = {
@@ -217,7 +217,7 @@ class TrainingDB {
       const cloudIds = new Set((cloudTrainings || []).map(r => r.id));
       const allLocal = await this.getAll('trainings');
       for (const loc of allLocal) {
-        if (loc.isHistorical || (parseInt(loc.number) >= 6 && parseInt(loc.number) <= 14)) continue;
+        if (loc.isHistorical || loc.status === 'historico') continue; // históricos vêm do banco, não são enviados
         if (!cloudIds.has(loc.id)) {
           const full = await this.getTrainingFull(loc.id);
           if (full) await this.uploadTrainingToCloud(full);
@@ -354,9 +354,9 @@ class TrainingDB {
       throw new Error('Capacitação não encontrada no banco de dados.');
     }
 
-    // Regra estrita de segurança: NUNCA permitir exclusão de registros do Histórico Protegido (Nº 6 a 14)
-    if ((training.isHistorical || training.status === 'historico') && (parseInt(training.number) >= 6 && parseInt(training.number) <= 14)) {
-      throw new Error('Capacitações do Histórico Protegido (Nº 6 a 14) não podem ser excluídas.');
+    // Regra estrita de segurança: registros marcados como históricos (inseridos no banco de dados) não são excluídos
+    if (training.isHistorical || training.status === 'historico') {
+      throw new Error('Capacitações do Histórico Protegido não podem ser excluídas.');
     }
 
     // Exclusão em cascata de todos os registros filhos e mestre no IndexedDB
@@ -777,26 +777,17 @@ class TrainingDB {
   }
 
   /**
-   * Popula dados históricos das Capacitações Nº 6 a 14 (Regra 62 e 72)
+   * Ajustes iniciais do banco local. As capacitações históricas não são mais embutidas no app:
+   * são inseridas diretamente no banco de dados (Supabase) e chegam pela sincronização.
    */
   async seedInitialData() {
-    const existing = await this.getAll('trainings');
-    const existingNumbers = new Set((existing || []).map(t => parseInt(t.number)));
-
-    // 1. Inserir Capacitações Históricas de 6 a 14 a partir de window.HISTORICAL_TRAININGS
-    if (window.HISTORICAL_TRAININGS && Array.isArray(window.HISTORICAL_TRAININGS)) {
-      for (const hist of window.HISTORICAL_TRAININGS) {
-        if (!existingNumbers.has(hist.number)) {
-          console.log(`Carregando Capacitação Histórica Nº ${hist.number} (${hist.polo})...`);
-          await this.saveTrainingFull({
-            ...hist,
-            status: 'historico',
-            isHistorical: true,
-            progressPercent: 100
-          }, `Carga histórica da Capacitação Nº ${hist.number} (${hist.polo})`);
-          existingNumbers.add(hist.number);
-        }
+    // 1. Remoção (uma única vez) das cópias das Capacitações Nº 6 a 14 que eram embutidas no app (ids cap_historico_N).
+    // Executa só uma vez para não apagar registros com esses ids inseridos depois no banco de dados.
+    if (!localStorage.getItem('autoreport_embedded_history_removed')) {
+      for (let n = 6; n <= 14; n++) {
+        await this.purgeTrainingLocal(`cap_historico_${n}`);
       }
+      localStorage.setItem('autoreport_embedded_history_removed', '1');
     }
 
     // 2. Limpeza de registros de teste pré-semeados antigos se existirem
@@ -811,19 +802,30 @@ class TrainingDB {
     for (const t of allTrainings) {
       if (t.id === 'cap_historico_15' || (parseInt(t.number) === 15 && (t.isHistorical || t.status === 'historico' || t.polo === 'Posse'))) {
         console.log('Removendo Capacitação 15 (Posse) do IndexedDB...');
-        await Promise.all([
-          this.clearStoreByIndex('team', 'trainingId', t.id),
-          this.clearStoreByIndex('municipalities', 'trainingId', t.id),
-          this.clearStoreByIndex('courseModules', 'trainingId', t.id),
-          this.clearStoreByIndex('courseMoments', 'trainingId', t.id),
-          this.clearStoreByIndex('attendance', 'trainingId', t.id),
-          this.clearStoreByIndex('evaluations', 'trainingId', t.id),
-          this.clearStoreByIndex('media', 'trainingId', t.id),
-          this.clearStoreByIndex('auditLog', 'trainingId', t.id),
-          this.delete('trainings', t.id)
-        ]);
+        await this.purgeTrainingLocal(t.id);
       }
     }
+  }
+
+  /**
+   * Remove uma capacitação e todos os registros filhos apenas do banco local, sem a trava de histórico
+   * (uso interno de limpeza; não altera a nuvem)
+   */
+  async purgeTrainingLocal(trainingId) {
+    const existing = await this.get('trainings', trainingId);
+    if (!existing) return;
+    console.log(`Removendo do banco local a capacitação ${trainingId}...`);
+    await Promise.all([
+      this.clearStoreByIndex('team', 'trainingId', trainingId),
+      this.clearStoreByIndex('municipalities', 'trainingId', trainingId),
+      this.clearStoreByIndex('courseModules', 'trainingId', trainingId),
+      this.clearStoreByIndex('courseMoments', 'trainingId', trainingId),
+      this.clearStoreByIndex('attendance', 'trainingId', trainingId),
+      this.clearStoreByIndex('evaluations', 'trainingId', trainingId),
+      this.clearStoreByIndex('media', 'trainingId', trainingId),
+      this.clearStoreByIndex('auditLog', 'trainingId', trainingId),
+      this.delete('trainings', trainingId)
+    ]);
   }
 }
 
