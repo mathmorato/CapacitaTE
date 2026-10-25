@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.3.4
+ * Versão: v.4.3.5
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.3.4';
+    this.version = 'v.4.3.5';
   }
 
   /**
@@ -592,8 +592,10 @@ class CapacitaTEApp {
   /* ==========================================================================
      IMPORTAÇÃO EM MASSA DE MUNICÍPIOS POR PLANILHA (.XLSX, .CSV)
      ========================================================================== */
-  openImportMunicipalitiesModal(targetContext = 'wizard') {
+  openImportMunicipalitiesModal(targetContext = 'wizard', training = null, onDone = null) {
     this.munImportContext = targetContext;
+    this.munImportTraining = training; // contexto 'painel' (Painel de vagas): capacitação aberta fora do assistente
+    this.munImportOnDone = onDone;
     this.munImportParsedData = null;
     this.munImportSearchFilter = '';
 
@@ -616,6 +618,39 @@ class CapacitaTEApp {
       modal.style.display = 'flex';
       modal.classList.add('active');
     }
+  }
+
+  /**
+   * Capacitação que recebe os municípios importados: a do assistente ('wizard'), a do Painel de vagas ('painel') ou nenhuma (catálogo geral)
+   */
+  munImportTarget() {
+    if (this.munImportContext === 'wizard') return this.currentTraining || null;
+    if (this.munImportContext === 'painel') return this.munImportTraining || null;
+    return null;
+  }
+
+  /**
+   * Planilha modelo para importar municípios (colunas Município e UF; Código IBGE opcional) com instruções
+   */
+  downloadMunicipalitiesTemplate() {
+    const t = this.munImportTarget() || this.currentTraining || this.munImportTraining || {};
+    const uf0 = t.uf || 'GO';
+    const sample = (window.IBGE_DATA || []).filter(m => m.u === uf0).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR')).slice(0, 3);
+    const aoa = [['Município', 'UF'], ...(sample.length ? sample.map(m => [m.n, m.u]) : [['Goiânia', 'GO'], ['Aparecida de Goiânia', 'GO']])];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 34 }, { wch: 6 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'Cidades');
+    const help = XLSX.utils.aoa_to_sheet([
+      ['Como preencher'],
+      ['1. Escreva um município por linha na aba "Cidades" (apague as linhas de exemplo).'],
+      ['2. A coluna UF é opcional; se ficar vazia, vale a UF da capacitação.'],
+      ['3. Opcional: coluna "Código IBGE" no lugar ou além do nome.'],
+      ['4. Na tela seguinte você confere e marca os municípios antes de salvar.']
+    ]);
+    help['!cols'] = [{ wch: 90 }];
+    XLSX.utils.book_append_sheet(wb, help, 'Instruções');
+    XLSX.writeFile(wb, 'modelo-cidades-convidadas.xlsx');
   }
 
   closeImportMunicipalitiesModal() {
@@ -660,10 +695,11 @@ class CapacitaTEApp {
       let poloUf = 'GO';
       let existingMuns = [];
 
-      if (this.munImportContext === 'wizard' && this.currentTraining) {
-        poloName = this.currentTraining.polo || 'Polo Regional';
-        poloUf = this.currentTraining.uf || 'GO';
-        existingMuns = this.currentTraining.municipalities || [];
+      const target = this.munImportTarget();
+      if (target) {
+        poloName = target.polo || 'Polo Regional';
+        poloUf = target.uf || 'GO';
+        existingMuns = target.municipalities || [];
       } else if (window.db) {
         existingMuns = (await window.db.getAll('municipalities')) || [];
       }
@@ -834,15 +870,18 @@ class CapacitaTEApp {
       return;
     }
 
+    // Barra de carregamento de 0 a 100% (mínimo de 1,5 s) e confirmação com botão Continuar
+    const F = window.CapacitaTE && CapacitaTE.formModules;
+    const done = F && F.showBusy ? F.showBusy('Importando municípios...') : async () => {};
+
     try {
       let insertedCount = 0;
       let updatedCount = 0;
+      const target = this.munImportTarget();
 
-      if (this.munImportContext === 'wizard' && this.currentTraining) {
-        if (!this.currentTraining.municipalities) {
-          this.currentTraining.municipalities = [];
-        }
-        const muns = this.currentTraining.municipalities;
+      if (target) {
+        if (!target.municipalities) target.municipalities = [];
+        const muns = target.municipalities;
 
         selectedRows.forEach(r => {
           const existingIdx = muns.findIndex(m => String(m.ibgeCode).trim() === String(r.ibgeCode).trim());
@@ -874,10 +913,10 @@ class CapacitaTEApp {
           }
         });
 
-        this.ensurePoloInMunicipalities();
-        await window.db.saveTrainingFull(this.currentTraining, `Importação em massa de ${selectedRows.length} municípios via planilha Excel`);
-        this.renderMunicipalitiesStep();
-
+        if (this.munImportContext === 'wizard') this.ensurePoloInMunicipalities();
+        await window.db.saveTrainingFull(target, `Importação em massa de ${selectedRows.length} municípios via planilha Excel`);
+        if (this.munImportContext === 'wizard') this.renderMunicipalitiesStep();
+        if (this.munImportOnDone) await this.munImportOnDone(selectedRows); // Painel de vagas: atualiza o formulário
       } else if (window.db) {
         // Salvar no Catálogo Geral de Municípios
         for (const r of selectedRows) {
@@ -894,10 +933,13 @@ class CapacitaTEApp {
         this.renderMunicipalitiesBank();
       }
 
+      await done(`${insertedCount} município(s) cadastrado(s) e ${updatedCount} atualizado(s).`);
       this.closeImportMunicipalitiesModal();
-      this.showToast(`Importação concluída com sucesso! ${insertedCount} cadastrado(s), ${updatedCount} atualizado(s).`, 'success');
-
+      if (this.munImportContext === 'painel' && window.CapacitaTE && CapacitaTE.router && window.location.hash) {
+        window.dispatchEvent(new HashChangeEvent('hashchange')); // recarrega o Painel de vagas
+      }
     } catch (err) {
+      await done();
       console.error('Erro ao salvar municípios importados:', err);
       this.showToast(`Erro ao salvar no banco de dados: ${err.message}`, 'error');
     }

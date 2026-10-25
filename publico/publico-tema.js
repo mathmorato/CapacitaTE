@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Tema das páginas públicas (claro por padrão; escuro por escolha, lembrada neste navegador)
- * Versão: v.4.3.4
+ * Versão: v.4.3.5
  * Carregado no <head>, antes da página aparecer, para não piscar o tema errado.
  */
 (function () {
