@@ -85,7 +85,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          v.3.4.20
+          v.3.4.21
         </div>
       </div>
     </aside>
@@ -112,6 +112,10 @@
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
             <span>Nuvem Ativa</span>
           </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="cloud-sync-btn" onclick="app.syncWithCloud()" title="Sincronizar a versão local com a online (envia o que é mais novo aqui e baixa o que é mais novo na nuvem)" style="display:inline-flex; align-items:center; justify-content:center; gap:0.35rem; height:36px; padding:0 0.9rem; font-size:0.82rem; font-weight:600; box-sizing:border-box;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Sincronizar</span>
+          </button>
           <div id="autosave-status-badge" style="font-size:0.8rem; font-weight:600; color:var(--accent-success); display:flex; align-items:center; gap:0.35rem;">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Salvo
           </div>
@@ -1968,7 +1972,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.20 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.21 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1978,7 +1982,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.4.20</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.4.21</span>
         </div>
       </footer>
     </div>

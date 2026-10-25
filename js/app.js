@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.20
+ * Versão: v.3.4.21
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.20';
+    this.version = 'v.3.4.21';
   }
 
   /**
@@ -207,6 +207,58 @@ class AutoReportApp {
   /* ==========================================================================
      Dashboard & Estatísticas Globais
      ========================================================================== */
+  /**
+   * Botão "Sincronizar": grava a capacitação aberta, sincroniza nos dois sentidos com a nuvem e atualiza a tela.
+   */
+  async syncWithCloud() {
+    if (!window.db) return;
+    const btn = document.getElementById('cloud-sync-btn');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="sync-spin" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Sincronizando...</span>';
+    }
+
+    try {
+      // 1. Grava o que está aberto, para que as últimas alterações entrem na sincronização
+      const t = this.currentTraining;
+      if (t && this.activeView === 'wizard' && !t.isHistorical) {
+        this.saveCurrentStepData();
+        await window.db.saveTrainingFull(t, 'Salvamento antes da sincronização com a nuvem', false);
+      }
+
+      // 2. Sincroniza nos dois sentidos
+      const summary = await window.db.syncNow();
+
+      // 3. Se a capacitação aberta foi atualizada pela nuvem, recarrega-a para não sobrescrever a versão online
+      if (t && this.activeView === 'wizard' && summary.downloadedIds.includes(t.id)) {
+        await this.openWizard(t.id, this.currentStep || 1);
+        this.showToast('A capacitação aberta tinha uma versão mais nova na nuvem e foi atualizada.', 'info', 6000);
+      }
+
+      await this.refreshTrainingsList();
+      if (this.activeView === 'dashboard') this.renderDashboard();
+      else if (this.activeView === 'trainings' && typeof this.renderTrainingsList === 'function') this.renderTrainingsList();
+
+      const parts = [];
+      if (summary.uploaded) parts.push(`${summary.uploaded} enviada(s) para a nuvem`);
+      if (summary.downloaded) parts.push(`${summary.downloaded} baixada(s) da nuvem`);
+      if (summary.failed) {
+        this.showToast(`Sincronização concluída com ${summary.failed} falha(s)${parts.length ? ': ' + parts.join(', ') : ''}. Tente novamente.`, 'warning', 7000);
+      } else {
+        this.showToast(parts.length ? `Sincronização concluída: ${parts.join(', ')}.` : 'Tudo sincronizado: a versão local já é igual à online.', 'success', 5000);
+      }
+    } catch (err) {
+      console.error('Erro na sincronização com a nuvem:', err);
+      this.showToast(`Não foi possível sincronizar: ${err.message || 'falha de conexão'}. Os dados continuam salvos neste navegador.`, 'error', 7000);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+  }
+
   async refreshTrainingsList() {
     if (window.db) {
       this.trainingList = await window.db.getAllTrainings();
