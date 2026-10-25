@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.8
+ * Versão: v.3.4.9
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.8';
+    this.version = 'v.3.4.9';
   }
 
   /**
@@ -7698,6 +7698,12 @@ class AutoReportApp {
       event.currentTarget.classList.remove('dragover');
     }
 
+    // Foto arrastada de outro cartão para este slot vazio: move a foto (não é envio de arquivo)
+    if (slotId && this.draggedPhotoSlotId) {
+      this.handlePhotoDropCard(slotId, event);
+      return;
+    }
+
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0 || !this.currentTraining) return;
 
@@ -7779,13 +7785,21 @@ class AutoReportApp {
       event.currentTarget.style.borderColor = '';
     }
 
+    // Arquivo arrastado do computador sobre um cartão já preenchido: substitui a foto desse cartão
+    const droppedFiles = event.dataTransfer?.files;
+    if (!this.draggedPhotoSlotId && droppedFiles && droppedFiles.length > 0) {
+      this.handlePhotoDrop(targetSlotId, '', event);
+      return;
+    }
+
     const sourceSlotId = this.draggedPhotoSlotId || event.dataTransfer.getData('text/plain');
+    this.draggedPhotoSlotId = null;
     if (!sourceSlotId || sourceSlotId === targetSlotId) return;
 
     if (!this.currentTraining || !this.currentTraining.media) return;
 
-    const sourcePhoto = this.currentTraining.media.find(m => m.slotId === sourceSlotId || m.id === sourceSlotId);
-    const targetPhoto = this.currentTraining.media.find(m => m.slotId === targetSlotId || m.id === targetSlotId);
+    const sourcePhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === sourceSlotId || m.id === sourceSlotId));
+    const targetPhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === targetSlotId || m.id === targetSlotId));
 
     if (sourcePhoto) {
       sourcePhoto.slotId = targetSlotId;
@@ -7794,7 +7808,16 @@ class AutoReportApp {
       targetPhoto.slotId = sourceSlotId;
     }
 
-    this.draggedPhotoSlotId = null;
+    // O título padrão pertence ao slot (momento do relatório), não à foto: ao mover uma foto para um slot
+    // padrão, ela assume o título do slot (ou o título personalizado salvo para esse slot)
+    const standardSlots = this.getStandardPhotoSlots();
+    [sourcePhoto, targetPhoto].forEach(photo => {
+      const slot = photo && standardSlots.find(s => s.slotId === photo.slotId);
+      if (slot) {
+        photo.caption = slot.defaultCaption;
+        photo.title = slot.defaultTitle;
+      }
+    });
     this.renderPhotosStep();
     this.saveCurrentStepData();
     this.showToast('Posição das figuras reordenada!', 'success');
@@ -8390,6 +8413,7 @@ class AutoReportApp {
           <div class="glass-card" 
                draggable="true"
                ondragstart="app.handlePhotoDragStart('${slot.slotId}', event)"
+               ondragend="app.draggedPhotoSlotId = null"
                ondragover="app.handlePhotoDragOverCard(event)"
                ondragleave="app.handlePhotoDragLeaveCard(event)"
                ondrop="app.handlePhotoDropCard('${slot.slotId}', event)"
@@ -8574,6 +8598,7 @@ class AutoReportApp {
         <div class="glass-card" 
              draggable="true"
              ondragstart="app.handlePhotoDragStart('${photo.id}', event)"
+             ondragend="app.draggedPhotoSlotId = null"
              ondragover="app.handlePhotoDragOverCard(event)"
              ondragleave="app.handlePhotoDragLeaveCard(event)"
              ondrop="app.handlePhotoDropCard('${photo.id}', event)"
@@ -8680,7 +8705,13 @@ class AutoReportApp {
         }
         const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
         const pageImages = [];
-        for (let num = 1; num <= pdf.numPages; num++) {
+        // Limite de páginas por documento para não esgotar a memória do navegador com PDFs longos
+        const MAX_APPENDIX_PAGES = 30;
+        const totalPages = Math.min(pdf.numPages, MAX_APPENDIX_PAGES);
+        if (pdf.numPages > MAX_APPENDIX_PAGES) {
+          this.showToast(`"${fileName}" tem ${pdf.numPages} páginas; apenas as ${MAX_APPENDIX_PAGES} primeiras serão incluídas no relatório.`, 'warning', 7000);
+        }
+        for (let num = 1; num <= totalPages; num++) {
           const page = await pdf.getPage(num);
           const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement('canvas');
@@ -8715,6 +8746,17 @@ class AutoReportApp {
         const isImage = file.type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name || '');
         dataUrl = isImage ? await this.fileToReportImageDataUrl(file) : await this.fileToDataUrl(file);
         pageImages = await this.extractDocPageImages(dataUrl, isImage ? 'image/jpeg' : file.type, file.name);
+        if (!pageImages || pageImages.length === 0) {
+          // Arquivos Word (ou PDFs que não puderam ser lidos) entram no relatório apenas com o nome
+          const isWord = /\.docx?$/i.test(file.name || '');
+          this.showToast(
+            isWord
+              ? `"${file.name}" foi anexado, mas o conteúdo de arquivos Word não aparece no relatório. Para exibir as páginas, salve o documento como PDF e anexe o PDF.`
+              : `"${file.name}" foi anexado, mas suas páginas não puderam ser convertidas; no relatório aparecerá apenas o nome do arquivo.`,
+            'warning',
+            8000
+          );
+        }
       } catch (err) {
         console.warn('Falha ao anexar documento de apêndice:', file?.name, err);
         this.showToast(`Não foi possível anexar "${file?.name || 'arquivo'}". Verifique se o arquivo não está corrompido.`, 'error', 6000);
