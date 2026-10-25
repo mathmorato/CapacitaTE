@@ -75,7 +75,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.4.0.2
+          CapacitaTE · v.4.0.4
         </div>
       </div>
     </aside>
@@ -941,6 +941,14 @@
                 </div>
                 <p class="wizard-card-desc">Importe ou arraste as planilhas Excel (Google Forms / Excel) de <strong>Inscrições (Convocados)</strong> e de <strong>Lista de Presença (Presentes)</strong> para contabilizar Gestores e CACS-FUNDEB por município na Tabela 4.</p>
 
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.9rem;" data-capacitate-source="inscricao">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="app.importFromCapacitaTE('inscricao')">Usar dados do CapacitaTE: inscrições</button>
+                  <span class="admin-muted" style="font-size:0.8rem;">Busca as respostas dos formulários desta capacitação (precisa estar logado). O envio de planilha continua disponível abaixo.</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.9rem;" data-capacitate-source="presenca">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="app.importFromCapacitaTE('presenca')">Usar dados do CapacitaTE: presença</button>
+                  <span class="admin-muted" style="font-size:0.8rem;">Busca as respostas dos formulários desta capacitação (precisa estar logado). O envio de planilha continua disponível abaixo.</span>
+                </div>
                 <!-- Grid de 2 Dropzones de Upload -->
                 <div id="wizard-step6-dropzones-container" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
                   <!-- Dropzone 1: Planilha de Inscrição -->
@@ -1017,6 +1025,10 @@
                   </div>
                 </div>
 
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; margin-bottom:0.9rem;" data-capacitate-source="avaliacao">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="app.importFromCapacitaTE('avaliacao')">Usar dados do CapacitaTE: avaliações</button>
+                  <span class="admin-muted" style="font-size:0.8rem;">Busca as respostas dos formulários desta capacitação (precisa estar logado). O envio de planilha continua disponível abaixo.</span>
+                </div>
                 <!-- Dropzone Upload Avaliação -->
                 <div class="upload-dropzone" id="dropzone-evaluation" onclick="document.getElementById('file-input-evaluation').click()">
                   <div class="upload-dropzone-icon">
@@ -1918,11 +1930,13 @@
                   Conexão com a Nuvem (Supabase)
                 </h3>
                 <p style="font-size:0.83rem; color:var(--text-secondary); margin:0.3rem 0 0 0;">
-                  Informe uma vez em cada navegador. O endereço e a chave ficam salvos somente neste navegador e não são publicados no site.
+                  A conexão já vem configurada: quem abre o site entra direto, sem digitar endereço nem chave. A chave pública não é secreta; o acesso aos dados é protegido por login e permissões.
                 </p>
               </div>
               <span id="cloud-config-status" class="nav-badge" style="font-size:0.75rem;">Verificando...</span>
             </div>
+            <details style="margin-top:0.25rem;"><summary style="cursor:pointer; font-size:0.85rem; color:var(--text-secondary);">Avançado: usar outro projeto Supabase (só para instalações próprias)</summary>
+            <div style="margin-top:1rem;">
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem;">
               <div class="form-group" style="margin:0;">
                 <label class="form-label" for="cloud-config-url">Project URL</label>
@@ -1939,6 +1953,7 @@
               <button type="button" class="btn btn-primary btn-sm" onclick="app.saveCloudSettings()">Salvar e conectar</button>
               <button type="button" class="btn btn-secondary btn-sm" onclick="app.clearCloudSettings()">Remover deste navegador</button>
             </div>
+            </div></details>
           </div>
 
           <div class="glass-card" style="width:100%;">
@@ -2008,7 +2023,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.0.2 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.0.4 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -2018,7 +2033,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.4.0.2</span>
+          <span class="footer-version-tag" id="app-footer-version">v.4.0.4</span>
         </div>
       </footer>
     </div>
