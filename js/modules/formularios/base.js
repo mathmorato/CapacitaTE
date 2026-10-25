@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.3.1
+ * Versão: v.4.3.2
  */
 
 (function () {
@@ -118,7 +118,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     } : {}, extraConfig);
     const user = CapacitaTE.auth && CapacitaTE.auth.user;
     const { data, error } = await client().from('forms').insert({
-      training_id: training.id, module_key: mod, session_key: sessionKey, status: 'rascunho', config,
+      training_id: training.id, module_key: mod, session_key: sessionKey, status: 'aberto', config, // já nasce aberto: o link e o QR Code funcionam na hora
       created_by: user ? user.id : null
     }).select().single();
     if (error) {

@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Avaliação (formulário, taxa de resposta, médias por item e respostas)
- * Versão: v.4.3.1
+ * Versão: v.4.3.2
  */
 
 (function () {
@@ -21,10 +21,10 @@
       if (!form) {
         body.append(el('div', { class: 'glass-card' }, [
           el('h3', { style: 'margin:0 0 0.5rem; font-size:1rem;', text: 'Ainda não há formulário de avaliação para esta capacitação.' }),
-          el('p', { class: 'admin-muted', text: 'Ele é criado como rascunho, com os 7 itens de nota e as opções do formulário do Google usados hoje.' }),
+          el('p', { class: 'admin-muted', text: 'Ele já é criado aberto (o link e o QR Code funcionam na hora), com os 7 itens de nota e as opções do formulário do Google usados hoje.' }),
           canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Criar formulário de avaliação', onclick: async (e) => {
             e.currentTarget.disabled = true;
-            try { await c.createForm('avaliacao', training, 'unico'); c.toast('Formulário criado em rascunho.', 'success'); c.rerender(); }
+            try { await c.createForm('avaliacao', training, 'unico'); c.toast('Formulário criado e aberto: o link e o QR Code já funcionam.', 'success'); c.rerender(); }
             catch (err) { c.toast(c.errMsg(err), 'error'); e.currentTarget.disabled = false; }
           } }) : null
         ]));
