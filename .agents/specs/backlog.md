@@ -4,7 +4,7 @@
 > `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.1** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.2** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -38,7 +38,7 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 | Migração 0003 (pessoas, formulários, respostas) | ✅ aplicada |
 | Migração 0004 (funções públicas dos formulários) | ✅ aplicada |
 | Migração 0004b (Meu perfil, foto, limite de tentativas, textos "Administrador Chefe") | ✅ aplicada (25/10) |
-| Migração **0004c** (notas da avaliação com itens padrão) | ⏳ **pendente** — o usuário precisa rodar |
+| Migração 0004c (notas da avaliação com itens padrão) | ✅ aplicada (teste de 25/10 gravou as 7 notas) |
 | Migração 0005 (RLS endurecida: tirar acesso anônimo de `trainings`/`master_team`) | ⏳ não escrita (Fase 6) |
 | Edge Function `admin-invite-user` (só ação `invite`) | ✅ publicada pelo painel, "Verify JWT" desligado |
 | SMTP Gmail (smtp.gmail.com:465, user morato@ufg.br, remetente cecate@ufg.br) | ✅ |
@@ -102,12 +102,18 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
 - "Meu perfil": nome, e-mail (confirmação por link) e foto 160×160 guardada em `profiles.avatar` (v.3.8.7).
 - Tela de carregamento ao abrir o painel (v.3.8.9).
 - Convite com permissões por lista suspensa (nível por módulo) e perfis prontos (v.3.9.0).
+- **Formulários públicos no desenho dos Google Forms do CECATE (v.3.9.2)**, a partir dos PDFs enviados pelo usuário:
+  rótulos exatos ("Nome Completo:", "Confirme o E-mail", "Município que representa:", "CPF:  XXX.XXX.XXX-XX" etc.),
+  seções condicionais "Gestores" e "CACS-FUNDEB", presença com cabeçalho "Polo - UF" + datas + texto de boas-vindas
+  e seção "Inscrição" com o segundo telefone, avaliação com as seções "AVALIAR", "Instituição vinculada:" (obrigatória)
+  e "CECATE". Diferenças mantidas de propósito: CPF primeiro (auto-preenchimento) e caixas de veracidade/LGPD.
+  Texto de apresentação da inscrição com "convoca" e os canais de contato (inclui e-mail cecate@ufg.br).
+- Modais "Sair do preenchimento": barra de carregamento animada e tempo mínimo de 1,2 s (v.3.9.2).
 - Confirmação de senha e medidor de força (v.3.8.9).
 - `input/` e `output/` fora do Git (v.3.7.9) — ainda estão no histórico antigo; reescrever só se o usuário pedir.
 
 ## 5. Pendências do usuário
 
-1. Rodar `supabase/migrations/0004c_avaliacao_notas.sql`.
 2. Limpar as pessoas de teste (SQL abaixo).
 3. Confirmar se "Enable sign ups" está desligado.
 4. Testar no celular real e ler o QR (quando existir).
@@ -144,8 +150,6 @@ delete from public.people where full_name = 'Teste Automatizado';
 
 ## 7. Problemas conhecidos
 
-- A avaliação gravava notas vazias quando a config do formulário não tinha `ratingItems` (corrigido na 0004c,
-  ainda não aplicada).
 - O modal de confirmação do app (`openConfirmModal`) mostra "concluído" sem esperar ações assíncronas; na exclusão
   de usuários o resultado real aparece em um toast.
 - Topbar pode quebrar o título em telas médias (cosmético).

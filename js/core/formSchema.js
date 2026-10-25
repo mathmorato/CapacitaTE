@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Esquema dos Formulários (campos, etapas, textos padrão e validação; compartilhado com publico/)
- * Versão: v.3.9.1
+ * Versão: v.3.9.2
  */
 
 (function (root) {
@@ -11,7 +11,7 @@
   const DEFAULTS = {
     consentText: 'Autorizo o tratamento dos meus dados pessoais pelo CECATE Centro-Oeste/UFG e pelo FNDE exclusivamente para fins de gestão, certificação e avaliação das capacitações em transporte escolar, nos termos da Lei nº 13.709/2018 (LGPD).',
     truthStatement: 'Declaro que revisei e confirmo a veracidade de todas as informações prestadas neste formulário.',
-    contacts: { whatsapp: '(62) 3209-6723', site: 'https://cecate.fct.ufg.br/', instagram: '@cecate.co' },
+    contacts: { whatsapp: '(62) 3209-6723', site: 'https://cecate.fct.ufg.br/', instagram: '@cecate.co', email: 'cecate@ufg.br' },
     ratingLabel: 'Avaliar de 1 a 5 (1 significa "ruim" e 5 significa "excelente")',
     ratingItems: [
       { key: 'inscricao', label: 'Inscrição' },
@@ -25,20 +25,21 @@
     institutionOptions: ['Prefeitura;', 'Secretaria Municipal de Educação;', 'Secretaria Estadual de Educação;', 'Conselheira (o) do CACS/Fundeb', 'Outros'],
     heardFromOptions: ['E-mail encaminhado pelo CECATE/CO', 'Oficio de convocação feito pelo FNDE', 'Grupos de WhatsApp', 'Instagram'],
     heardFromAllowOther: true,
-    successCaseText: 'Prezado(a) Gestor(a), se existe algum caso de sucesso da gestão do transporte escolar no seu município, gostaríamos de conhecer um pouco mais a respeito. Por favor, relate de forma sucinta o caso de sucesso no espaço a seguir:'
+    successCaseText: 'Prezado(a) Gestor(a),\n\nSe existe algum caso de sucesso da gestão do transporte escolar no seu município, gostaríamos conhecer mais um pouco ao respeito.\n\nPor favor, relate de forma sucinta o caso de sucesso no espaço a seguir:',
+    attendanceWelcome: 'Seja bem-vindo ao curso de Capacitação em Transporte Escolar (CTE).\n\nEste curso tem como objetivo aprimorar os conhecimentos em transporte escolar dos gestores municipais, apresentando os programas do governo federal, mostrando os principais aspectos de planejamento e regulação na área e ensinando o Sistema Eletrônico de Gestão do Transporte Escolar (SETE).'
   };
 
   const isGestao = (d) => d.category === 'Gestão municipal';
   const isCacs = (d) => d.category === 'CACS-FUNDEB';
 
-  // Campos de pessoa reaproveitados nos três formulários
+  // Campos de pessoa (rótulos iguais aos formulários do Google usados pelo CECATE)
   const F = {
-    full_name: { name: 'full_name', type: 'text', label: 'Nome completo', required: true, autocomplete: 'name', minLength: 3 },
+    full_name: { name: 'full_name', type: 'text', label: 'Nome Completo:', required: true, autocomplete: 'name', minLength: 3 },
     email: { name: 'email', type: 'email', label: 'E-mail', required: true, autocomplete: 'email' },
-    email_confirm: { name: 'email_confirm', type: 'email', label: 'Confirme o e-mail', required: true, autocomplete: 'off', sameAs: 'email' },
-    birth_date: { name: 'birth_date', type: 'date', label: 'Data de nascimento', required: true },
+    email_confirm: { name: 'email_confirm', type: 'email', label: 'Confirme o E-mail', required: true, autocomplete: 'off', sameAs: 'email' },
+    birth_date: { name: 'birth_date', type: 'date', label: 'Data de Nascimento', required: true },
     phone: { name: 'phone', type: 'tel', label: 'Telefone (XX)XXXXX-XXXX', required: true, autocomplete: 'tel' },
-    municipality: { name: 'municipality', type: 'select', label: 'Município que representa', required: true, optionsFrom: 'municipalities' },
+    municipality: { name: 'municipality', type: 'select', label: 'Município que representa:', required: true, optionsFrom: 'municipalities' },
     category: { name: 'category', type: 'radio', label: 'Você faz parte do:', required: true, options: CATEGORIES },
     role_gestao: { name: 'role_gestao', type: 'text', label: 'Que cargo você ocupa na gestão municipal?', required: true, when: isGestao },
     success_case: { name: 'success_case', type: 'textarea', labelFrom: 'successCaseText', required: false, when: isGestao },
@@ -47,39 +48,52 @@
     consent: { name: 'consent', type: 'checkbox', labelFrom: 'consentText', required: true }
   };
 
-  // Etapas de cada formulário (o CPF é sempre a primeira tela, fora destas etapas)
+  // Seções no mesmo desenho dos formulários do Google (o CPF é sempre a primeira tela, fora destas etapas).
+  // Seções com "when" só aparecem para a categoria correspondente (Gestores × CACS-FUNDEB).
+  const gestores = { title: 'Gestores', when: isGestao, fields: [F.role_gestao, F.success_case] };
+  const cacs = { title: 'CACS-FUNDEB', when: isCacs, fields: [F.role_cacs] };
   const STEPS = {
     inscricao: [
-      { title: 'Dados pessoais', fields: [F.full_name, F.email, F.email_confirm, F.birth_date, F.phone, F.municipality, F.category] },
-      { title: 'Cargo', fields: [F.role_gestao, F.success_case, F.role_cacs] },
+      { title: 'Dados pessoais', fields: [F.email, F.full_name, F.email_confirm, F.birth_date, F.phone, F.municipality, F.category] },
+      gestores,
+      cacs,
       { title: 'Confirmação', fields: [F.truth_confirmed, F.consent] }
     ],
     // Presença de quem já está inscrito: só confirma nome, telefone e e-mail
     presenca_inscrito: [
-      { title: 'Confirme seus dados', fields: [F.full_name, { ...F.phone, label: 'Telefone (DD)XXXXX-XXXX' }, F.email, F.consent] }
+      {
+        title: 'Confirme seus dados', fields: [
+          F.full_name,
+          { ...F.phone, label: 'Telefone: (DD)XXXXX-XXXX' },
+          { ...F.email, label: 'E-mail: xxxxxxx@xxxmail.com' },
+          F.consent
+        ]
+      }
     ],
-    // Presença de quem não está inscrito: seção 1 do Google Forms + bloco "Inscrição"
+    // Presença de quem não está inscrito: seção 1 do formulário + seção "Inscrição" + Gestores/CACS-FUNDEB
     presenca_nao_inscrito: [
-      { title: 'Seus dados', fields: [F.full_name, { ...F.phone, label: 'Telefone (DD)XXXXX-XXXX' }, F.email] },
-      { title: 'Inscrição', fields: [F.birth_date, F.municipality, F.category, F.role_gestao, F.success_case, F.role_cacs] },
+      { title: 'Seus dados', fields: [F.full_name, { ...F.phone, label: 'Telefone: (DD)XXXXX-XXXX' }, { ...F.email, label: 'E-mail: xxxxxxx@xxxmail.com' }] },
+      { title: 'Inscrição', fields: [F.birth_date, { ...F.phone, name: 'phone2', label: 'Telefone (XX)XXXXX-XXXX', autocomplete: 'off' }, F.municipality, F.category] },
+      gestores,
+      cacs,
       { title: 'Confirmação', fields: [F.consent] }
     ],
     avaliacao: [
-      { title: 'Identificação', fields: [F.full_name, F.email, F.phone, F.municipality, F.category] },
+      { title: 'Avaliação da Capacitação', fields: [F.full_name, { ...F.email, label: 'e-mail' }, F.phone, F.municipality, F.category] },
       {
-        title: 'Avaliação', fields: [
+        title: 'AVALIAR', fields: [
           { name: 'ratings', type: 'rating', labelFrom: 'ratingLabel', required: true, itemsFrom: 'ratingItems' },
-          { name: 'liked', type: 'textarea', label: 'Indique dois aspectos que você mais gostou na Formação', required: true },
-          { name: 'improve', type: 'textarea', label: 'Indique dois aspectos que poderiam ser melhorados na Formação (com detalhes)', required: true },
-          { name: 'institution_type', type: 'radio', label: 'Instituição vinculada', required: false, optionsFrom: 'institutionOptions' }
+          { name: 'liked', type: 'textarea', label: 'Indique dois aspectos que você mais gostou na Formação:', required: true },
+          { name: 'improve', type: 'textarea', label: 'Indique dois aspectos que poderiam ser melhorados na Formação (com detalhes);', required: true },
+          { name: 'institution_type', type: 'radio', label: 'Instituição vinculada:', required: true, optionsFrom: 'institutionOptions' }
         ]
       },
-      { title: 'Instituição', fields: [{ name: 'institution_name', type: 'text', label: 'Mencionar a Instituição vinculada', required: true }] },
+      { title: 'Instituição vinculada:', fields: [{ name: 'institution_name', type: 'text', label: 'Mencionar a Instituição vinculada', required: true }] },
       {
-        title: 'Sugestões', fields: [
+        title: 'CECATE', fields: [
           { name: 'topics_suggestion', type: 'textarea', label: 'Sugestão de temas para futuras capacitações (Webinar, vídeos de Youtube, postagens de Instagram, etc.)', required: false },
           { name: 'heard_from', type: 'checkboxes', label: 'Como ficou sabendo da Capacitação?', required: true, optionsFrom: 'heardFromOptions', otherFrom: 'heardFromAllowOther', otherName: 'heard_other' },
-          { name: 'comments', type: 'textarea', label: 'Comentários e/ou Sugestões', required: false },
+          { name: 'comments', type: 'textarea', label: 'Comentários e/ou Sugestões:', required: false },
           F.consent
         ]
       }

@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.9.1
+ * Versão: v.3.9.2
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.9.1';
+    this.version = 'v.3.9.2';
   }
 
   /**
@@ -3074,10 +3074,11 @@ class CapacitaTEApp {
       statusEl.style.gap = '0.5rem';
       statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
       statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
-      statusEl.style.color = '#FAC35E';
+      statusEl.style.color = 'var(--accent-gold-text)'; statusEl.style.flexWrap = 'wrap'; statusEl.setAttribute('role', 'status');
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-        <span>Gravando dados da capacitação com segurança...</span>
+        <span class="save-status-text">Salvando os dados da capacitação... aguarde</span>
+        <span class="save-progress" aria-hidden="true"><span></span></span>
       `;
     }
 
@@ -3090,13 +3091,13 @@ class CapacitaTEApp {
       }
 
       // Pequena pausa para percepção visual do processo concluído
-      await new Promise(res => setTimeout(res, 600));
+      await new Promise(res => setTimeout(res, 1200)); // tempo mínimo para o carregamento ficar visível
 
       // 3. Sucesso: esconde botão de salvar e somente agora exibe o botão de continuar
       if (statusEl) {
         statusEl.style.background = 'rgba(16, 185, 129, 0.18)';
         statusEl.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-        statusEl.style.color = '#34d399';
+        statusEl.style.color = 'var(--accent-emerald-text)';
         statusEl.innerHTML = `
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span>Dados salvos com sucesso! Você pode prosseguir com segurança.</span>
@@ -3203,10 +3204,11 @@ class CapacitaTEApp {
       statusEl.style.gap = '0.5rem';
       statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
       statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
-      statusEl.style.color = '#FAC35E';
+      statusEl.style.color = 'var(--accent-gold-text)'; statusEl.style.flexWrap = 'wrap'; statusEl.setAttribute('role', 'status');
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-        <span>Gravando dados da capacitação com segurança...</span>
+        <span class="save-status-text">Salvando os dados da capacitação... aguarde</span>
+        <span class="save-progress" aria-hidden="true"><span></span></span>
       `;
     }
 
@@ -3218,13 +3220,13 @@ class CapacitaTEApp {
         await window.db.saveTrainingFull(this.currentTraining, 'Salvamento prévio antes de sair para o Dashboard');
       }
 
-      await new Promise(res => setTimeout(res, 600));
+      await new Promise(res => setTimeout(res, 1200)); // tempo mínimo para o carregamento ficar visível
 
       // 3. Exibir confirmação e liberar botão de continuar
       if (statusEl) {
         statusEl.style.background = 'rgba(16, 185, 129, 0.18)';
         statusEl.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-        statusEl.style.color = '#34d399';
+        statusEl.style.color = 'var(--accent-emerald-text)';
         statusEl.innerHTML = `
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span>Dados salvos com sucesso! Você pode prosseguir com segurança.</span>
@@ -3359,10 +3361,11 @@ class CapacitaTEApp {
       statusEl.style.gap = '0.5rem';
       statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
       statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
-      statusEl.style.color = '#FAC35E';
+      statusEl.style.color = 'var(--accent-gold-text)'; statusEl.style.flexWrap = 'wrap'; statusEl.setAttribute('role', 'status');
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-        <span>Gravando dados da capacitação com segurança...</span>
+        <span class="save-status-text">Salvando os dados da capacitação... aguarde</span>
+        <span class="save-progress" aria-hidden="true"><span></span></span>
       `;
     }
 
@@ -3374,13 +3377,13 @@ class CapacitaTEApp {
         await window.db.saveTrainingFull(this.currentTraining, 'Salvamento prévio antes de navegar para Estrutura do Curso');
       }
 
-      await new Promise(res => setTimeout(res, 500));
+      await new Promise(res => setTimeout(res, 1200)); // tempo mínimo para o carregamento ficar visível
 
       // 3. Exibir confirmação e redirecionar
       if (statusEl) {
         statusEl.style.background = 'rgba(16, 185, 129, 0.18)';
         statusEl.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-        statusEl.style.color = '#34d399';
+        statusEl.style.color = 'var(--accent-emerald-text)';
         statusEl.innerHTML = `
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span>Dados salvos! Redirecionando para a edição da estrutura selecionada...</span>
