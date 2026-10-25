@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# Diretrizes para Desenvolvimento e Manutenção do Projeto
+# Diretrizes para Desenvolvimento e Manutenção do Projeto CapacitaTE
 
 ## 1. Regra geral de execução
 

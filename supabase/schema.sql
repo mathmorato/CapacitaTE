@@ -1,4 +1,4 @@
--- AutoReport CECATE - estrutura da nuvem (Supabase)
+-- CapacitaTE - estrutura da nuvem (Supabase)
 -- Execute uma única vez em: Supabase > SQL Editor > New query > colar este arquivo > Run.
 -- Pode ser executado novamente sem perder dados (usa "if not exists").
 

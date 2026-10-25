@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 > nul
-title Conversor Word para PDF - AutoReport CECATE
+title Conversor Word para PDF - CapacitaTE
 echo ==============================================================================
-echo   AutoReport CECATE - Conversor Automatico de Word (.docx) para PDF Oficial
+echo   CapacitaTE - Conversor Automatico de Word (.docx) para PDF Oficial
 echo   Centro Colaborador de Apoio ao Transporte Escolar - UFG / FNDE
 echo ==============================================================================
 echo.

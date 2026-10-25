@@ -1,6 +1,6 @@
 /**
- * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.6
+ * CapacitaTE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
+ * Versão: v.3.7.7
  */
 
 // Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
@@ -27,7 +27,7 @@ function parseEnvText(text) {
 /**
  * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
  */
-const CLOUD_STORAGE_KEYS = { url: 'autoreport_supabase_url', key: 'autoreport_supabase_key' };
+const CLOUD_STORAGE_KEYS = { url: 'autoreport_supabase_url', key: 'autoreport_supabase_key' }; // chave legada mantida para compatibilidade
 
 function getSavedCloudConfig() {
   try {
@@ -63,7 +63,7 @@ async function loadSupabaseEnv() {
 
 class TrainingDB {
   constructor() {
-    this.dbName = 'AutoReportCECATE_DB';
+    this.dbName = 'AutoReportCECATE_DB'; // chave legada mantida para compatibilidade
     this.dbVersion = 1;
     this.db = null;
     this.isReady = false;
@@ -593,10 +593,10 @@ class TrainingDB {
       workload: data.workload || '',
       targetAudience: data.targetAudience || 'Gestores Municipais e Conselheiros CACS-FUNDEB',
       expectedParticipants: data.expectedParticipants || '',
-      responsibleOrg: data.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)',
-      relatedProject: data.relatedProject || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL',
-      processNumber: data.processNumber || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00',
-      fundingOrg: data.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE',
+      responsibleOrg: data.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)', // chave legada mantida para compatibilidade
+      relatedProject: data.relatedProject || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL', // chave legada mantida para compatibilidade
+      processNumber: data.processNumber || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00', // chave legada mantida para compatibilidade
+      fundingOrg: data.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE', // chave legada mantida para compatibilidade
       partnerOrgs: data.partnerOrgs || '',
       locationVenue: data.locationVenue || '',
       locationAddress: data.locationAddress || '',
@@ -917,11 +917,11 @@ class TrainingDB {
   async seedInitialData() {
     // 1. Remoção (uma única vez) das cópias das Capacitações Nº 6 a 14 que eram embutidas no app (ids cap_historico_N).
     // Executa só uma vez para não apagar registros com esses ids inseridos depois no banco de dados.
-    if (!localStorage.getItem('autoreport_embedded_history_removed')) {
+    if (!localStorage.getItem('autoreport_embedded_history_removed')) { // chave legada mantida para compatibilidade
       for (let n = 6; n <= 14; n++) {
         await this.purgeTrainingLocal(`cap_historico_${n}`);
       }
-      localStorage.setItem('autoreport_embedded_history_removed', '1');
+      localStorage.setItem('autoreport_embedded_history_removed', '1'); // chave legada mantida para compatibilidade
     }
 
     // 2. Limpeza de registros de teste pré-semeados antigos se existirem
