@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.1
+ * Versão: v.3.7.2
  */
 
 // Configuração da nuvem. Prioridade: js/env.local.js (gerado a partir do .env por atualizar-env.bat),
