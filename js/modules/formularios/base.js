@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.3.4
+ * Versão: v.4.3.5
  */
 
 (function () {
@@ -436,83 +436,11 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         toast(`${m.n} adicionada. O formulário já mostra a cidade.`, 'success'); ctx.rerender();
       } catch (err) { toast(errMsg(err), 'error'); btn.disabled = false; }
     } });
-    // Adicionar várias cidades por planilha (.xlsx/.csv com Município e UF) e baixar o modelo
-    const plainName = (v) => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const sheetInput = el('input', { type: 'file', accept: '.xlsx,.xls,.csv', style: 'display:none;', 'aria-label': 'Planilha de cidades' });
-    sheetInput.addEventListener('change', async () => {
-      const file = sheetInput.files[0];
-      sheetInput.value = '';
-      if (!file) return;
-      const doneReading = showBusy('Lendo a planilha de cidades...');
-      try {
-        const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
-        const rows = sheets[sheetNames[0]] || [];
-        const header = (rows[0] || []).map(plainName);
-        const col = (names) => header.findIndex(h => names.includes(h));
-        const iName = col(['municipio', 'cidade', 'nome']);
-        const iUf = col(['uf', 'estado']);
-        const iIbge = col(['codigo ibge', 'ibge', 'cod ibge']);
-        if (iName === -1 && iIbge === -1) throw new Error('A planilha precisa ter a coluna "Município" (ou "Código IBGE"). Baixe o modelo.');
-        const defaultUf = uf.value || t.uf || ''; // UF escolhida no seletor (ou a da capacitação, se nenhuma) vale para as linhas sem UF
-        const have = new Set((t.municipalities || []).map(m => String(m.ibgeCode || m.ibge || '')));
-        const added = []; const dup = []; const notFound = [];
-        rows.slice(1).forEach((r, i) => {
-          const name = iName >= 0 ? String(r[iName] || '').trim() : '';
-          const ibge = iIbge >= 0 ? String(r[iIbge] || '').replace(/\D/g, '') : '';
-          if (!name && !ibge) return;
-          const ufv = (iUf >= 0 ? String(r[iUf] || '').trim().toUpperCase() : '') || defaultUf;
-          const m = (window.IBGE_DATA || []).find(x => (ibge && String(x.c) === ibge) || (name && x.u === ufv && plainName(x.n) === plainName(name)));
-          if (!m) { notFound.push(`linha ${i + 2}: ${name || ibge}${ufv ? `/${ufv}` : ''}`); return; }
-          if (have.has(String(m.c))) { dup.push(m.n); return; }
-          have.add(String(m.c));
-          added.push(m);
-        });
-        if (!added.length) {
-          toast(`Nenhuma cidade nova.${dup.length ? ` ${dup.length} já estava(m) na lista.` : ''}${notFound.length ? ` Não encontradas: ${notFound.slice(0, 5).join('; ')}.` : ''}`, 'warning', 8000);
-          return;
-        }
-        const notes = [];
-        if (dup.length) notes.push(`${dup.length} cidade(s) já estavam na lista e foram ignoradas: ${dup.slice(0, 8).join(', ')}${dup.length > 8 ? '…' : ''}.`);
-        if (notFound.length) notes.push(`${notFound.length} linha(s) não encontrada(s) no catálogo do IBGE: ${notFound.slice(0, 6).join('; ')}${notFound.length > 6 ? '…' : ''}.`);
-        pickModal({
-          title: 'Confirmar importação de cidades',
-          intro: `Encontramos ${added.length} cidade(s) nova(s) na planilha (linhas sem UF foram buscadas em ${defaultUf || 'qualquer UF'}). Desmarque as que não quer adicionar e confirme.`,
-          items: added.map(m => ({ id: String(m.c), label: `${m.n} (${m.u})` })),
-          confirmText: 'Adicionar cidades selecionadas',
-          busyText: 'Adicionando cidades e atualizando o formulário...',
-          afterClose: () => ctx.rerender(),
-          notes,
-          onConfirm: async (ids) => {
-            const chosen = added.filter(m => ids.includes(String(m.c)));
-            if (!t.municipalities) t.municipalities = [];
-            chosen.forEach(m => t.municipalities.push({ id: `mun_add_${Date.now()}_${m.c}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: distanceFromSede(t, m.n, m.u), isSummoned: true, isSede: false,
-              inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 }));
-            await window.db.saveTrainingFull(t, `Cidades adicionadas por planilha: ${chosen.length}`);
-            await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
-            return `${chosen.length} cidade(s) adicionada(s) à capacitação e ao formulário de inscrição.`;
-          }
-        });
-      } catch (err) { toast(errMsg(err), 'error', 8000); } finally { await doneReading(); }
+    // Importar por planilha: mesma janela do assistente (conferência, distâncias, marcar municípios, carregamento e confirmação)
+    const openSheetImport = () => window.app.openImportMunicipalitiesModal('painel', t, async () => {
+      await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
     });
-    const downloadModel = () => {
-      const uf0 = t.uf || 'GO';
-      const sample = (window.IBGE_DATA || []).filter(m => m.u === uf0).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR')).slice(0, 3);
-      const aoa = [['Município', 'UF'], ...(sample.length ? sample.map(m => [m.n, m.u]) : [['Goiânia', 'GO'], ['Aparecida de Goiânia', 'GO']])];
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet(aoa);
-      ws['!cols'] = [{ wch: 34 }, { wch: 6 }];
-      XLSX.utils.book_append_sheet(wb, ws, 'Cidades');
-      const help = XLSX.utils.aoa_to_sheet([
-        ['Como preencher'],
-        ['1. Escreva um município por linha na aba "Cidades" (apague as linhas de exemplo).'],
-        ['2. A coluna UF é opcional; se ficar vazia, vale a UF da capacitação.'],
-        ['3. Opcional: coluna "Código IBGE" no lugar do nome.'],
-        ['4. Cidades que já estão na lista são ignoradas; nomes não encontrados são informados na tela.']
-      ]);
-      help['!cols'] = [{ wch: 90 }];
-      XLSX.utils.book_append_sheet(wb, help, 'Instruções');
-      XLSX.writeFile(wb, 'modelo-cidades-convidadas.xlsx');
-    };
+    const downloadModel = () => window.app.downloadMunicipalitiesTemplate();
     // Excluir cidades convidadas (escolhe na lista e confirma). Inscrições já feitas não são apagadas.
     const removeCities = async () => {
       const list = trainingMunicipalities(t);
@@ -546,10 +474,9 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return el('div', { class: 'forms-toolbar', style: 'margin-bottom:0.8rem; flex-wrap:wrap;' }, [
       el('strong', { text: 'Adicionar cidade convidada' }), uf, city, btn,
       el('span', { class: 'admin-muted', text: 'ou' }),
-      el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Adicionar por planilha', title: 'Linhas sem UF usam a UF escolhida ao lado', onclick: () => sheetInput.click() }),
+      el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Importar por planilha', onclick: () => { window.app.munImportTraining = t; openSheetImport(); } }),
       el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar planilha modelo', onclick: downloadModel }),
-      el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir cidades...', onclick: removeCities }),
-      sheetInput
+      el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir cidades...', onclick: removeCities })
     ]);
   }
 
@@ -710,7 +637,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   }
 
   CapacitaTE.formModules = {
-    el, toast, client, errMsg, publicUrl, trainingMunicipalities, loadTraining, distanceFromSede,
+    el, toast, client, errMsg, publicUrl, trainingMunicipalities, loadTraining, distanceFromSede, showBusy,
     /**
      * Registra um módulo de formulário: def = { key, title, icon, order, render(body, ctx) }
      */

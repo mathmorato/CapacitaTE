@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.3.4** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.3.5** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -85,6 +85,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.3.3:** a exportação (e o "Usar dados do CapacitaTE") da presença agora preenche nascimento, telefone, município, categoria e cargos de quem já era inscrito, buscando na inscrição e no cadastro de pessoas (`xlsxExport.attendanceRowsComplete`). Isso muda a decisão da v.3.9.6 de deixar essas colunas em branco para inscritos (como no formulário original do Google); `attendanceRows` padrão continua em branco e o `validar-exportacao.html` segue válido. Testado em node com dados simulados.
 
 **v.4.3.4:** quadro de frequência sem a coluna "% presença": agora a coluna é "Certificado" (Sim se esteve presente em pelo menos um dia; regra do usuário: um dia já basta). O filtro "Somente faltosos" virou "Inscritos sem nenhuma presença". O relatório Word/estatísticas não foram alterados (continuam com as taxas de participação próprias).
+
+**v.4.3.5:** a importação de municípios por planilha usa **a mesma janela** em todos os lugares (assistente, Banco de municípios e Painel de vagas, contexto `painel` em `openImportMunicipalitiesModal(ctx, training, onDone)`): conferência com contadores, distâncias a partir do polo, busca e marcação; ao confirmar mostra a barra 0-100% (mín. 1,5 s) e a tela "Concluído" com Continuar. "Baixar planilha modelo" dentro da janela e no painel. O "Importar por planilha" simplificado da v.4.1.3 foi removido. Testado no navegador automático (abrir pelo painel, ler planilha de 3 linhas, barra, confirmação, Continuar, gravação e atualização do formulário simuladas sem tocar nos dados).
 
 **E-mails (25/10/2026, 18:27-18:29):** os 3 e-mails de confirmação (inscrição, presença e avaliação da 17ª CTE) chegaram corretamente ao usuário: validado de ponta a ponta. A 17ª CTE foi recadastrada pelo usuário depois da exclusão acidental.
 
