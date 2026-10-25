@@ -19,3 +19,9 @@ Desktop.ini
 /01-Avaliacao exemplo/
 /02-Relatórios exemplos/
 /03-Lista de presença/
+
+# Configuração local da nuvem (Supabase): não versionar
+.env
+.env.*
+!.env.example
+js/env.local.js

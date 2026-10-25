@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.6.8
+ * Versão: v.3.7.2
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.6.8';
+    this.version = 'v.3.7.2';
   }
 
   /**
@@ -9582,7 +9582,7 @@ class AutoReportApp {
       <div class="report-doc-page report-equipe-page">
         <div>
           <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="font-family:var(--report-font, 'Times New Roman'), serif; color: #1F4E79; font-size: 18pt; font-weight: bold; margin: 0;">
+            <h2 style="font-family:var(--report-font, 'Times New Roman'), serif; color: #000000; font-size: 18pt; font-weight: bold; margin: 0;">
               RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}
             </h2>
           </div>
@@ -9634,7 +9634,7 @@ class AutoReportApp {
         </div>
 
         <div style="margin-bottom: auto; margin-top: 1rem;">
-          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE FIGURAS</h2>
+          <h2 style="text-align: center; color: #000000; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE FIGURAS</h2>
           <div style="margin-bottom: 2rem;">
             ${figuresList.map(fig => `
               <div class="report-index-row">
@@ -9645,7 +9645,7 @@ class AutoReportApp {
             `).join('')}
           </div>
 
-          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-top: 2rem; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE TABELAS</h2>
+          <h2 style="text-align: center; color: #000000; font-size: 16pt; font-weight: bold; margin-top: 2rem; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE TABELAS</h2>
           <div>
             ${tablesList.map(tab => `
               <div class="report-index-row">
@@ -9683,7 +9683,7 @@ class AutoReportApp {
         </div>
 
         <div style="margin-bottom: auto; margin-top: 1rem;">
-          <h2 style="text-align: left; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family:var(--report-font, 'Times New Roman'), serif;">Sumário</h2>
+          <h2 style="text-align: left; color: #000000; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family:var(--report-font, 'Times New Roman'), serif;">Sumário</h2>
           <div style="line-height: 1.8;">
             ${sumarioList.map(item => `
               <div class="report-index-row" style="margin: 0.45rem 0;">
@@ -9958,12 +9958,12 @@ class AutoReportApp {
             <tr>
               <td style="border:none; padding:0;">
                 <!-- 1. INTRODUÇÃO -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
         <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${this.escapeHtml(t.polo || 'Município Polo')}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
 
         <!-- 2. DADOS BÁSICOS DO CURSO & TABELAS 1 E 2 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${this.escapeHtml(t.polo || 'Município Polo')}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
@@ -9978,7 +9978,7 @@ class AutoReportApp {
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 3. CONTATO COM OS MUNICÍPIOS & TABELA 3 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O contato oficial com os municípios selecionados teve início mediante o encaminhamento de ofícios expedidos pela Coordenação-Geral da Política do Transporte Escolar (CGPTE) do FNDE, endereçados aos dirigentes das secretarias municipais de educação e aos representantes dos conselhos CACS/FUNDEB (Apêndice I). O expediente formal continha as diretrizes gerais da capacitação, orientações de participação e o formulário eletrônico de inscrições disponibilizado por link direto e QR Code institucional.</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">De modo suplementar, a equipe técnica do CECATE Centro-Oeste realizou ampla mobilização institucional (Apêndice II), utilizando canais oficiais das administrações municipais. Foram estabelecidos contatos complementares via correio eletrônico, chamadas telefônicas e mensagens institucionais para certificar o recebimento das convocações, esclarecer dúvidas e incentivar a homologação das inscrições.</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Ao todo, foram convocados ${metrics.totalSummonedMunicipalities} municípios com vistas a atingir a meta de ${metrics.targetParticipants || (metrics.totalSummonedMunicipalities * 4)} participantes, sendo ${metrics.targetGestores || (metrics.totalSummonedMunicipalities * 2)} gestores municipais e ${metrics.targetCACS || (metrics.totalSummonedMunicipalities * 2)} representantes do CACS. Destes, ${metrics.totalInscribedMunicipalities} municípios tiveram participantes inscritos no curso, dos quais ${metrics.bothCategoriesInscribedMunicipalities || 0} municípios inscreveram representantes de ambas as categorias, ${metrics.onlyCACSInscribedMunicipalities || 0} município(s) apenas CACS e ${metrics.onlyGestoresInscribedMunicipalities || 0} apenas gestores. No que se refere ao quantitativo de pessoas, foram inscritas ${metrics.totalInscribed} pessoas, sendo ${metrics.totalInscribedGestores} gestores e ${metrics.totalInscribedCACS} representantes do CACS. A relação dos municípios com o respectivo número de inscritos por categoria é apresentada na Tabela 3.</p>
@@ -9988,7 +9988,7 @@ class AutoReportApp {
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 4. DESENVOLVIMENTO DO CURSO E PARTICIPAÇÃO & TABELA 4 & FIGURA 3 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Conforme estruturado na matriz formativa, o curso foi planejado e executado em quatro (04) módulos sequenciais, cumprindo rigorosamente os seguintes momentos pedagógicos:</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Primeiro momento:</strong> acolhimento dos participantes com credenciamento e entrega de material didático (pastas com caderno de anotações e caneta institucional), seguido de momento de integração com coffee break.</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Segundo momento:</strong> abertura oficial com pronunciamento da coordenação do CECATE Centro-Oeste e dos representantes da Coordenação-Geral da Política do Transporte Escolar (CGPTE/FNDE), apresentando a contextualização do projeto e as metas de aprimoramento da gestão pública.</p>
@@ -10009,7 +10009,7 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:1.5rem;">Ao término das atividades formativas, todos os certificados oficiais de capacitação (carga horária de 08 horas) foram devidamente emitidos e remetidos para o e-mail cadastrado de cada participante por intermédio da plataforma PLATEIA da Universidade Federal de Goiás (UFG), contando com código de verificação digital e QR Code para autenticação de veracidade.</p>
 
         <!-- 5. AVALIAÇÃO DA CAPACITAÇÃO & FIGURAS 3, 4, 5, 6, 7 E 8 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Nesta edição do curso, aplicou-se o formulário padronizado de avaliação proposto pela equipe técnica do FNDE, que coleta percepções estruturadas dos cursistas. O instrumento é dividido em duas abordagens: primeiramente, uma escala psicométrica de Likert com cinco níveis qualitativos de percepção (1 - Ruim, 2 - Regular, 3 - Neutro, 4 - Muito Bom e 5 - Excelente) para avaliar os aspectos didáticos, pedagógicos, operacionais e de infraestrutura do evento; em seguida, duas perguntas dissertativas qualitativas, nas quais os participantes detalham livremente os aspectos que mais gostaram e os pontos com oportunidade de melhoria com base na experiência vivenciada.</p>
 
         <!-- FIGURA 3 (TÓPICO 5) -->
@@ -10072,28 +10072,28 @@ class AutoReportApp {
         </div>
 
         <!-- 6. REGISTROS FOTOGRÁFICOS -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Durante a realização da capacitação, foram registrados diversos momentos por meio de fotografias que ilustram a participação ativa dos representantes municipais e dos conselheiros do CACS-FUNDEB. As imagens capturam desde a ambientação do local, momentos de acolhimento e fala dos facilitadores, até as interações e práticas colaborativas durante as atividades formativas. Esses registros visuais não apenas documentam o evento, como também reforçam o compromisso institucional dos envolvidos com o contínuo aprimoramento da política de transporte escolar nos municípios. As fotografias servem como evidência do engajamento coletivo, memória institucional e prestação de contas das ações desenvolvidas perante o FNDE:</p>
         ${photosHtml}
 
         <!-- 7. CONSIDERAÇÕES FINAIS -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${this.escapeHtml(t.polo || 'Município Polo')}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Salienta-se que, de forma geral, o curso atendeu plenamente ao objetivo primordial de aprimorar os conhecimentos e habilidades técnicas de gestores municipais e conselheiros do CACS-FUNDEB, conforme atestado nos elevados índices de satisfação apurados na pesquisa avaliativa. Por outro lado, pôde-se comprovar que reforçar a convocação mediante a articulação multicanal do CECATE Centro-Oeste — combinando correspondências oficiais, contatos telefônicos diretos e mensagens em canais institucionais — revelou-se determinante para assegurar expressivo comparecimento dos entes federados convocados.</p>
         <p style="text-align:justify; line-height:1.5;">Ficou igualmente evidente que a abordagem de diálogo permanente adotada consolida-se como canal imprescindível para atender às demandas de qualificação técnica continuada. Para finalizar, ressalta-se a suma importância de o processo formativo estar inserido em um ambiente que possibilite a livre e qualificada interação entre os cursistas e os formadores, proporcionando um rico espaço de compartilhamento de vivências territoriais, esclarecimento de dúvidas operacionais e retroalimentação contínua de todas as dimensões da política de transporte escolar no Brasil.</p>
 
         <!-- APÊNDICE I: CONVOCAÇÕES DO FNDE -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:3rem; page-break-before:always;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #000000; padding-bottom:0.35rem; margin-top:3rem; page-break-before:always;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos ofícios e convocações oficiais emitidos pelo FNDE referentes a esta capacitação:</p>
         ${fndeHtml}
 
         <!-- APÊNDICE II: CONVOCAÇÕES DO CECATE -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #000000; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos comunicados e e-mails de convocação emitidos pela equipe técnica do CECATE-CO referentes a esta capacitação:</p>
         ${cecateHtml}
 
         <!-- APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
+        <h3 style="color:#000000; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #000000; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Relação completa das respostas dissertativas registradas pelos participantes no formulário de avaliação da formação, detalhando aspectos positivos e sugestões de aperfeiçoamento por município e representação institucional:</p>
         ${evalsHtml}
 
@@ -10668,7 +10668,7 @@ class AutoReportApp {
     h3 {
       font-size: 16pt;
       font-weight: 700;
-      color: #1f4e79 !important;
+      color: #000000 !important;
     }
     p {
       margin: 0.65rem 0;

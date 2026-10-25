@@ -1,12 +1,45 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.6.8
+ * Versão: v.3.7.2
  */
 
+// Configuração da nuvem. Prioridade: js/env.local.js (gerado a partir do .env por atualizar-env.bat),
+// depois o próprio .env (quando o app é aberto por um servidor local) e, por último, os valores abaixo.
 const SUPABASE_CONFIG = {
   url: 'https://dcsrcyemyvufevuskciz.supabase.co',
   anonKey: 'sb_publishable_81j3KojA3AaV8Hqn24EGmQ_PekAy7hQ'
 };
+
+/**
+ * Lê KEY=VALOR de um texto no formato .env (ignora linhas vazias e comentários)
+ */
+function parseEnvText(text) {
+  const env = {};
+  String(text || '').split(/\r?\n/).forEach(line => {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+    if (!m || line.trim().startsWith('#')) return;
+    env[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+  });
+  return env;
+}
+
+/**
+ * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
+ */
+async function loadSupabaseEnv() {
+  let env = (typeof window !== 'undefined' && window.APP_ENV) || null;
+  if (!env && typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) {
+    try {
+      const res = await fetch('.env', { cache: 'no-store' });
+      if (res.ok) env = parseEnvText(await res.text());
+    } catch (e) { /* sem .env acessível: mantém a configuração padrão */ }
+  }
+  if (env && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+    SUPABASE_CONFIG.url = env.SUPABASE_URL.replace(/\/+$/, '');
+    SUPABASE_CONFIG.anonKey = env.SUPABASE_ANON_KEY;
+    SUPABASE_CONFIG.source = '.env';
+  }
+}
 
 class TrainingDB {
   constructor() {
@@ -106,6 +139,7 @@ class TrainingDB {
         this.isReady = true;
 
         // Inicializar conexão com Supabase e dados locais
+        await loadSupabaseEnv();
         this.initSupabase();
         await this.seedInitialData();
 
@@ -235,8 +269,13 @@ class TrainingDB {
     const summary = { downloaded: 0, uploaded: 0, unchanged: 0, failed: 0, downloadedIds: [] };
 
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A nuvem não respondeu a tempo.')), timeoutMs));
-    const { data: cloudTrainings, error } = await Promise.race([this.supabase.from('trainings').select('*'), timeout]);
-    if (error) throw new Error(error.message || 'Falha ao consultar a nuvem.');
+    let cloudTrainings, error;
+    try {
+      ({ data: cloudTrainings, error } = await Promise.race([this.supabase.from('trainings').select('*'), timeout]));
+    } catch (e) {
+      throw new Error(this.describeCloudError(e));
+    }
+    if (error) throw new Error(this.describeCloudError(error));
 
     const cloudById = new Map((cloudTrainings || []).filter(r => r && r.id).map(r => [r.id, r]));
     const timeOf = (v) => { const t = new Date(v || 0).getTime(); return isNaN(t) ? 0 : t; };
@@ -286,6 +325,22 @@ class TrainingDB {
     }
 
     return summary;
+  }
+
+  /**
+   * Traduz falhas de conexão com o Supabase em mensagens compreensíveis para o usuário
+   */
+  describeCloudError(err) {
+    const msg = String((err && (err.message || err.details)) || err || '');
+    if (/failed to fetch|networkerror|load failed|fetch failed/i.test(msg)) {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return 'Sem conexão com a internet';
+      }
+      return `o servidor da nuvem (${SUPABASE_CONFIG.url}) não respondeu. Verifique se o projeto Supabase está ativo; se ele foi pausado ou excluído, reative-o ou atualize o endereço e a chave em js/db.js`;
+    }
+    if (/JWT|apikey|Invalid API key|401/i.test(msg)) return 'a chave de acesso da nuvem (Supabase) foi recusada';
+    if (/row-level security|permission denied|42501/i.test(msg)) return 'a nuvem recusou o acesso (regras de segurança RLS do Supabase)';
+    return msg || 'falha desconhecida na nuvem';
   }
 
   /**
