@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.25
+ * Versão: v.3.4.26
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.25';
+    this.version = 'v.3.4.26';
   }
 
   /**
@@ -9856,11 +9856,11 @@ class AutoReportApp {
     if (evalsArr.length > 0) {
       cacsRespCount = evalsArr.filter(e => String(e.representation || '').toUpperCase().includes('CACS')).length;
     } else if (metrics?.totalPresent > 0) {
-      cacsRespCount = metrics.presentCACS || 0;
+      cacsRespCount = metrics.totalPresentCACS || 0;
     }
     const gestRespCount = totalResp > 0 ? (totalResp - cacsRespCount) : 0;
-    const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '38,0';
-    const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '62,0';
+    const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
+    const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
     const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
     // Comentários das Figuras da Etapa 8 (Fidelidade aos relatórios de exemplo e editáveis pelo usuário)

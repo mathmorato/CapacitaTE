@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.25
+ * Versão: v.3.4.26
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
@@ -1018,7 +1018,14 @@ class ReportDocxGenerator {
             spacing: { before: 800, after: 400 },
             children: [
               new TextRun({
-                text: 'CENTRO COLABORADOR DE APOIO AO TRANSPORTE ESCOLAR\nCECATE CENTRO-OESTE',
+                text: 'CENTRO COLABORADOR DE APOIO AO TRANSPORTE ESCOLAR',
+                bold: true,
+                size: 24,
+                color: 'E9C95C'
+              }),
+              new TextRun({
+                text: 'CECATE CENTRO-OESTE',
+                break: 1,
                 bold: true,
                 size: 24,
                 color: 'E9C95C'
@@ -1649,7 +1656,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: t2CellBorders(false, true),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Carga horaria\n(horas)', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Carga horária', font: REPORT_DOC_FONT, bold: true, size: 20 }), new TextRun({ text: '(horas)', break: 1, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2410,7 +2417,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes /', font: REPORT_DOC_FONT, bold: true, size: 20 }), new TextRun({ text: 'Nº de Inscritos', break: 1, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -2441,7 +2448,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes /', font: REPORT_DOC_FONT, bold: true, size: 20 }), new TextRun({ text: 'Nº de Inscritos', break: 1, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2623,45 +2630,23 @@ class ReportDocxGenerator {
       }
 
       // Linhas de Rodapé da Tabela 4 (conforme modelo oficial da referência 16CTE)
+      // Cada total ocupa a largura inteira da tabela, com texto justificado: "Rótulo: valor"
+      const tab4FooterRow = (text, borders) => new TableRow({
+        cantSplit: true,
+        children: [
+          new TableCell({
+            columnSpan: 11,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders,
+            verticalAlign: VerticalAlign.CENTER,
+            margins: { left: 80, right: 80 },
+            children: [new Paragraph({ alignment: AlignmentType.JUSTIFIED, keepNext: true, keepLines: true, children: [new TextRun({ text, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+          })
+        ]
+      });
       tab4Rows.push(
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              columnSpan: 3,
-              width: { size: 37, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderTop,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios presentes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            }),
-            new TableCell({
-              columnSpan: 8,
-              width: { size: 63, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderTop,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalPresentMunicipalities || 0), font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            })
-          ]
-        }),
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              columnSpan: 3,
-              width: { size: 37, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderBottom,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas presentes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            }),
-            new TableCell({
-              columnSpan: 8,
-              width: { size: 63, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderBottom,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalPresent || 0} (${metrics?.presentCACS || 0} CACS + ${metrics?.presentGestores || 0} Gestores)`, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            })
-          ]
-        })
+        tab4FooterRow(`Total de municípios presentes: ${metrics?.totalPresentMunicipalities || 0}`, tab3FooterBorderTop),
+        tab4FooterRow(`Total de pessoas presentes: ${metrics?.totalPresent || 0} (${metrics?.totalPresentCACS || 0} CACS e ${metrics?.totalPresentGestores || 0} Gestores)`, tab3FooterBorderBottom)
       );
 
       docChildren.push(
@@ -2701,11 +2686,11 @@ class ReportDocxGenerator {
       if (evalsArr.length > 0) {
         cacsRespCount = evalsArr.filter(e => String(e.representation || '').toUpperCase().includes('CACS')).length;
       } else if (metrics?.totalPresent > 0) {
-        cacsRespCount = metrics.presentCACS || 0;
+        cacsRespCount = metrics.totalPresentCACS || 0;
       }
       const gestRespCount = totalResp > 0 ? (totalResp - cacsRespCount) : 0;
-      const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '38,0';
-      const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '62,0';
+      const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
+      const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
       const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
       const fig4Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig4) ||
