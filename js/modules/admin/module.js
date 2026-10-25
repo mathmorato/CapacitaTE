@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Administração (usuários, permissões e auditoria; só para admins)
- * Versão: v.3.8.4
+ * Versão: v.3.8.5
  */
 
 (function () {
@@ -60,6 +60,7 @@
   function errorMessage(err) {
     const m = (err && (err.message || err.error_description)) || String(err || '');
     if (/último admin/i.test(m)) return 'Não é possível rebaixar ou desativar o último admin ativo.';
+    if (/admin_delete_user|is_superadmin/i.test(m) && /not find|does not exist|schema cache/i.test(m)) return 'A migração 0002b ainda não foi aplicada no Supabase.';
     if (/PGRST202|schema cache|does not exist|not find/i.test(m)) return 'A migração 0002 ainda não foi aplicada no Supabase.';
     return m || 'Falha inesperada.';
   }
