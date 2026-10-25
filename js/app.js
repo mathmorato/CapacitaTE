@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.1.0
+ * Versão: v.4.1.1
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.1.0';
+    this.version = 'v.4.1.1';
   }
 
   /**
@@ -407,6 +407,7 @@ class CapacitaTEApp {
                     : `<a class="btn btn-secondary btn-sm" href="#capacitacao/${encodeURIComponent(t.id)}/1" title="Abrir as etapas: inscrição, presença e avaliação, relatório">${window.icons.folder} Abrir</a>`}
                   ${isHist
                     ? `<span class="nav-badge badge-amber" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Registro do Histórico Protegido - Exclusão desabilitada">${window.icons.lock} Protegido</span>`
+                    : !this.canDeleteTraining() ? ''
                     : `<button class="btn btn-secondary btn-sm btn-action-delete" onclick="app.openConfirmDeleteModal('${t.id}')" style="display:inline-flex; align-items:center;" title="Excluir este relatório permanentemente">
                         ${window.icons.delete} Excluir
                       </button>`
@@ -11206,8 +11207,20 @@ class CapacitaTEApp {
   /* ==========================================================================
      EXCLUSÃO DE CAPACITAÇÕES (MODAL WEB MODERNO COM BARRA DE CARREGAMENTO)
      ========================================================================== */
+  /**
+   * Só administrador exclui capacitação (a regra também vale no banco, na migração 0005).
+   */
+  canDeleteTraining() {
+    const a = window.CapacitaTE && CapacitaTE.auth;
+    return !!(a && a.mode === 'authenticated' && a.isAdmin && a.isAdmin());
+  }
+
   async openConfirmDeleteModal(trainingId) {
     if (!window.db) return;
+    if (!this.canDeleteTraining()) {
+      this.showToast('Somente administradores podem excluir capacitações.', 'warning');
+      return;
+    }
     const training = await window.db.get('trainings', trainingId);
     if (!training) {
       this.showToast('Capacitação não encontrada.', 'error');
