@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.1.1
+ * Versão: v.4.1.2
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.1.1';
+    this.version = 'v.4.1.2';
   }
 
   /**
@@ -97,6 +97,7 @@ class CapacitaTEApp {
     // Painel montado: tira a tela de carregamento
     if (window.CapacitaTE && CapacitaTE.hideBoot) CapacitaTE.hideBoot();
 
+    this.startAutoSync();
     console.log('CapacitaTE pronto!');
   }
 
@@ -232,10 +233,33 @@ class CapacitaTEApp {
      Dashboard & Estatísticas Globais
      ========================================================================== */
   /**
+   * Sincronização automática: ao abrir/entrar, de 2 em 2 minutos com a aba visível, ao voltar para a aba e ao
+   * recuperar a internet. Usa o mesmo caminho do botão Sincronizar, em modo silencioso (só avisa se algo mudou).
+   */
+  startAutoSync() {
+    if (this._autoSyncStarted) return;
+    this._autoSyncStarted = true;
+    const MIN_GAP = 20 * 1000; // evita rajadas
+    const run = () => {
+      if (document.hidden || !navigator.onLine || !window.db || !window.db.supabase) return;
+      if (this._lastAutoSync && Date.now() - this._lastAutoSync < MIN_GAP) return;
+      const a = window.CapacitaTE && CapacitaTE.auth;
+      if (a && a.mode !== 'authenticated') return;
+      this.syncWithCloud({ silent: true });
+    };
+    setTimeout(run, 4000);
+    setInterval(run, 2 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) run(); });
+    window.addEventListener('online', run);
+  }
+
+  /**
    * Botão "Sincronizar": grava a capacitação aberta, sincroniza nos dois sentidos com a nuvem e atualiza a tela.
    */
-  async syncWithCloud() {
+  async syncWithCloud({ silent = false } = {}) {
     if (!window.db) return;
+    if (this._syncing) return; // já há uma sincronização em andamento
+    this._syncing = true;
     const btn = document.getElementById('cloud-sync-btn');
     const originalHtml = btn ? btn.innerHTML : '';
     if (btn) {
@@ -256,26 +280,37 @@ class CapacitaTEApp {
 
       // 3. Se a capacitação aberta foi atualizada pela nuvem, recarrega-a para não sobrescrever a versão online
       if (t && this.activeView === 'wizard' && summary.downloadedIds.includes(t.id)) {
-        await this.openWizard(t.id, this.currentStep || 1);
-        this.showToast('A capacitação aberta tinha uma versão mais nova na nuvem e foi atualizada.', 'info', 6000);
+        // Na sincronização automática não recarrega a tela enquanto a pessoa digita
+        const typing = silent && document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+        if (!typing) {
+          await this.openWizard(t.id, this.currentStep || 1);
+          this.showToast('A capacitação aberta tinha uma versão mais nova na nuvem e foi atualizada.', 'info', 6000);
+        } else {
+          this.showToast('Há uma versão mais nova desta capacitação na nuvem. Clique em Sincronizar quando terminar de digitar.', 'info', 8000);
+        }
       }
 
       await this.refreshTrainingsList();
       if (this.activeView === 'dashboard') this.renderDashboard();
       else if (this.activeView === 'trainings' && typeof this.renderTrainingsList === 'function') this.renderTrainingsList();
 
+      this._lastAutoSync = Date.now();
       const parts = [];
       if (summary.uploaded) parts.push(`${summary.uploaded} enviada(s) para a nuvem`);
       if (summary.downloaded) parts.push(`${summary.downloaded} baixada(s) da nuvem`);
-      if (summary.failed) {
+      if (silent) {
+        if (summary.failed) console.warn(`Sincronização automática com ${summary.failed} falha(s).`);
+        else if (parts.length) this.showToast(`Sincronizado automaticamente: ${parts.join(', ')}.`, 'success', 3500);
+      } else if (summary.failed) {
         this.showToast(`Sincronização concluída com ${summary.failed} falha(s)${parts.length ? ': ' + parts.join(', ') : ''}. Tente novamente.`, 'warning', 7000);
       } else {
         this.showToast(parts.length ? `Sincronização concluída: ${parts.join(', ')}.` : 'Tudo sincronizado: a versão local já é igual à online.', 'success', 5000);
       }
     } catch (err) {
       console.error('Erro na sincronização com a nuvem:', err);
-      this.showToast(`Não foi possível sincronizar: ${err.message || 'falha de conexão'}. Os dados continuam salvos neste navegador.`, 'error', 7000);
+      if (!silent) this.showToast(`Não foi possível sincronizar: ${err.message || 'falha de conexão'}. Os dados continuam salvos neste navegador.`, 'error', 7000);
     } finally {
+      this._syncing = false;
       if (btn) {
         btn.disabled = false;
         btn.innerHTML = originalHtml;
