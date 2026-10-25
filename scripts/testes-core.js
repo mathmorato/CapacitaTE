@@ -64,6 +64,25 @@
     root.CapacitaTE.can = saved;
   }
 
+  // Permissões (somente no navegador): usuário comum logado com relatorio.edit
+  if (!isNode && root.CapacitaTE.permissions) {
+    const C = root.CapacitaTE;
+    const savedAuth = C.auth;
+    C.auth = { mode: 'transition' };
+    eq('perm modo transição libera tudo', C.can('inscricao', 'view'), true);
+    C.auth = { mode: 'authenticated', profile: { is_admin: false }, permissions: [{ module_key: 'relatorio', action: 'edit', training_id: null }, { module_key: 'presenca', action: 'view', training_id: 'cap_1' }] };
+    eq('perm edit implica view', C.can('relatorio', 'view'), true);
+    eq('perm edit não implica generate', C.can('relatorio', 'generate'), false);
+    eq('perm sem inscricao.view', C.can('inscricao', 'view'), false);
+    eq('perm escopo da capacitação certa', C.can('presenca', 'view', 'cap_1'), true);
+    eq('perm escopo de outra capacitação', C.can('presenca', 'view', 'cap_2'), false);
+    eq('perm comum sem admin', C.can('admin', 'view'), false);
+    eq('menu esconde módulo sem permissão', C.getMenuItems().some(i => i.view === 'zz_teste'), false);
+    C.auth = { mode: 'authenticated', profile: { is_admin: true }, permissions: [] };
+    eq('perm admin libera tudo', C.can('inscricao', 'export') && C.can('admin', 'view'), true);
+    C.auth = savedAuth;
+  }
+
   const failed = results.filter(r => !r.ok);
   if (isNode) {
     failed.forEach(r => console.log(`FALHOU: ${r.name} (obtido ${JSON.stringify(r.actual)}, esperado ${JSON.stringify(r.expected)})`));

@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.9
+ * Versão: v.3.8.0
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.9';
+    this.version = 'v.3.8.0';
   }
 
   /**
@@ -73,6 +73,11 @@ class CapacitaTEApp {
 
     // 2. Aplicar Tema
     this.applyTheme(this.theme);
+
+    // 2.1 Login (js/core/auth.js): aguarda o acesso ser liberado antes de montar o menu pelas permissões
+    if (window.CapacitaTE && CapacitaTE.auth) {
+      await CapacitaTE.auth.init();
+    }
 
     // 3. Inicializar Configurações Globais
     this.initGlobalSettings();
@@ -496,6 +501,10 @@ class CapacitaTEApp {
   }
 
   async createNewTrainingBlank() {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'edit')) {
+      this.showToast('Você não tem permissão para criar capacitações.', 'warning');
+      return;
+    }
     const newId = `cap_${Date.now()}`;
 
     const defaultOrg = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)'; // chave legada mantida para compatibilidade
@@ -1157,6 +1166,11 @@ class CapacitaTEApp {
   }
 
   async openWizard(trainingId, step = 1) {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'view', trainingId)) {
+      this.showToast('Você não tem permissão para abrir o Relatório.', 'warning');
+      this.navigateTo('dashboard');
+      return;
+    }
     if (!window.db) return;
 
     // Buscar dados completos. Zera a etapa atual para que setWizardStep não grave na nova capacitação
@@ -10360,6 +10374,10 @@ class CapacitaTEApp {
   }
 
   async downloadDocxReport() {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'generate', this.currentTraining?.id)) {
+      this.showToast('Você não tem permissão para gerar o relatório.', 'warning');
+      return;
+    }
     if (!this.currentTraining) {
       this.showToast('Nenhuma capacitação selecionada para gerar o relatório.', 'warning');
       return;
@@ -11112,6 +11130,10 @@ class CapacitaTEApp {
   }
 
   async executeDeleteTrainingConfirmed() {
+    if (window.CapacitaTE && CapacitaTE.auth && !CapacitaTE.auth.isAdmin()) {
+      this.showToast('Somente admins podem excluir capacitações.', 'warning');
+      return;
+    }
     if (!this.trainingToDeleteId || !window.db) return;
 
     const idToDelete = this.trainingToDeleteId;

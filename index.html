@@ -43,7 +43,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.3.7.9
+          CapacitaTE · v.3.8.0
         </div>
       </div>
     </aside>
@@ -76,6 +76,11 @@
           </button>
           <div id="autosave-status-badge" style="font-size:0.8rem; font-weight:600; color:var(--accent-success); display:flex; align-items:center; gap:0.35rem;">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Salvo
+          </div>
+          <div class="auth-user-chip" id="auth-user-chip" title="Usuário conectado">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span id="auth-user-name"></span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="CapacitaTE.auth.signOut()" style="height:28px; padding:0 0.7rem; font-size:0.78rem;">Sair</button>
           </div>
           <button class="btn btn-secondary btn-sm" id="theme-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; gap:0.35rem; height:36px; padding:0 0.9rem; font-size:0.82rem; font-weight:600; box-sizing:border-box;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Modo Escuro
@@ -1866,6 +1871,17 @@
             <p style="color:var(--text-secondary); font-size:0.95rem; margin:0.25rem 0 0 0;">Defina os padrões institucionais e preferências padrão para novos relatórios.</p>
           </div>
 
+          <!-- LOGIN AINDA NÃO CONFIGURADO: exibido por js/core/auth.js enquanto não existir admin -->
+          <div class="glass-card" id="auth-setup-hint" style="display:none; width:100%; margin-bottom:1.5rem; border-left:4px solid var(--accent-amber);">
+            <h3 style="margin:0 0 0.5rem; font-size:1rem;">Login ainda não configurado</h3>
+            <ol style="margin:0; padding-left:1.2rem; font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
+              <li>No Supabase, abra SQL Editor e execute <code>supabase/migrations/0002_auth_permissoes.sql</code>.</li>
+              <li>Crie a conta do primeiro admin em Authentication &gt; Users (ou confirme o e-mail da conta já criada).</li>
+              <li>Execute <code>select public.bootstrap_admin('email-do-admin');</code> no SQL Editor.</li>
+              <li>Em Authentication &gt; Providers &gt; Email, desative "Enable sign ups" (sem cadastro aberto).</li>
+            </ol>
+          </div>
+
           <!-- CONEXÃO COM A NUVEM: endereço e chave ficam salvos só neste navegador (nunca no código publicado) -->
           <div class="glass-card" style="width:100%; margin-bottom:1.5rem; border-left:4px solid var(--accent-primary);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.75rem; margin-bottom:1rem;">
@@ -1956,9 +1972,16 @@
           </div>
         </section>
 
+        <!-- ==========================================
+             VIEW: MÓDULOS (área onde os módulos registrados montam suas telas)
+             ========================================== -->
+        <section class="view-section" id="view-module">
+          <div id="module-container"></div>
+        </section>
+
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.7.9 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.8.0 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1968,7 +1991,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.7.9</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.8.0</span>
         </div>
       </footer>
     </div>
@@ -3114,6 +3137,10 @@
   <script src="js/core/supabaseClient.js"></script>
   <script src="js/core/router.js"></script>
   <script src="js/core/moduleRegistry.js"></script>
+  <script src="js/core/permissions.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="js/core/audit.js"></script>
+  <script src="js/core/loginView.js"></script>
   <script src="js/core/cpf.js"></script>
   <script src="js/core/formats.js"></script>
 
@@ -3130,6 +3157,10 @@
 
   <!-- MÓDULOS (cada módulo se registra em CapacitaTE.registerModule; ver .agents/specs/capacitate-modular.md, seção 17) -->
   <script src="js/modules/relatorio/module.js"></script>
+  <script src="js/modules/admin/module.js"></script>
+  <script src="js/modules/admin/usuarios.js"></script>
+  <script src="js/modules/admin/permissoes.js"></script>
+  <script src="js/modules/admin/auditoria.js"></script>
 
 </body>
 </html>
