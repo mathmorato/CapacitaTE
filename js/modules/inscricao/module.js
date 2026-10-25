@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.4.0.0
+ * Versão: v.4.0.1
  */
 
 (function () {
@@ -58,6 +58,7 @@
       body.append(el('div', { class: 'glass-card forms-section' }, [
         el('h3', { class: 'forms-section-title', text: `Painel de vagas · ${valid.length} inscrições válidas` }),
         semInscritos ? el('p', { class: 'admin-muted', text: `${semInscritos} município(s) ainda sem inscritos (destacados).` }) : null,
+        canEdit ? c.addMunicipalityBox(form) : null,
         c.table(['Município', 'Inscritos', 'CACS-FUNDEB', 'Gestão municipal'], vagasRows)
       ]));
 

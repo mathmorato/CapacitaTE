@@ -4,7 +4,7 @@
  *   2. Presença e avaliação (sessões de presença e avaliação com QR Code; exportação em Excel)
  *   3. Relatório final (assistente de 12 etapas que já existia)
  * Rota: #capacitacao/<id>[/<etapa>]
- * Versão: v.4.0.0
+ * Versão: v.4.0.1
  */
 
 (function () {

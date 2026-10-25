@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.0.0** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.0.1** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -20,6 +20,8 @@ exigem edição no módulo; auditoria `submission.delete`/`submission.restore`. 
 anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 
 **v.4.0.0:** botão "Excluir permanentemente" (com confirmação) na Lixeira; RPC `staff_purge_response`, auditoria `submission.purge`. **Migração 0004h pendente: o usuário precisa rodá-la no SQL Editor** (sem ela o botão dá erro).
+
+**v.4.0.1:** o Painel de vagas (Inscrição) tem "Adicionar cidade convidada" (UF + cidade do catálogo IBGE): grava em `training.municipalities` (Etapa 2 do cadastro) e atualiza as cidades do formulário. Sem teste automatizado na interface (só `node --check`); o usuário deve conferir.
 
 ## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 
