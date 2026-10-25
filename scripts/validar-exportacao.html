@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CapacitaTE - Validação da Exportação</title>
+  <style>
+    :root { color-scheme: dark light; }
+    body { font-family: Inter, system-ui, sans-serif; margin: 2rem; background: #161616; color: #FAFAF8; }
+    @media (prefers-color-scheme: light) { body { background: #FAFAF8; color: #202020; } }
+    h2 { margin-top: 1.5rem; font-size: 1.05rem; }
+    .ok { color: #10b981; } .fail { color: #ef4444; font-weight: 700; } .info { color: #a6a6a6; }
+    li { margin: 0.2rem 0; font-size: 0.9rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Validação da exportação (Fase 4, seção 12.4)</h1>
+  <p>Precisa ser aberta por um servidor local (ex.: <code>python -m http.server</code>) para ler as planilhas da pasta <code>input/</code>.</p>
+  <p id="resumo">Executando...</p>
+  <div id="saida"></div>
+
+  <script src="../js/vendor/xlsx.full.min.js"></script>
+  <script src="../js/ibgeData.js"></script>
+  <script src="../js/core/cpf.js"></script>
+  <script src="../js/core/formats.js"></script>
+  <script src="../js/excelParser.js"></script>
+  <script src="../js/statsEngine.js"></script>
+  <script src="../js/core/xlsxExport.js"></script>
+  <script>
+  (async () => {
+    const out = document.getElementById('saida');
+    const results = [];
+    const section = (title) => { const h = document.createElement('h2'); h.textContent = title; out.appendChild(h); const ul = document.createElement('ul'); out.appendChild(ul); return ul; };
+    const check = (ul, name, ok, detail = '') => {
+      results.push({ name, ok });
+      const li = document.createElement('li');
+      li.className = ok ? 'ok' : 'fail';
+      li.textContent = `${ok ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`;
+      ul.appendChild(li);
+    };
+    const note = (ul, text) => { const li = document.createElement('li'); li.className = 'info'; li.textContent = `• ${text}`; ul.appendChild(li); };
+
+    const X = window.CapacitaTE.xlsxExport;
+    const digits = (v) => String(v ?? '').replace(/\D/g, '');
+    const iso = (d) => (d instanceof Date ? new Date(d.getTime()).toISOString() : null);
+    const ymd = (d) => (d instanceof Date ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : null);
+    const txt = (v) => (v === null || v === undefined ? null : String(v).trim() || null);
+
+    async function readFile(name) {
+      const res = await fetch(`../input/${encodeURIComponent(name)}`);
+      if (!res.ok) throw new Error(`Não encontrei input/${name}`);
+      return new File([await res.blob()], name);
+    }
+    async function readExport(wb, name) {
+      const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      return new File([buf], name);
+    }
+    // Datas puras (nascimento) comparam o dia: o horário de verão antigo pode deslocar a meia-noite em 1 h
+    const spDay = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; // dia como a planilha mostra (data local)
+    const sameValue = (a, b, dateOnly = false) => {
+      if (dateOnly && a instanceof Date && b instanceof Date) return spDay(a) === spDay(b);
+      if (a instanceof Date || b instanceof Date) return a instanceof Date && b instanceof Date && Math.abs(a - b) <= 1000;
+      const na = a === null || a === undefined ? '' : String(a).trim();
+      const nb = b === null || b === undefined ? '' : String(b).trim();
+      return na === nb;
+    };
+
+    async function compare(title, original, exported, parseFn, knownCols = {}, dateOnlyCols = []) {
+      const ul = section(title);
+      const o = await window.excelParser.readWorkbook(original);
+      const e = await window.excelParser.readWorkbook(exported);
+      check(ul, 'Nome da aba principal', e.sheetNames[0] === o.sheetNames[0], JSON.stringify(e.sheetNames));
+      const oRows = o.sheets[o.sheetNames[0]];
+      const eRows = e.sheets[e.sheetNames[0]];
+      const oh = oRows[0].map(h => h ?? ''); const eh = eRows[0].map(h => h ?? '');
+      const headerDiffs = oh.map((h, i) => (h === eh[i] ? null : `${XLSX.utils.encode_col(i)}: original ${JSON.stringify(h)} × exportado ${JSON.stringify(eh[i])}`)).filter(Boolean);
+      check(ul, 'Cabeçalhos idênticos (caractere por caractere)', headerDiffs.length === 0 && oh.length === eh.length, headerDiffs.join(' | '));
+      check(ul, 'Mesmo número de linhas', oRows.length === eRows.length, `${oRows.length - 1} × ${eRows.length - 1}`);
+      // Valores: ordena pelos carimbos para comparar as mesmas respostas
+      const key = (r) => (r[0] instanceof Date ? r[0].getTime() : 0);
+      const oData = oRows.slice(1).slice().sort((a, b) => key(a) - key(b));
+      const eData = eRows.slice(1).slice().sort((a, b) => key(a) - key(b));
+      const diffs = [];
+      oData.forEach((row, r) => oh.forEach((h, c) => {
+        if (knownCols[c]) return;
+        if (!sameValue(row[c], (eData[r] || [])[c], dateOnlyCols.includes(c))) diffs.push(`linha ${r + 2}, ${XLSX.utils.encode_col(c)}: ${JSON.stringify(row[c])} × ${JSON.stringify((eData[r] || [])[c])}`);
+      }));
+      check(ul, 'Valores célula a célula (data/hora com tolerância de 1 s)', diffs.length === 0, diffs.slice(0, 8).join(' | ') + (diffs.length > 8 ? ` (+${diffs.length - 8})` : ''));
+      Object.entries(knownCols).forEach(([c, why]) => note(ul, `Coluna ${XLSX.utils.encode_col(Number(c))} não comparada: ${why}`));
+      // O que o relatório calcula a partir de cada arquivo
+      const po = parseFn(oRows); const pe = parseFn(eRows);
+      const strip = (list) => list.map(x => { const y = Object.assign({}, x); Object.keys(y).forEach(k => { if (y[k] instanceof Date) y[k] = y[k].getTime(); }); delete y.id; delete y.rowIndex; return y; });
+      const so = JSON.stringify(strip(po)); const se = JSON.stringify(strip(pe));
+      check(ul, 'ExcelParser lê o exportado igual ao original', so === se, so === se ? `${po.length} registros` : `original ${po.length} × exportado ${pe.length}`);
+      if (so !== se) {
+        const a = strip(po); const b = strip(pe);
+        for (let i = 0; i < a.length; i++) {
+          const ka = Object.keys(a[i]).filter(k => JSON.stringify(a[i][k]) !== JSON.stringify((b[i] || {})[k]));
+          if (ka.length) { note(ul, `1ª diferença no registro ${i + 1}: ${ka.map(k => `${k}: ${JSON.stringify(a[i][k])} × ${JSON.stringify((b[i] || {})[k])}`).join('; ')}`); break; }
+        }
+      }
+      return { po, pe };
+    }
+
+    try {
+      const uf = 'MT';
+      // ----- Inscrição -----
+      const insFile = await readFile('16CTE - Formulario de inscrição (respostas).xlsx');
+      const insRaw = (await window.excelParser.readWorkbook(insFile));
+      const insRows = insRaw.sheets[insRaw.sheetNames[0]].slice(1).filter(r => r.some(v => v !== null && v !== ''));
+      const regs = insRows.map(r => ({
+        submitted_at: iso(r[0]), email: txt(r[1]), full_name: txt(r[2]), cpf: digits(r[4]), birth_date: ymd(r[5]), phone: digits(r[6]),
+        municipality: txt(r[7]), category: txt(r[8]), role_gestao: txt(r[9]), success_case: txt(r[10]), role_cacs: txt(r[11]),
+        truth_confirmed: !!txt(r[12]), status: 'valida'
+      }));
+      const muns = (insRaw.sheets['Inscritos'] || []).slice(1).map(r => r[0]).filter(m => m && m !== 'Total' && !/Inscritos/i.test(String(m)));
+      const insAoa = X.registrationRows(regs);
+      const insExp = await readExport(X.workbook('inscricao', insAoa, { municipalities: muns }), 'inscricao.xlsx');
+      const ins = await compare('Formulário de inscrição', insFile, insExp,
+        rows => window.excelParser.parseRegistrationRows(rows, null, uf),
+        { 3: 'no banco existe um só e-mail; "Confirme o E-mail" é exportado igual ao e-mail', 4: 'CPF exportado sempre no formato 000.000.000-00', 6: 'telefone exportado sempre no formato (DD)XXXXX-XXXX' }, [5]);
+      const inscritos = (await window.excelParser.readWorkbook(insExp)).sheets['Inscritos'];
+      const ulI = section('Aba "Inscritos"');
+      check(ulI, 'Aba "Inscritos" existe com o mesmo cabeçalho', !!inscritos && JSON.stringify(inscritos[0].slice(0, 4)) === JSON.stringify(['Município', 'Inscritos', 'CACS-FUNDEB', 'Gestão municipal']));
+      check(ulI, 'Total de inscritos na aba confere com as respostas', inscritos && inscritos[inscritos.length - 1][1] === regs.filter(r => muns.includes(r.municipality)).length, inscritos && String(inscritos[inscritos.length - 1][1]));
+
+      // ----- Presença -----
+      const preFile = await readFile('16CTE - Lista de presença (respostas).xlsx');
+      const preRaw = await window.excelParser.readWorkbook(preFile);
+      const preRows = preRaw.sheets[preRaw.sheetNames[0]].slice(1).filter(r => r.some(v => v !== null && v !== ''));
+      const atts = preRows.map(r => ({
+        submitted_at: iso(r[0]), full_name: txt(r[1]), cpf: digits(r[2]), phone: digits(r[3]), email: txt(r[4]), was_registered: txt(r[5]) === 'Sim',
+        birth_date: ymd(r[6]), phone2: digits(r[7]), municipality: txt(r[8]), category: txt(r[9]), role_gestao: txt(r[10]), success_case: txt(r[11]), role_cacs: txt(r[12]),
+        session_key: 'unico', answers: {}
+      }));
+      const preExp = await readExport(X.workbook('presenca', X.attendanceRows(atts)), 'presenca.xlsx');
+      const pre = await compare('Lista de presença', preFile, preExp,
+        rows => window.excelParser.parseAttendanceRows(rows, null, uf),
+        { 2: 'CPF exportado sempre no formato 000.000.000-00', 3: 'telefone exportado sempre no formato (DD)XXXXX-XXXX', 7: 'telefone exportado sempre no formato (DD)XXXXX-XXXX' }, [6]);
+
+      // ----- Avaliação -----
+      const avFile = await readFile('16CTE - Avaliação (respostas).xlsx');
+      const avRaw = await window.excelParser.readWorkbook(avFile);
+      const avRows = avRaw.sheets[avRaw.sheetNames[0]].slice(1).filter(r => r.some(v => v !== null && v !== ''));
+      const keys = ['inscricao', 'divulgacao', 'data', 'horario', 'local', 'duracao', 'geral'];
+      const evals = avRows.map(r => ({
+        submitted_at: iso(r[0]), full_name: txt(r[1]), cpf: digits(r[2]), email: txt(r[3]), phone: digits(r[4]), municipality: txt(r[5]), category: txt(r[6]),
+        ratings: Object.fromEntries(keys.map((k, i) => [k, r[7 + i]])), liked: txt(r[14]), improve: txt(r[15]), institution_type: txt(r[16]),
+        institution_name: txt(r[17]), topics_suggestion: txt(r[18]), heard_from: txt(r[19]) ? String(r[19]).split(', ') : [], comments: txt(r[20])
+      }));
+      const avExp = await readExport(X.workbook('avaliacao', X.evaluationRows(evals)), 'avaliacao.xlsx');
+      const av = await compare('Avaliação', avFile, avExp,
+        rows => window.excelParser.parseEvaluationRows(rows, null, uf),
+        { 2: 'CPF exportado sempre no formato 000.000.000-00', 4: 'telefone exportado sempre no formato (DD)XXXXX-XXXX' });
+
+      // ----- Métricas do relatório (StatsEngine) -----
+      const ulM = section('Métricas do relatório (StatsEngine)');
+      const metrics = (r, a, e) => window.statsEngine.calculateAllMetrics({ uf, polo: 'Pontes e Lacerda', municipalities: [], registrations: r, attendance: a, evaluations: e });
+      const mo = metrics(ins.po, pre.po, av.po);
+      const me = metrics(ins.pe, pre.pe, av.pe);
+      const flat = (obj, prefix = '', acc = {}) => { Object.entries(obj || {}).forEach(([k, v]) => { if (v && typeof v === 'object' && !Array.isArray(v)) flat(v, `${prefix}${k}.`, acc); else acc[`${prefix}${k}`] = JSON.stringify(v); }); return acc; };
+      const fo = flat(mo); const fe = flat(me);
+      const mdiff = Object.keys(fo).filter(k => fo[k] !== fe[k]);
+      check(ulM, 'Métricas idênticas (inscritos, categorias, presentes, médias da avaliação, municípios)', mdiff.length === 0,
+        mdiff.length ? mdiff.slice(0, 6).map(k => `${k}: ${fo[k]} × ${fe[k]}`).join(' | ') : `${Object.keys(fo).length} valores comparados`);
+    } catch (err) {
+      const ul = section('Erro');
+      check(ul, err.message || String(err), false);
+    }
+
+    const failed = results.filter(r => !r.ok).length;
+    const resumo = document.getElementById('resumo');
+    resumo.textContent = `${results.length - failed}/${results.length} verificações passaram`;
+    resumo.className = failed ? 'fail' : 'ok';
+    window.EXPORT_TEST = { total: results.length, failed, results };
+  })();
+  </script>
+</body>
+</html>
