@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Esquema dos Formulários (campos, etapas, textos padrão e validação; compartilhado com publico/)
- * Versão: v.3.9.4
+ * Versão: v.3.9.5
  */
 
 (function (root) {
