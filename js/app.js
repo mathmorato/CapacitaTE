@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.0.5';
+    this.version = 'v.4.1.0';
   }
 
   /**
@@ -173,7 +173,7 @@ class CapacitaTEApp {
     requestAnimationFrame(() => (this._slideGroups || []).forEach(g => { if (!g.placed) this.moveSlideHighlight(g, true); }));
 
     // Ações específicas de cada view
-    if (viewId === 'settings') this.renderCloudSettings();
+    if (viewId === 'settings') { this.renderCloudSettings(); this.renderSecurityChecklist(); }
     if (viewId === 'dashboard') {
       this.renderDashboard();
     } else if (viewId === 'trainings') {
@@ -6286,6 +6286,53 @@ class CapacitaTEApp {
           }
         }
       }, false);
+    });
+  }
+
+  /**
+   * Checklist de segurança (Configurações): verificações ao vivo antes de aplicar a migração 0005
+   */
+  async renderSecurityChecklist() {
+    const ul = document.getElementById('security-checklist');
+    if (!ul) return;
+    const C = window.CapacitaTE;
+    const items = [];
+    const add = (ok, text) => items.push({ ok, text });
+    const logged = !!(C && C.auth && C.auth.mode === 'authenticated');
+    add(logged, logged ? 'Você está logado.' : 'Você não está logado (entre com e-mail e senha).');
+    add(logged && C.auth.isAdmin && C.auth.isAdmin(), logged && C.auth.isAdmin && C.auth.isAdmin() ? 'Você está logado como administrador.' : 'Você precisa estar logado como administrador.');
+    try {
+      const client = C && C.supabaseClient ? C.supabaseClient.get() : null;
+      if (client && logged) {
+        const { data, error } = await client.from('profiles').select('user_id').eq('is_admin', true).eq('is_active', true);
+        add(!error && (data || []).length >= 1, error ? 'Não foi possível consultar os administradores.' : `Administradores ativos: ${(data || []).length}.`);
+        const t = await client.from('trainings').select('id').limit(1);
+        add(!t.error, t.error ? 'Sincronização autenticada falhou.' : 'Sincronização autenticada funcionando.');
+      }
+      if (typeof SUPABASE_CONFIG !== 'undefined') {
+        const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/people?select=cpf&limit=1`, { headers: { apikey: SUPABASE_CONFIG.anonKey, Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}` } });
+        const body = res.ok ? await res.json().catch(() => []) : [];
+        const blocked = !res.ok || (Array.isArray(body) && body.length === 0);
+        add(blocked, blocked ? 'Sem login, a tabela de pessoas não devolve dados (correto).' : 'ATENÇÃO: sem login, a tabela de pessoas devolve dados.');
+        const tr = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/trainings?select=id&limit=1`, { headers: { apikey: SUPABASE_CONFIG.anonKey, Authorization: `Bearer ${SUPABASE_CONFIG.anonKey}` } });
+        const trBody = tr.ok ? await tr.json().catch(() => []) : [];
+        const trBlocked = !tr.ok || (Array.isArray(trBody) && trBody.length === 0);
+        add(trBlocked, trBlocked ? 'Segurança final (0005) aplicada: capacitações protegidas.' : 'Segurança final (0005) ainda não aplicada: capacitações legíveis sem login.');
+      }
+    } catch (err) {
+      add(false, `Não foi possível concluir a verificação: ${err.message}`);
+    }
+    ul.textContent = '';
+    items.forEach(i => {
+      const li = document.createElement('li');
+      li.style.cssText = 'font-size:0.88rem; display:flex; gap:0.5rem;';
+      const mark = document.createElement('strong');
+      mark.textContent = i.ok ? 'OK' : 'ATENÇÃO';
+      mark.style.color = i.ok ? 'var(--accent-emerald-text)' : 'var(--accent-amber-text)';
+      const t = document.createElement('span');
+      t.textContent = i.text;
+      li.append(mark, t);
+      ul.appendChild(li);
     });
   }
 

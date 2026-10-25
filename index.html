@@ -75,7 +75,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.4.0.5
+          CapacitaTE · v.4.1.0
         </div>
       </div>
     </aside>
@@ -1967,6 +1967,14 @@
             </div></details>
           </div>
 
+          <!-- CHECKLIST DE SEGURANÇA (Fase 6): verificações ao vivo; aplicar a 0005 é manual, no SQL Editor -->
+          <div class="glass-card" style="width:100%; margin-bottom:1.5rem;">
+            <h3 style="margin:0 0 0.3rem; font-size:1rem;">Checklist de segurança</h3>
+            <p style="font-size:0.83rem; color:var(--text-secondary); margin:0 0 0.8rem;">Confira antes de aplicar a migração 0005 (segurança final). O passo a passo está em <code>.agents/specs/publicacao-e-seguranca.md</code>; o SQL, em <code>supabase/migrations/0005_rls_endurecida.sql</code>. O sistema não executa SQL por você.</p>
+            <ul id="security-checklist" style="list-style:none; padding:0; margin:0; display:grid; gap:0.4rem;"></ul>
+            <button type="button" class="btn btn-secondary btn-sm" style="margin-top:0.8rem;" onclick="app.renderSecurityChecklist()">Verificar de novo</button>
+          </div>
+
           <div class="glass-card" style="width:100%;">
             <form id="global-settings-form" onsubmit="event.preventDefault(); app.saveGlobalSettings();">
               <div class="form-group">
@@ -2034,7 +2042,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.0.5 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.1.0 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -2044,7 +2052,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.4.0.5</span>
+          <span class="footer-version-tag" id="app-footer-version">v.4.1.0</span>
         </div>
       </footer>
     </div>

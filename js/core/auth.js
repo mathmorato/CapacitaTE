@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Login, Sessão, Perfil e Permissões do Usuário Atual (Supabase Auth)
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 window.CapacitaTE = window.CapacitaTE || {};

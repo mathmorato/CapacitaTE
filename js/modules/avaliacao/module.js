@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Avaliação (formulário, taxa de resposta, médias por item e respostas)
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 (function () {
@@ -55,7 +55,8 @@
         el('td', { text: it.label }),
         el('td', { class: 'perm-col', text: fmtAvg(avg(evals, it.key)) }),
         el('td', { class: 'perm-col', text: fmtAvg(avg(cacs, it.key)) }),
-        el('td', { class: 'perm-col', text: fmtAvg(avg(gest, it.key)) })
+        el('td', { class: 'perm-col', text: fmtAvg(avg(gest, it.key)) }),
+        el('td', {}, el('div', { class: 'eval-bar', role: 'img', 'aria-label': `Média geral ${fmtAvg(avg(evals, it.key))} de 5` }, el('span', { style: `width:${((avg(evals, it.key) || 0) / 5) * 100}%` })))
       ]));
       const rate = presentes ? Math.round((evals.length / presentes) * 100) : null;
       body.append(el('div', { class: 'glass-card forms-section' }, [
@@ -65,7 +66,7 @@
           el('div', {}, [el('strong', { text: String(presentes) }), el('span', { text: 'presentes (CPFs distintos)' })]),
           el('div', {}, [el('strong', { text: rate === null ? '—' : `${rate}%` }), el('span', { text: 'taxa de resposta' })])
         ]),
-        c.table(['Item', 'Média geral', 'CACS-FUNDEB', 'Gestão municipal'], rows),
+        c.table(['Item', 'Média geral', 'CACS-FUNDEB', 'Gestão municipal', 'Gráfico (0 a 5)'], rows),
         el('p', { class: 'admin-muted', style: 'margin-top:0.6rem;', text: 'Os gráficos e nuvens de palavras completos continuam no Relatório (etapas 8 e 12).' })
       ]));
 

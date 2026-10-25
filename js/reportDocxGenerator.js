@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)

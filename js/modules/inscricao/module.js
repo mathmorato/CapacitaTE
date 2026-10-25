@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 (function () {
@@ -32,6 +32,7 @@
       }
 
       body.append(c.formCard(form, c));
+      if (canEdit) body.append(c.manualBox(form));
 
       const { data, error } = await c.client().from('registrations').select('*').eq('training_id', training.id).order('submitted_at');
       if (error) throw error;

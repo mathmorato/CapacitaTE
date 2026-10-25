@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 (function () {
@@ -192,6 +192,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           el('a', { class: 'btn btn-secondary btn-sm', href: url, target: '_blank', rel: 'noopener', text: 'Abrir' }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar PNG', onclick: () => CapacitaTE.qr.downloadPng(url, `qr-${mod}-${form.session_key}.png`) }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar SVG', onclick: () => CapacitaTE.qr.downloadSvg(url, `qr-${mod}-${form.session_key}.svg`) }),
+          el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Modo recepção', title: 'QR Code grande em tela cheia, para o telão', onclick: () => receptionMode(url, posterTitle, training) }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Imprimir cartaz A4', onclick: () => {
             try { CapacitaTE.qr.printPoster(url, { title: posterTitle, subtitle: `${trainingTitle(training)} · ${training.datesFormatted || ''}` }); } catch (err) { toast(err.message, 'error'); }
           } }),
@@ -351,6 +352,67 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     ]);
   }
 
+  // Modo recepção: QR Code grande em tela cheia, para projetar no telão da entrada
+  function receptionMode(url, title, training) {
+    const overlay = el('div', { class: 'reception-overlay', role: 'dialog', 'aria-label': `Modo recepção: ${title}` }, [
+      el('button', { type: 'button', class: 'btn btn-secondary btn-sm reception-close', text: 'Fechar (Esc)', onclick: () => close() }),
+      el('h1', { class: 'reception-title', text: title }),
+      el('p', { class: 'reception-sub', text: `${trainingTitle(training)} · ${training.datesFormatted || ''}` }),
+      el('div', { class: 'reception-qr', html: CapacitaTE.qr.svg(url, { title: `QR Code: ${title}` }) }),
+      el('p', { class: 'reception-hint', text: 'Aponte a câmera do celular para o QR Code' }),
+      el('p', { class: 'reception-url', text: url })
+    ]);
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    function close() {
+      document.removeEventListener('keydown', onKey);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      overlay.remove();
+    }
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    if (overlay.requestFullscreen) overlay.requestFullscreen().catch(() => {});
+  }
+
+  // Inclusão manual de resposta por quem tem permissão de edição (RPC staff_submit; fica marcada como "manual")
+  function manualBox(ctx, form) {
+    const mod = form.module_key;
+    const muns = ((form.config && form.config.municipalities) || []).map(m => m.name);
+    const inputs = {};
+    const field = (key, label, attrs = {}) => {
+      inputs[key] = attrs.options
+        ? el('select', { class: 'form-control', 'aria-label': label }, [el('option', { value: '', text: 'Escolha...' }), ...attrs.options.map(o => el('option', { value: o, text: o }))])
+        : el('input', Object.assign({ class: 'form-control', type: 'text', 'aria-label': label }, attrs));
+      return el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', text: label }), inputs[key]]);
+    };
+    const msg = el('p', { class: 'admin-muted', style: 'margin:0.6rem 0 0;' });
+    const save = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Incluir resposta', onclick: async () => {
+      const v = (k) => inputs[k].value.trim();
+      if (!CapacitaTE.cpf.isValid(v('cpf'))) return toast('CPF inválido.', 'warning');
+      if (v('full_name').split(/\s+/).filter(Boolean).length < 2) return toast('Informe o nome completo.', 'warning');
+      save.disabled = true;
+      const payload = {
+        cpf: v('cpf').replace(/\D/g, ''), full_name: v('full_name'), email: v('email'), email_confirm: v('email'), phone: v('phone').replace(/\D/g, ''),
+        birth_date: v('birth_date'), municipality: v('municipality'), category: v('category'), role_gestao: v('role'), role_cacs: v('role'),
+        truth_confirmed: true, consent: true
+      };
+      const { data, error } = await client().rpc('staff_submit', { p_form: form.id, p_payload: payload });
+      save.disabled = false;
+      if (error) { msg.textContent = errMsg(error); return toast(errMsg(error), 'error'); }
+      toast(`Resposta incluída${data && data.protocolo ? ` (protocolo ${data.protocolo})` : ''}.`, 'success');
+      ctx.rerender();
+    } });
+    return el('details', { class: 'glass-card forms-section forms-config' }, [
+      el('summary', { text: 'Incluir resposta manualmente' }),
+      el('p', { class: 'admin-muted', text: 'Para quem não conseguiu responder pelo celular. A resposta entra marcada como "manual" e vale como as demais.' }),
+      el('div', { style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:0.7rem;' }, [
+        field('cpf', 'CPF'), field('full_name', 'Nome completo'), field('email', 'E-mail', { type: 'email' }), field('phone', 'Telefone com DDD'),
+        field('birth_date', 'Nascimento', { type: 'date' }), field('municipality', 'Município', { options: muns }),
+        field('category', 'Categoria', { options: ['CACS-FUNDEB', 'Gestão municipal'] }), field('role', 'Cargo')
+      ]),
+      el('div', { class: 'admin-actions', style: 'margin-top:0.8rem;' }, save), msg
+    ]);
+  }
+
   // ---------- excluir e lixeira ----------
   // Excluir copia a resposta para public.deleted_responses (0004g) e remove da tabela; restaurar faz o caminho inverso.
   function deleteButton(ctx, tableName, row, what) {
@@ -430,7 +492,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const forms = await loadForms(def.key, training.id);
       body.textContent = '';
       const ctxRef = {};
-      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), addMunicipalityBox: (f) => addMunicipalityBox(ctxRef, f), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
+      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), addMunicipalityBox: (f) => addMunicipalityBox(ctxRef, f), manualBox: (f) => manualBox(ctxRef, f), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
       Object.assign(ctxRef, ctx);
       await def.render(body, ctx);
     } catch (err) {
