@@ -1,17 +1,23 @@
 <!-- CapacitaTE - modelo de e-mail do Supabase Auth: convite
      Colar em: Supabase > Authentication > Emails > Templates > Invite user (campo "Message body").
-     Assunto sugerido: Convite para o CapacitaTE -->
+     Assunto sugerido: Convite para o CapacitaTE - CECATE Centro-Oeste -->
 <div style="font-family:Arial,Helvetica,sans-serif; max-width:560px; margin:0 auto; padding:24px; color:#202020;">
   <div style="border-top:4px solid #F6A800; background:#ffffff; border:1px solid #e5e5e5; border-radius:10px; padding:28px;">
     <p style="margin:0 0 4px; font-size:13px; color:#757575;">CECATE Centro-Oeste &middot; CapacitaTE</p>
-    <h2 style="margin:0 0 16px; font-size:20px; color:#202020;">Você foi convidado(a) para o CapacitaTE</h2>
-    <p style="margin:0 0 12px; font-size:15px; line-height:1.5;">Você recebeu acesso à plataforma de gestão das Capacitações em Transporte Escolar do CECATE Centro-Oeste.</p><p style="margin:0; font-size:15px; line-height:1.5;">Clique no botão abaixo e crie a sua senha para concluir o cadastro.</p>
+    <h2 style="margin:0 0 16px; font-size:20px; color:#202020;">Olá{{ if .Data.full_name }}, {{ .Data.full_name }}{{ end }}! Você foi convidado(a) para o CapacitaTE</h2>
+    <p style="margin:0 0 12px; font-size:15px; line-height:1.5;">O <strong>CapacitaTE</strong> é a Plataforma de Gestão de Capacitações em Transporte Escolar do <strong>CECATE Centro-Oeste</strong> (Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste &mdash; UFG/FNDE).</p>
+    <p style="margin:0 0 12px; font-size:15px; line-height:1.5;">Nela a equipe organiza as capacitações: inscrições, listas de presença, avaliações e a geração automática dos relatórios. Um administrador liberou o seu acesso; o que você poderá ver e fazer depende das permissões definidas por ele.</p>
+    <table style="font-size:14px; margin:0 0 4px; border-collapse:collapse;">
+      <tr><td style="padding:4px 12px 4px 0; color:#757575;">E-mail de acesso</td><td style="padding:4px 0;"><strong>{{ .Email }}</strong></td></tr>
+      <tr><td style="padding:4px 12px 4px 0; color:#757575;">Endereço da plataforma</td><td style="padding:4px 0;"><a href="{{ .SiteURL }}" style="color:#C98A00;">{{ .SiteURL }}</a></td></tr>
+    </table>
+    <p style="margin:12px 0 0; font-size:15px; line-height:1.5;">Clique no botão abaixo e <strong>crie a sua senha</strong> para concluir o cadastro. Depois, entre sempre pelo endereço da plataforma com o seu e-mail e a senha criada.</p>
     <p style="margin:24px 0;">
       <a href="{{ .ConfirmationURL }}" style="background:#F6A800; color:#161616; text-decoration:none; font-weight:bold; padding:12px 22px; border-radius:8px; display:inline-block;">Aceitar convite e criar senha</a>
     </p>
     <p style="margin:0; font-size:12px; color:#757575;">Se o botão não funcionar, copie e cole este endereço no navegador:<br>
       <span style="word-break:break-all;">{{ .ConfirmationURL }}</span></p>
-    <p style="margin:16px 0 0; font-size:12px; color:#757575;">Se você não esperava este convite, ignore este e-mail.</p>
+    <p style="margin:16px 0 0; font-size:12px; color:#757575;">O link vale por 24 horas. Se expirar, peça um novo convite ao administrador. Se você não esperava este convite, ignore este e-mail.</p>
   </div>
   <p style="text-align:center; font-size:11px; color:#999; margin-top:16px;">Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste &middot; UFG / FNDE</p>
 </div>

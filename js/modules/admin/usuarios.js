@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Usuários (convidar, admin, ativo)
- * Versão: v.3.8.3
+ * Versão: v.3.8.4
  */
 
 (function () {
