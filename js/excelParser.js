@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Processador e Analisador de Planilhas Excel
- * Versão: v.3.4.13
+ * Versão: v.3.4.14
  */
 
 class ExcelParser {
@@ -97,7 +97,9 @@ class ExcelParser {
 
       if (clean.includes('carimbo') || clean.includes('timestamp') || clean.includes('datahora')) {
         mapping.timestamp = idx;
-      } else if (clean.includes('nomecompleto') || clean === 'nome' || clean.includes('nome')) {
+      } else if ((clean.includes('nomecompleto') || clean === 'nome' || clean.includes('nome')) &&
+                 !clean.includes('municipio') && !clean.includes('cidade') && !clean.includes('polo') && !clean.includes('instituicao')) {
+        // "Nome do município..." pertence à coluna de município (tratada abaixo), não ao nome do participante
         if (mapping.name === -1) mapping.name = idx;
       } else if (clean.includes('cpf')) {
         mapping.cpf = idx;
@@ -149,7 +151,11 @@ class ExcelParser {
       const name = String(rawName || '').trim();
       const email = colMap.email !== -1 && row[colMap.email] ? String(row[colMap.email]).trim() : '';
       const phone = colMap.phone !== -1 && row[colMap.phone] ? String(row[colMap.phone]).trim() : '';
-      const birthDate = colMap.birthDate !== -1 && row[colMap.birthDate] ? String(row[colMap.birthDate]).trim() : '';
+      // Células de data chegam como Date (leitura com cellDates); formata no padrão brasileiro
+      const rawBirth = colMap.birthDate !== -1 ? row[colMap.birthDate] : '';
+      const birthDate = rawBirth instanceof Date
+        ? (isNaN(rawBirth.getTime()) ? '' : rawBirth.toLocaleDateString('pt-BR', { timeZone: 'UTC' }))
+        : (rawBirth ? String(rawBirth).trim() : '');
 
       // Município & Código IBGE
       let rawMun = colMap.municipality !== -1 && row[colMap.municipality] ? String(row[colMap.municipality]).trim() : '';
@@ -519,7 +525,8 @@ class ExcelParser {
       }
     });
 
-    const normPolo = window.convocacaoParser ? window.convocacaoParser.normalizeText(currentPoloName) : this.normalizeStr(currentPoloName);
+    // Mesma normalização usada na comparação com o nome da linha (normalizeStr), senão polos com nome composto não casam
+    const normPolo = this.normalizeStr(currentPoloName);
     const uPolo = (currentPoloUf || 'GO').toUpperCase();
 
     // 2. Processar linhas

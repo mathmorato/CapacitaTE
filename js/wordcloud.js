@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Nuvens de Palavras Qualitativas Artísticas
- * Versão: v.3.4.13
+ * Versão: v.3.4.14
  */
 
 class WordCloudEngine {
@@ -140,7 +140,8 @@ class WordCloudEngine {
   normalizeWord(word) {
     if (!word) return '';
     let clean = word.toLowerCase()
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'’“”…\[\]]/g, '')
+      .replace(/[.,\/#!$%\^&\*;:{}=_`~()?"'’“”…\[\]]/g, '')
+      .replace(/^-+|-+$/g, '')
       .trim();
     
     // Mapeamento de sinônimos/lematização
@@ -195,7 +196,8 @@ class WordCloudEngine {
       if (!text || typeof text !== 'string') return;
 
       // Dividir por espaços, quebras de linha e separadores comuns
-      const tokens = text.split(/[\s,;\n\r\t\/\+\-]+/);
+      // O hífen não separa palavras (ex.: "ar-condicionado")
+      const tokens = text.split(/[\s,;\n\r\t\/\+]+/);
 
       tokens.forEach(rawToken => {
         const word = this.normalizeWord(rawToken);
@@ -250,7 +252,8 @@ class WordCloudEngine {
     wordList.forEach(item => {
       const w = item.text.toLowerCase();
       Object.entries(dict).forEach(([catKey, keys]) => {
-        if (keys.some(k => w.includes(k) || k.includes(w))) {
+        // Palavra igual ao termo ou derivada dele (ex.: computador -> computadores); trechos soltos ("som" em "consome") não contam
+        if (keys.some(k => w === k || (k.length >= 4 && w.startsWith(k)))) {
           categories[catKey].count += item.count;
           if (!categories[catKey].terms.includes(item.text)) {
             categories[catKey].terms.push(item.text);

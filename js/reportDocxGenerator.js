@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.13
+ * Versão: v.3.4.14
  */
 
 class ReportDocxGenerator {
@@ -143,7 +143,11 @@ class ReportDocxGenerator {
         while (offset < bytes.length - 8) {
           if (bytes[offset] !== 0xFF) { offset++; continue; }
           const marker = bytes[offset + 1];
-          if (marker === 0xC0 || marker === 0xC1 || marker === 0xC2) {
+          // Preenchimento (FF FF) e marcadores sem campo de tamanho (TEM, RST0-7) apenas avançam
+          if (marker === 0xFF) { offset++; continue; }
+          if (marker === 0x01 || (marker >= 0xD0 && marker <= 0xD7)) { offset += 2; continue; }
+          // Todos os SOF (C0-CF), exceto DHT (C4), JPG (C8) e DAC (CC): baseline, progressivo, sem perdas etc.
+          if (marker >= 0xC0 && marker <= 0xCF && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
             const height = (bytes[offset + 5] << 8) | bytes[offset + 6];
             const width = (bytes[offset + 7] << 8) | bytes[offset + 8];
             if (width > 0 && height > 0) return { width, height };
@@ -900,7 +904,7 @@ class ReportDocxGenerator {
 
     if (!Document) {
       console.warn('Biblioteca docx.js não carregada, disparando fallback HTML...');
-      this.downloadHtmlReportFallback(training, metrics);
+      this.downloadHtmlReportFallback(training, metrics, chartsData);
       return;
     }
 
@@ -3629,8 +3633,9 @@ class ReportDocxGenerator {
         : (window.getMasterTeam ? window.getMasterTeam() : (window.DEFAULT_OFFICIAL_TEAM || []));
 
       // Separar UFG e FNDE
-      const ufgMembers = teamList.filter(m => (m.institutionGroup === 'UFG' || m.institution === 'UFG' || m.type === 'coordenacao' || m.type === 'tecnica' || !m.institution || m.institution !== 'FNDE'));
       const fndeMembers = teamList.filter(m => (m.institutionGroup === 'FNDE' || m.institution === 'FNDE' || m.type === 'fnde'));
+      // Cada integrante aparece em um único grupo: quem não é do FNDE fica na equipe da UFG
+      const ufgMembers = teamList.filter(m => !fndeMembers.includes(m));
 
       // 1. Bloco UFG
       if (ufgMembers.length > 0) {

@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.13
+ * Versão: v.3.4.14
  */
 
 window.icons = {
@@ -17,9 +17,9 @@ window.icons = {
   logout: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 5 12 10 7"></polyline><line x1="15" y1="12" x2="5" y2="12"></line></svg>`,
   filter: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>`,
   stepForward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><line x1="5" y1="12" x2="15" y2="12"></line><polyline points="10 7 15 12 10 17"></polyline><line x1="19" y1="5" x2="19" y2="19"></line></svg>`,
-  stepBackward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-2px; margin-right:5px;"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>`,
+  stepBackward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:5px;"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>`,
   sede: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10v2"></path><path d="M15 10v2"></path><path d="M9 14v2"></path><path d="M15 14v2"></path></svg>`,
-  rename: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><rect x="2" y="5.5" width="16" height="12" rx="2.5"></rect><circle cx="6.5" cy="13" r="1.8"></circle><path d="M8.3 11.2v3.6"></path><path d="M10.3 9.2v5.6"></circle><circle cx="12.3" cy="13" r="1.8"></circle><line x1="18" y1="2.5" x2="18" y2="21.5"></line><path d="M16 2.5h4"></path><path d="M16 21.5h4"></path></svg>`,
+  rename: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><rect x="2" y="5.5" width="16" height="12" rx="2.5"></rect><circle cx="6.5" cy="13" r="1.8"></circle><path d="M8.3 11.2v3.6"></path><path d="M10.3 9.2v5.6"></path><circle cx="12.3" cy="13" r="1.8"></circle><line x1="18" y1="2.5" x2="18" y2="21.5"></line><path d="M16 2.5h4"></path><path d="M16 21.5h4"></path></svg>`,
   pin: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
   calendar: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
   clock: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.13';
+    this.version = 'v.3.4.14';
   }
 
   /**
@@ -103,6 +103,8 @@ class AutoReportApp {
       const trainingId = parts[1];
       const step = parseInt(parts[2]) || 1;
       if (this.currentTraining && this.currentTraining.id === trainingId) {
+        // Hash alterado pelo próprio setWizardStep: a etapa já está exibida, não renderiza de novo
+        if (this.activeView === 'wizard' && step === this.currentStep) return;
         this.navigateTo('wizard', false);
         this.setWizardStep(step);
       } else {
@@ -460,7 +462,7 @@ class AutoReportApp {
       progressPercent: 0,
       team: (window.getMasterTeam ? window.getMasterTeam() : (window.DEFAULT_OFFICIAL_TEAM || [])).map(m => ({ ...m })),
       municipalities: [],
-      courseModules: window.courseStructureHelper ? window.courseStructureHelper.getMasterCopy() : (window.DEFAULT_COURSE_STRUCTURE || []),
+      courseModules: window.courseStructureHelper ? window.courseStructureHelper.getMasterCopy() : JSON.parse(JSON.stringify(window.DEFAULT_COURSE_STRUCTURE || [])), // cópia: editar não altera o modelo global
       courseMoments: [],
       attendance: [],
       evaluations: [],
@@ -1246,15 +1248,20 @@ class AutoReportApp {
   }
 
   setWizardStep(stepNumber) {
-    const targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
+    let targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
 
-    // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual
+    // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual e as intermediárias
     if (this.currentStep < 1) {
       // Capacitação recém-aberta: o formulário ainda não foi preenchido com os dados dela, nada a salvar/validar
     } else if (targetStep > this.currentStep) {
       this.saveCurrentStepData();
-      if (!this.validateCurrentStep(this.currentStep)) {
-        return; // Impede avançar se não preencheu todos os itens!
+      for (let s = this.currentStep; s < targetStep; s++) {
+        if (!this.validateCurrentStep(s)) {
+          if (s === this.currentStep) return; // Impede avançar se não preencheu todos os itens!
+          // Etapa intermediária pendente (ex.: clique direto numa aba adiante): leva o usuário até ela
+          targetStep = s;
+          break;
+        }
       }
     } else if (targetStep < this.currentStep) {
       // Salvar progresso ao retornar para etapas anteriores
@@ -3941,13 +3948,19 @@ class AutoReportApp {
 
     const muns = this.currentTraining.municipalities;
 
+    // Verificar se já existe (na edição, desconsidera o próprio município editado). O código IBGE só é
+    // comparado quando é válido; vazio ou "0000000" não identifica o município
+    const validIbge = (code) => Boolean(code) && String(code).trim() !== '' && !/^0+$/.test(String(code).trim());
+    const alreadyExists = muns.some((m, idx) => idx !== editIndex && (
+      (validIbge(ibgeCode) && validIbge(m.ibgeCode) && String(m.ibgeCode) === String(ibgeCode)) ||
+      ((m.name || '').toLowerCase() === cityName.toLowerCase() && m.uf === uf)
+    ));
+    if (alreadyExists) {
+      this.showToast(`O município ${cityName} (${uf}) já está cadastrado na Tabela 1.`, 'warning');
+      return;
+    }
+
     if (editIndex === -1) {
-      // Verificar se já existe
-      const alreadyExists = muns.some(m => String(m.ibgeCode) === String(ibgeCode) || (m.name.toLowerCase() === cityName.toLowerCase() && m.uf === uf));
-      if (alreadyExists) {
-        this.showToast(`O município ${cityName} (${uf}) já está cadastrado na Tabela 1.`, 'warning');
-        return;
-      }
 
       muns.push({
         id: `mun_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -6680,10 +6693,15 @@ class AutoReportApp {
     }
     if (!participant) return;
     
-    // RESTRIÇÃO: Permitir atualização apenas se não for participante conciliado na inscrição ("Apenas Presente")
+    // RESTRIÇÃO: participante conciliado (na presença E na inscrição) não é editável; "Apenas Presente" e
+    // "Apenas Inscrito" podem ser completados manualmente
     const cleanCpf = participant.cpf ? participant.cpf.replace(/\D/g, '') : '';
-    const hasRegMatch = cleanCpf && cleanCpf.length === 11 && (this.currentTraining.registrations || []).some(r => r.cpf && r.cpf.replace(/\D/g, '') === cleanCpf);
-    if (hasRegMatch) return;
+    // A busca é sempre na OUTRA planilha: procurar na própria lista encontraria o próprio participante e
+    // bloquearia sempre os "Apenas Inscrito"
+    const isFromAttendance = (this.currentTraining.attendance || []).includes(participant);
+    const otherList = isFromAttendance ? (this.currentTraining.registrations || []) : (this.currentTraining.attendance || []);
+    const isReconciled = cleanCpf && cleanCpf.length === 11 && otherList.some(r => r.cpf && r.cpf.replace(/\D/g, '') === cleanCpf);
+    if (isReconciled) return;
 
     if (field === 'municipality') {
       participant.municipality = val;
@@ -8438,6 +8456,7 @@ class AutoReportApp {
   }
 
   confirmRemovePhoto(slotId) {
+    if (!this.currentTraining) return;
     const photo = (this.currentTraining.media || []).find(m => m.slotId === slotId || m.id === slotId);
     const slots = this.getStandardPhotoSlots();
     const slot = slots.find(s => s.slotId === slotId);
@@ -8829,7 +8848,7 @@ class AutoReportApp {
 
   async handleAppendixUpload(type, event) {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || !this.currentTraining) return;
 
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
@@ -9295,8 +9314,9 @@ class AutoReportApp {
       ? t.team
       : (window.getMasterTeam ? window.getMasterTeam() : (window.DEFAULT_OFFICIAL_TEAM || []));
 
-    const ufgMembers = teamList.filter(m => (m.institutionGroup === 'UFG' || m.institution === 'UFG' || m.type === 'coordenacao' || m.type === 'tecnica' || !m.institution || m.institution !== 'FNDE'));
     const fndeMembers = teamList.filter(m => (m.institutionGroup === 'FNDE' || m.institution === 'FNDE' || m.type === 'fnde'));
+    // Cada integrante aparece em um único grupo: quem não é do FNDE fica na equipe da UFG
+    const ufgMembers = teamList.filter(m => !fndeMembers.includes(m));
 
     let equipeMembersHtml = '';
 
@@ -9986,8 +10006,16 @@ class AutoReportApp {
         this.metrics = window.statsEngine.calculateAllMetrics(this.currentTraining);
       }
 
+      // A prévia ainda não foi montada (ou está sendo montada): monta antes de capturar os gráficos,
+      // senão o Word sairia sem as Figuras 3 a 8
+      if (!document.getElementById('report-preview-fig3-canvas')) {
+        await this.renderReportPreviewStep();
+      }
+
       // Renderizar gráficos prévios para garantir canvases populados
       this.renderReportPreviewCharts();
+      // Aguarda o navegador desenhar os canvases
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       // Capturar imagens dos gráficos e nuvens a partir dos canvases
       const imagesData = {};

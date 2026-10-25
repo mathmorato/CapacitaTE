@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.13
+ * Versão: v.3.4.14
  */
 
 const SUPABASE_CONFIG = {
@@ -422,8 +422,25 @@ class TrainingDB {
     };
   }
 
-  async saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true) {
-    const trainingId = data.id || `cap_${Date.now()}`;
+  /**
+   * Salva a capacitação completa. Salvamentos da mesma capacitação são enfileirados: o salvamento apaga e
+   * regrava os registros filhos (equipe, participantes, avaliações, mídias), e duas execuções simultâneas
+   * (autosave + salvamento manual ou sincronização) poderiam duplicar ou perder registros.
+   */
+  saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true) {
+    if (!data.id) data.id = `cap_${Date.now()}`;
+    if (!this._saveQueues) this._saveQueues = new Map();
+    const previous = this._saveQueues.get(data.id) || Promise.resolve();
+    const run = previous.catch(() => {}).then(() => this._saveTrainingFullNow(data, changeSummary, syncCloud));
+    this._saveQueues.set(data.id, run);
+    run.finally(() => {
+      if (this._saveQueues.get(data.id) === run) this._saveQueues.delete(data.id);
+    }).catch(() => {});
+    return run;
+  }
+
+  async _saveTrainingFullNow(data, changeSummary, syncCloud) {
+    const trainingId = data.id;
     const now = new Date().toISOString();
 
     // Campos adicionais (ex.: evaluationComments, customWordCloudFont) são preservados; os filhos ficam em stores próprios
