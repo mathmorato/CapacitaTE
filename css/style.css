@@ -4731,3 +4731,6 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 .eval-dist-row { display: grid; grid-template-columns: 60px 1fr 32px; align-items: center; gap: 0.6rem; margin-top: 0.4rem; font-size: 0.85rem; }
 .eval-words { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; margin-top: 0.6rem; align-items: baseline; }
 .eval-word { color: var(--accent-gold-text, #b97d00); font-weight: 600; line-height: 1.3; }
+
+.forms-qr-click { cursor: zoom-in; transition: transform 0.15s; }
+.forms-qr-click:hover, .forms-qr-click:focus-visible { transform: scale(1.03); outline: 2px solid var(--accent-primary, #F6A800); outline-offset: 2px; }
