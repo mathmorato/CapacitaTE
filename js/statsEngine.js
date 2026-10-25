@@ -1,6 +1,6 @@
-/**
+﻿/**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.4.14
+ * Versão: v.3.4.17
  */
 
 class StatsEngine {
@@ -1054,3 +1054,4 @@ Essas unidades de registro operam como importantes subsídios diagnósticos para
 }
 
 window.statsEngine = new StatsEngine();
+
