@@ -1,7 +1,7 @@
 /**
  * CapacitaTE - Módulo Lista de Presença (um formulário para todos os dias; frequência por dia de envio)
  * Cada envio é registrado no dia em que foi feito (migração 0004d), então o quadro tem uma coluna por dia.
- * Versão: v.4.3.1
+ * Versão: v.4.3.2
  */
 
 (function () {
@@ -40,7 +40,7 @@
           el('p', { class: 'admin-muted', text: 'É um único link e QR Code para todos os dias. Cada registro fica com o dia em que foi feito, e a pessoa pode registrar presença em cada dia da capacitação.' }),
           canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Criar formulário de presença', onclick: async (e) => {
             e.currentTarget.disabled = true;
-            try { await c.createForm('presenca', training, 'unico'); c.toast('Formulário criado em rascunho.', 'success'); c.rerender(); }
+            try { await c.createForm('presenca', training, 'unico'); c.toast('Formulário criado e aberto: o link e o QR Code já funcionam.', 'success'); c.rerender(); }
             catch (err) { c.toast(c.errMsg(err), 'error'); e.currentTarget.disabled = false; }
           } }) : null
         ]));

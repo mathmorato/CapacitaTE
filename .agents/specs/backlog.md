@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.3.1** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.3.2** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -79,6 +79,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 - Observação: usuário não administrador só vê as capacitações em que tem permissão (0005); capacitações locais fora dessa permissão contam como "falha" ao sincronizar.
 
 **v.4.3.1:** páginas públicas dos formulários voltam a abrir no tema **claro** por padrão; botão "Modo escuro/claro" no canto superior direito, escolha lembrada no navegador (`publico/publico-tema.js`, carregado no `<head>`; `publico.css` com `:root[data-theme="dark"]`). Testado em navegador automático (claro por padrão, clique alterna e salva). Substitui o "escuro por padrão" da v.3.9.7.
+
+**v.4.3.2:** os formulários de inscrição, presença e avaliação já nascem **abertos** (`createForm` grava `status: aberto`; textos e aviso atualizados). Atenção: o link já recebe respostas antes de a pessoa conferir a configuração. Não testado no navegador.
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
