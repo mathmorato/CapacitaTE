@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.10
+ * Versão: v.3.4.11
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.10';
+    this.version = 'v.3.4.11';
   }
 
   /**
@@ -1052,7 +1052,7 @@ class AutoReportApp {
       }
 
       // Sincronizar Municípios Convocados com distâncias calculadas pelo polo
-      if (data.allMunicipalities.length > 0) {
+      if (data.allMunicipalities?.length > 0) {
         const poloName = data.polo || training.polo || '';
         const poloUf = data.uf || training.uf || 'MT';
 
@@ -1092,7 +1092,9 @@ class AutoReportApp {
   async openWizard(trainingId, step = 1) {
     if (!window.db) return;
 
-    // Buscar dados completos
+    // Buscar dados completos. Zera a etapa atual para que setWizardStep não grave na nova capacitação
+    // os campos do formulário ainda preenchidos com a capacitação anterior
+    this.currentStep = 0;
     this.currentTraining = await window.db.getTrainingFull(trainingId);
     if (!this.currentTraining) {
       this.showToast('Capacitação não encontrada.', 'error');
@@ -1247,7 +1249,9 @@ class AutoReportApp {
     const targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
 
     // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual
-    if (targetStep > this.currentStep) {
+    if (this.currentStep < 1) {
+      // Capacitação recém-aberta: o formulário ainda não foi preenchido com os dados dela, nada a salvar/validar
+    } else if (targetStep > this.currentStep) {
       this.saveCurrentStepData();
       if (!this.validateCurrentStep(this.currentStep)) {
         return; // Impede avançar se não preencheu todos os itens!
@@ -1263,9 +1267,8 @@ class AutoReportApp {
     // Atualizar abas do Stepper
     document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
       const s = idx + 1;
-      tab.classList.remove('active');
-      if (s === this.currentStep) tab.classList.add('active');
-      if (s < this.currentStep) tab.classList.add('completed');
+      tab.classList.toggle('active', s === this.currentStep);
+      tab.classList.toggle('completed', s < this.currentStep);
     });
 
     // Alternar painéis
@@ -4728,7 +4731,7 @@ class AutoReportApp {
     if (!this.currentTraining || !this.currentTraining.courseModules) return;
     this.isCourseEditorOpen = true;
     const mod = this.currentTraining.courseModules[modIdx];
-    const modName = mod ? `Módulo ${mod.number || modIdx + 1}` : 'este módulo';
+    const modName = mod ? `Módulo ${mod.moduleNumber || mod.number || modIdx + 1}` : 'este módulo';
 
     this.openConfirmModal({
       title: 'Remover Módulo',
@@ -5687,7 +5690,7 @@ class AutoReportApp {
 
     let masterMods = window.courseStructureHelper.normalize(activeTpl.modules || []);
     const mod = masterMods[modIdx];
-    const modName = mod ? `Módulo ${mod.number || modIdx + 1}` : 'este módulo';
+    const modName = mod ? `Módulo ${mod.moduleNumber || mod.number || modIdx + 1}` : 'este módulo';
 
     this.openConfirmModal({
       title: 'Remover Módulo da Matriz',
@@ -6248,7 +6251,7 @@ class AutoReportApp {
     // Purga proativa de entradas de municípios inválidos/declarações
     this.currentTraining.municipalities = this.currentTraining.municipalities.filter(m => {
       const n = (m.name || '').toLowerCase();
-      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && m.name.length <= 45;
+      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && n.length <= 45;
     });
 
     const regList = this.currentTraining.registrations || [];
@@ -6429,7 +6432,7 @@ class AutoReportApp {
     // Filtro final garantido de purga de municípios com rótulo inválido
     this.currentTraining.municipalities = this.currentTraining.municipalities.filter(m => {
       const n = (m.name || '').toLowerCase();
-      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && m.name.length <= 45;
+      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && n.length <= 45;
     });
   }
 
@@ -7553,7 +7556,7 @@ class AutoReportApp {
     this.currentTraining.customWordCloudFont = selected;
     this.currentTraining.wordCloudFontFamily = selected;
     this.renderWordClouds();
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   restoreWordCloudFont() {
@@ -7563,7 +7566,7 @@ class AutoReportApp {
     const fontSelect = document.getElementById('wordcloud-font-select');
     if (fontSelect) fontSelect.value = 'Plus Jakarta Sans';
     this.renderWordClouds();
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   handleWordCloudTitleInput(figKey, value) {
@@ -7590,7 +7593,7 @@ class AutoReportApp {
     if (preview) {
       preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, clean)}</strong>`;
     }
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   restoreWordCloudTitle(figKey) {
@@ -7617,7 +7620,7 @@ class AutoReportApp {
     if (preview) {
       preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, defaultTitle)}</strong>`;
     }
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   handleWordCloudSourceInput(figKey, value) {
@@ -7643,7 +7646,7 @@ class AutoReportApp {
     if (preview) {
       preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(clean)}</em>`;
     }
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   restoreWordCloudSource(figKey) {
@@ -7669,7 +7672,7 @@ class AutoReportApp {
     if (preview) {
       preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(defaultSource)}</em>`;
     }
-    this.autoSaveTraining();
+    this.saveCurrentStepData();
   }
 
   /* ==========================================================================
@@ -7815,16 +7818,33 @@ class AutoReportApp {
     const sourcePhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === sourceSlotId || m.id === sourceSlotId));
     const targetPhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === targetSlotId || m.id === targetSlotId));
 
+    const standardSlots = this.getStandardPhotoSlots();
+    const isStandardSlot = (id) => standardSlots.some(s => s.slotId === id);
+
+    // Duas fotos complementares: a ordem vem da posição no array de mídia, então troca as posições
+    // (gravar o id de uma foto no slotId da outra faria "Remover" apagar as duas)
+    if (sourcePhoto && targetPhoto && !isStandardSlot(sourcePhoto.slotId) && !isStandardSlot(targetPhoto.slotId)) {
+      const media = this.currentTraining.media;
+      const i = media.indexOf(sourcePhoto);
+      const j = media.indexOf(targetPhoto);
+      [media[i], media[j]] = [media[j], media[i]];
+      this.renderPhotosStep();
+      this.saveCurrentStepData();
+      this.showToast('Posição das figuras reordenada!', 'success');
+      return;
+    }
+
     if (sourcePhoto) {
       sourcePhoto.slotId = targetSlotId;
+      sourcePhoto.movedByUser = true;
     }
     if (targetPhoto) {
       targetPhoto.slotId = sourceSlotId;
+      targetPhoto.movedByUser = true;
     }
 
     // O título padrão pertence ao slot (momento do relatório), não à foto: ao mover uma foto para um slot
     // padrão, ela assume o título do slot (ou o título personalizado salvo para esse slot)
-    const standardSlots = this.getStandardPhotoSlots();
     [sourcePhoto, targetPhoto].forEach(photo => {
       const slot = photo && standardSlots.find(s => s.slotId === photo.slotId);
       if (slot) {
@@ -8406,7 +8426,7 @@ class AutoReportApp {
     const daySlotIds = slots.map(s => s.slotId).filter(id => id.includes('_day_'));
     photos.forEach(p => {
       const originSlot = daySlotIds.find(id => p.id && p.id.endsWith(`_${id}`));
-      if (originSlot && p.slotId && p.slotId !== originSlot && daySlotIds.includes(p.slotId) &&
+      if (originSlot && !p.movedByUser && p.slotId && p.slotId !== originSlot && daySlotIds.includes(p.slotId) &&
           !photos.some(o => o.slotId === originSlot)) {
         p.slotId = originSlot;
       }

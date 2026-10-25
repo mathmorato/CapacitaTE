@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.10
+ * Versão: v.3.4.11
  */
 
 class ReportDocxGenerator {
@@ -354,7 +354,7 @@ class ReportDocxGenerator {
   applyFigureNumber(caption, num) {
     if (!num) return caption;
     const text = String(caption || '').trim();
-    const prefix = /^figura\s*\d*\s*([.:\-–—])?\s*/i;
+    const prefix = /^figura\b\s*\d*\s*([.:\-–—])?\s*/i;
     if (prefix.test(text)) {
       return text.replace(prefix, (m, sep) => `Figura ${num}${sep === ':' ? ':' : '.'} `);
     }
@@ -545,6 +545,7 @@ class ReportDocxGenerator {
    * com os títulos exatos do presente relatório e suas páginas correspondentes de forma precisa
    */
   buildReportIndices(training, metrics, chartsData = {}) {
+    chartsData = chartsData || {};
     let page = 1;
     let currentDxa = 0;
     // Capacidade útil padrão de página A4 no Word (297mm - margens 2.54cm - cabeçalho - rodapé)
@@ -646,7 +647,7 @@ class ReportDocxGenerator {
     }
     const extraEduPages = {};
     (eduTechData.extraFigures || []).forEach(ef => {
-      if (ef.image) extraEduPages[ef.id] = addElement(6600, false, true);
+      if (ef && ef.image) extraEduPages[ef.id] = addElement(6600, false, true);
     });
 
     // Tabela 4: Participação por município (2 colunas lado a lado)
@@ -762,7 +763,7 @@ class ReportDocxGenerator {
       pushEduTechIndexEntry(f2Data, pFig2, 'fig_2', 'Plickers');
     }
     (eduTechData.extraFigures || []).forEach((ef, idx) => {
-      if (ef.image) {
+      if (ef && ef.image) {
         const extraLabel = this.applyFigureNumber(ef.caption || `Avaliação via ${ef.title || 'tecnologia educacional'}.`, figNums[`edu_${ef.id}`]);
         figuresList.push({ label: extraLabel, page: String(extraEduPages[ef.id] || pDesenv), bookmarkId: `fig_extra_${idx}` });
       }
@@ -804,6 +805,7 @@ class ReportDocxGenerator {
    * Gera o arquivo .docx institucional formatado e retorna o Blob binário
    */
   async generateDocxBlob(training, metrics, chartsData = {}) {
+    chartsData = chartsData || {};
     if (!training) {
       alert('Selecione ou salve uma capacitação primeiro.');
       return null;
@@ -2273,7 +2275,7 @@ class ReportDocxGenerator {
 
       // Figuras adicionais se houver
       (eduTech.extraFigures || []).forEach((ef, idx) => {
-        if (ef.image) {
+        if (ef && ef.image) {
           const efNodes = this.createFigureWithCaptionAbove(
             ef.image,
             520,

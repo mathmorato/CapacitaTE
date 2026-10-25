@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.10
+ * Versão: v.3.4.11
  */
 
 const SUPABASE_CONFIG = {
@@ -420,7 +420,10 @@ class TrainingDB {
     const trainingId = data.id || `cap_${Date.now()}`;
     const now = new Date().toISOString();
 
+    // Campos adicionais (ex.: evaluationComments, customWordCloudFont) são preservados; os filhos ficam em stores próprios
+    const { team: _t, municipalities: _m, courseModules: _cm, courseMoments: _cmo, attendance: _a, evaluations: _e, media: _me, auditLog: _al, ...extraFields } = data;
     const trainingRecord = {
+      ...extraFields,
       id: trainingId,
       number: (data.number !== undefined && data.number !== null) ? data.number : '',
       title: data.title || 'CAPACITAÇÃO EM TRANSPORTE ESCOLAR',
@@ -478,6 +481,7 @@ class TrainingDB {
       await this.clearStoreByIndex('team', 'trainingId', trainingId);
       for (const [idx, member] of data.team.entries()) {
         await this.put('team', {
+          ...member,
           id: member.id || `team_${trainingId}_${idx}_${Date.now()}`,
           trainingId,
           name: member.name,
@@ -500,6 +504,7 @@ class TrainingDB {
           uf: m.uf || data.uf,
           distanceKm: parseFloat(m.distanceKm) || 0,
           isSummoned: m.isSummoned !== false,
+          isSede: m.isSede === true,
           inscribedCACS: parseInt(m.inscribedCACS) || 0,
           inscribedGestores: parseInt(m.inscribedGestores) || 0,
           inscribedTotal: parseInt(m.inscribedTotal) || ((parseInt(m.inscribedCACS) || 0) + (parseInt(m.inscribedGestores) || 0)),
@@ -604,6 +609,7 @@ class TrainingDB {
       await this.clearStoreByIndex('media', 'trainingId', trainingId);
       for (const [idx, med] of data.media.entries()) {
         await this.put('media', {
+          ...med, // preserva pageImages (apêndices), customSource, movedByUser etc.
           id: med.id || `med_${trainingId}_${idx}`,
           trainingId,
           slotId: med.slotId || '',
@@ -611,7 +617,7 @@ class TrainingDB {
           blob: med.blob || med.dataUrl || '',
           caption: med.caption || `Figura ${idx + 1}`,
           title: med.title || '',
-          order: med.order !== undefined ? med.order : idx,
+          order: idx, // a ordem do array é a ordem vigente (fotos complementares podem ser reordenadas)
           section: med.section || '6. REGISTROS FOTOGRÁFICOS',
           description: med.description || '',
           source: med.source || (data.customPhotoSources && med.slotId && data.customPhotoSources[med.slotId] ? (data.customPhotoSources[med.slotId].toLowerCase().startsWith('fonte:') ? data.customPhotoSources[med.slotId].trim() : `Fonte: ${data.customPhotoSources[med.slotId].trim()}`) : 'Fonte: Elaborada pelos autores.'),

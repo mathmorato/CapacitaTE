@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.4.10
+ * Versão: v.3.4.11
  */
 
 class StatsEngine {
@@ -849,7 +849,7 @@ class StatsEngine {
 
       const statsCacs = this.calculateEvaluationStats(evalsCacs);
       const lowCountCacs = (statsCacs.distribution[0] || 0) + (statsCacs.distribution[1] || 0) + (statsCacs.distribution[2] || 0);
-      const totalAnswersCacs = statsCacs.totalAnswers || 1;
+      const totalAnswersCacs = (statsCacs.distribution || []).reduce((a, b) => a + (b || 0), 0) || 1;
       const pctExc = (((statsCacs.distribution[4] || 0) / totalAnswersCacs) * 100).toFixed(1).replace('.', ',');
       const pctVeryGood = (((statsCacs.distribution[3] || 0) / totalAnswersCacs) * 100).toFixed(1).replace('.', ',');
 
