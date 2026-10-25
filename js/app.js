@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.9
+ * Versão: v.3.4.10
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.9';
+    this.version = 'v.3.4.10';
   }
 
   /**
@@ -7725,16 +7725,29 @@ class AutoReportApp {
       let captionToUse = defaultCaption;
       let titleToUse = defaultCaption;
       let sourceToUse = 'Fonte: Elaborada pelos autores.';
+      let customSourceToKeep;
 
       if (slot) {
         const slotInfo = this.getPhotoSlotInfo(slot);
         captionToUse = slotInfo.caption;
         titleToUse = slotInfo.title;
         sourceToUse = slotInfo.sourceFormatted;
+      } else {
+        // Foto complementar (fora dos slots padrão) substituída: mantém título, legenda e fonte já definidos
+        const previous = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === slotId || m.id === slotId));
+        if (previous) {
+          captionToUse = previous.caption || captionToUse;
+          titleToUse = previous.title || titleToUse;
+          sourceToUse = previous.source || sourceToUse;
+          if (previous.customSource) customSourceToKeep = previous.customSource;
+        }
       }
 
-      this.currentTraining.media = this.currentTraining.media.filter(m => m.slotId !== slotId && m.id !== slotId);
-      this.currentTraining.media.push({
+      // Substitui na mesma posição para não alterar a ordem (e a numeração) das fotos complementares
+      const media = this.currentTraining.media;
+      const replaceIdx = media.findIndex(m => m.slotId === slotId || m.id === slotId);
+      this.currentTraining.media = media.filter(m => m.slotId !== slotId && m.id !== slotId);
+      this.currentTraining.media.splice(replaceIdx >= 0 ? replaceIdx : this.currentTraining.media.length, 0, {
         id: `photo_${Date.now()}_${slotId}`,
         slotId: slotId,
         type: 'photo',
@@ -7742,6 +7755,7 @@ class AutoReportApp {
         caption: captionToUse,
         title: titleToUse,
         source: sourceToUse,
+        ...(customSourceToKeep ? { customSource: customSourceToKeep } : {}),
         fileName: file.name
       });
       this.renderPhotosStep();
@@ -7816,6 +7830,10 @@ class AutoReportApp {
       if (slot) {
         photo.caption = slot.defaultCaption;
         photo.title = slot.defaultTitle;
+        // Com a legenda padrão aplicada, getPhotoSlotInfo considera apenas o título personalizado do slot
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        photo.caption = slotInfo.caption;
+        photo.title = slotInfo.title;
       }
     });
     this.renderPhotosStep();
