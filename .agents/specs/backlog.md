@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.0.3** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.0.4** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -26,6 +26,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.0.2:** o e-mail de confirmação chegava com cabeçalhos no corpo (o denomailer quebrava o assunto acentuado longo). A função `enviar-confirmacao` agora usa `npm:nodemailer` e envia versão texto e HTML. Função reimplantada e **testada pelo usuário em 25/10/2026: o e-mail chega correto (Outlook, tema escuro)**. Resta testar presença e avaliação.
 
 **v.4.0.3 (Fase 5, parte 1):** Relatório etapas 7 e 8 com "Usar dados do CapacitaTE" (`app.importFromCapacitaTE`, `xlsxExport.fetchRows`; mesmas linhas da exportação entregues ao mesmo parser; `training.sources.*` = capacitate|arquivo). Etapa 11 mostra a fonte e 4 conferências cruzadas (`crossCheckIssues`). Testado: ida e volta exportação→parser em node e a lógica das conferências; botões não testados no navegador.
+
+**v.4.0.4:** Configurações › Conexão com a Nuvem não exige mais que cada pessoa informe endereço e chave: o site já usa o projeto padrão (`js/core/config.js`) e o card mostra "Conectado automaticamente"; os campos ficaram em "Avançado" (instalações próprias).
 
 ## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 

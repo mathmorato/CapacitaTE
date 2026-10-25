@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Formatos Compartilhados (telefone, data e data/hora no padrão Google Forms)
- * Versão: v.4.0.3
+ * Versão: v.4.0.4
  */
 
 (function (root) {

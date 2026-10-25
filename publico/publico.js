@@ -1,11 +1,11 @@
 /**
  * CapacitaTE - Motor dos Formulários Públicos (inscrição, presença e avaliação; sem login)
  * Lê o esquema de js/core/formSchema.js (fonte: .agents/specs/formularios.md) e desenha as telas.
- * Versão: v.4.0.3
+ * Versão: v.4.0.4
  */
 
 (function () {
-  const VERSION = 'v.4.0.3';
+  const VERSION = 'v.4.0.4';
   const MODULE = document.body.dataset.module; // inscricao | presenca | avaliacao
   const RPC_SUBMIT = { inscricao: 'public_submit_registration', presenca: 'public_submit_attendance', avaliacao: 'public_submit_evaluation' };
   const MODULE_TITLES = { inscricao: 'Formulário de Inscrição', presenca: 'Lista de Presença', avaliacao: 'Avaliação da Capacitação' };

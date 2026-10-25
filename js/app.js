@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.0.3
+ * Versão: v.4.0.4
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.0.3';
+    this.version = 'v.4.0.4';
   }
 
   /**
@@ -11533,10 +11533,10 @@ class CapacitaTEApp {
     }
     if (statusEl) {
       const origem = SUPABASE_CONFIG.source === 'navegador' ? 'Nuvem configurada neste navegador'
-        : SUPABASE_CONFIG.source === '.env' ? 'Nuvem configurada pelo arquivo .env' : 'Nuvem não configurada neste navegador';
+        : SUPABASE_CONFIG.source === '.env' ? 'Nuvem configurada pelo arquivo .env' : 'Conectado automaticamente';
       statusEl.textContent = origem;
-      statusEl.style.background = SUPABASE_CONFIG.source ? 'var(--accent-emerald-bg)' : 'var(--accent-amber-bg)';
-      statusEl.style.color = SUPABASE_CONFIG.source ? 'var(--accent-emerald-text)' : 'var(--accent-amber-text)';
+      statusEl.style.background = 'var(--accent-emerald-bg)';
+      statusEl.style.color = 'var(--accent-emerald-text)';
     }
   }
 
