@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.1.5
+ * Versão: v.4.1.6
  */
 
 (function () {
@@ -173,7 +173,6 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     if (canEdit) {
       if (form.status !== 'aberto') actions.append(el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Abrir', onclick: run(async () => { await updateForm(form, { status: 'aberto' }, 'form.open'); toast('Formulário aberto.', 'success'); rerender(); }) }));
       if (form.status === 'aberto') actions.append(el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Encerrar', onclick: run(async () => { await updateForm(form, { status: 'fechado' }, 'form.close'); toast('Formulário encerrado.', 'success'); rerender(); }) }));
-      if (form.status !== 'rascunho') actions.append(el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Voltar a rascunho', onclick: run(async () => { await updateForm(form, { status: 'rascunho' }, 'form.draft'); rerender(); }) }));
     }
 
     // Link e QR Code
@@ -182,9 +181,12 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     if (!url) {
       linkBox.append(el('p', { class: 'admin-muted', text: 'Configure o endereço público (ex.: https://<usuario>.github.io/<repo>) em Configurações para gerar o link e o QR Code.' }));
     } else {
-      qrBox.append(el('div', { class: 'forms-qr-img', html: CapacitaTE.qr.svg(url, { title: `QR Code: ${title}` }) }));
-      const linkInput = el('input', { class: 'form-control', type: 'text', value: url, readOnly: true, 'aria-label': 'Link público' });
       const posterTitle = { inscricao: 'Inscrição', presenca: `Lista de Presença${form.config && form.config.label ? ` — ${form.config.label}` : ''}`, avaliacao: 'Avaliação da Capacitação' }[mod];
+      const qrImg = el('div', { class: 'forms-qr-img forms-qr-click', role: 'button', tabindex: '0', title: 'Clique para abrir o modo recepção (QR Code em tela cheia)', 'aria-label': 'Abrir o modo recepção', html: CapacitaTE.qr.svg(url, { title: `QR Code: ${title}` }) });
+      qrImg.addEventListener('click', () => receptionMode(url, posterTitle, training));
+      qrImg.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); receptionMode(url, posterTitle, training); } });
+      qrBox.append(qrImg, el('small', { class: 'admin-muted', style: 'display:block; margin-top:0.3rem; text-align:center;', text: 'Clique no QR para o modo recepção' }));
+      const linkInput = el('input', { class: 'form-control', type: 'text', value: url, readOnly: true, 'aria-label': 'Link público' });
       linkBox.append(
         el('label', { class: 'form-label', text: 'Link público' }), linkInput,
         el('div', { class: 'admin-actions', style: 'margin-top:0.6rem;' }, [
@@ -194,22 +196,9 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           el('a', { class: 'btn btn-secondary btn-sm', href: url, target: '_blank', rel: 'noopener', text: 'Abrir' }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar PNG', onclick: () => CapacitaTE.qr.downloadPng(url, `qr-${mod}-${form.session_key}.png`) }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar SVG', onclick: () => CapacitaTE.qr.downloadSvg(url, `qr-${mod}-${form.session_key}.svg`) }),
-          el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Modo recepção', title: 'QR Code grande em tela cheia, para o telão', onclick: () => receptionMode(url, posterTitle, training) }),
           el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Imprimir cartaz A4', onclick: () => {
             try { CapacitaTE.qr.printPoster(url, { title: posterTitle, subtitle: `${trainingTitle(training)} · ${training.datesFormatted || ''}` }); } catch (err) { toast(err.message, 'error'); }
           } }),
-          canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Gerar novo link', onclick: () => window.app.openConfirmModal({
-            title: 'Gerar novo link?',
-            msg: 'O link e o QR Code atuais deixam de funcionar. Cartazes já impressos precisarão ser trocados.',
-            btnText: 'Sim, gerar novo link',
-            successTitle: 'Novo link gerado',
-            successMsg: 'Use o novo QR Code a partir de agora.',
-            onConfirm: async () => {
-              const { error } = await client().rpc('staff_rotate_token', { p_form: form.id });
-              if (error) return toast(errMsg(error), 'error');
-              rerender();
-            }
-          }) }) : null
         ])
       );
     }
