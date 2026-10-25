@@ -1,7 +1,7 @@
 /**
  * CapacitaTE - Módulo Lista de Presença (um formulário para todos os dias; frequência por dia de envio)
  * Cada envio é registrado no dia em que foi feito (migração 0004d), então o quadro tem uma coluna por dia.
- * Versão: v.4.3.3
+ * Versão: v.4.3.4
  */
 
 (function () {
@@ -104,22 +104,22 @@
         const rows = [...people.values()]
           .map(p => {
             const marks = days.map(d => presentSet.has(`${p.cpf}|${d}`));
-            return { p, marks, pct: days.length ? Math.round((marks.filter(Boolean).length / days.length) * 100) : 0 };
+            return { p, marks, cert: marks.some(Boolean) }; // um dia de presença já dá direito ao certificado
           })
-          .filter(({ p, pct }) => (filter === 'faltosos' ? pct < 100 && p.registered : filter === 'naoinscritos' ? !p.registered : true))
+          .filter(({ p, cert }) => (filter === 'faltosos' ? !cert && p.registered : filter === 'naoinscritos' ? !p.registered : true))
           .filter(({ p }) => !term || `${p.name} ${p.municipality}`.toLowerCase().includes(term))
           .sort((a, b) => String(a.p.name).localeCompare(String(b.p.name), 'pt-BR'))
-          .map(({ p, marks, pct }) => el('tr', {}, [
+          .map(({ p, marks, cert }) => el('tr', {}, [
             el('td', {}, [p.name || '—', !p.registered ? el('span', { class: 'admin-chip', style: 'margin-left:0.4rem;', text: 'não inscrito' }) : null]),
             el('td', { text: p.municipality || '—' }),
             el('td', { text: p.category || '—' }),
             ...marks.map(m => el('td', { class: `perm-col ${m ? 'forms-present' : 'forms-absent'}`, text: m ? '✓' : '—', 'aria-label': m ? 'presente' : 'ausente' })),
-            el('td', { class: 'perm-col', text: `${pct}%` })
+            el('td', { class: `perm-col ${cert ? 'forms-present' : 'forms-absent'}`, text: cert ? 'Sim' : '—' })
           ]));
-        boardBox.append(c.table(['Nome', 'Município', 'Categoria', ...days.map(dayLabel), '% presença'], rows, 'Ninguém neste filtro.'));
+        boardBox.append(c.table(['Nome', 'Município', 'Categoria', ...days.map(dayLabel), 'Certificado'], rows, 'Ninguém neste filtro.'));
       };
       const filterSel = el('select', { class: 'form-control forms-filter', 'aria-label': 'Filtro' }, [
-        el('option', { value: 'todos', text: 'Todos' }), el('option', { value: 'faltosos', text: 'Somente faltosos' }), el('option', { value: 'naoinscritos', text: 'Somente não inscritos' })
+        el('option', { value: 'todos', text: 'Todos' }), el('option', { value: 'faltosos', text: 'Inscritos sem nenhuma presença' }), el('option', { value: 'naoinscritos', text: 'Somente não inscritos' })
       ]);
       filterSel.addEventListener('change', () => { filter = filterSel.value; drawBoard(); });
       body.append(el('div', { class: 'glass-card forms-section' }, [
