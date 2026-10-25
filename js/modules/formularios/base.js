@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.1.6
+ * Versão: v.4.1.7
  */
 
 (function () {
@@ -319,11 +319,45 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
+  // Janela com lista de cidades marcáveis (confirmação antes de importar e exclusão de cidades)
+  function pickModal({ title, intro, items, confirmText, danger = false, notes = [], onConfirm }) {
+    const boxes = items.map(it => el('input', { type: 'checkbox', checked: it.checked !== false, id: `pk-${it.id}`, 'aria-label': it.label }));
+    const all = el('input', { type: 'checkbox', checked: items.every(i => i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
+    all.addEventListener('change', () => boxes.forEach(b => { b.checked = all.checked; update(); }));
+    const confirm = el('button', { type: 'button', class: `btn ${danger ? 'btn-secondary admin-danger-btn' : 'btn-primary'} btn-sm`, text: confirmText });
+    const update = () => {
+      const n = boxes.filter(b => b.checked).length;
+      confirm.disabled = n === 0;
+      confirm.textContent = `${confirmText} (${n})`;
+      all.checked = n === boxes.length;
+    };
+    boxes.forEach(b => b.addEventListener('change', update));
+    const overlay = el('div', { class: 'pick-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
+    const close = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    confirm.addEventListener('click', async () => {
+      const ids = items.filter((_, i) => boxes[i].checked).map(i => i.id);
+      confirm.disabled = true;
+      try { await onConfirm(ids); close(); } catch (err) { toast(errMsg(err), 'error'); confirm.disabled = false; }
+    });
+    overlay.append(el('div', { class: 'pick-card glass-card' }, [
+      el('h3', { style: 'margin:0 0 0.3rem;', text: title }),
+      el('p', { class: 'admin-muted', style: 'margin:0 0 0.8rem;', text: intro }),
+      el('label', { class: 'forms-check', for: 'pk-all', style: 'font-weight:600;' }, [all, 'Marcar todas']),
+      el('div', { class: 'pick-list' }, items.map((it, i) => el('label', { class: 'forms-check', for: `pk-${it.id}` }, [boxes[i], it.label, it.note ? el('small', { class: 'admin-muted', text: ` · ${it.note}` }) : null]))),
+      ...notes.map(n => el('p', { class: 'admin-muted', style: 'margin:0.5rem 0 0; font-size:0.82rem;', text: n })),
+      el('div', { class: 'admin-actions', style: 'margin-top:1rem; justify-content:flex-end;' }, [el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Cancelar', onclick: close }), confirm])
+    ]));
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    update();
+  }
+
   // Adicionar cidade convidada direto no painel de vagas: grava na capacitação (Etapa 2 do cadastro) e no formulário
   function addMunicipalityBox(ctx, form) {
     const t = ctx.training;
     const ufs = [...new Set((window.IBGE_DATA || []).map(m => m.u))].sort();
-    const uf = el('select', { class: 'form-control', style: 'max-width:110px;', 'aria-label': 'UF' }, ufs.map(u => el('option', { value: u, text: u })));
+    const uf = el('select', { class: 'form-control', id: 'mun-uf', style: 'max-width:110px;', 'aria-label': 'UF' }, ufs.map(u => el('option', { value: u, text: u })));
     uf.value = ufs.includes(t.uf) ? t.uf : (ufs[0] || '');
     const city = el('select', { class: 'form-control', style: 'max-width:320px;', 'aria-label': 'Cidade' });
     const fill = () => {
@@ -363,7 +397,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         const iUf = col(['uf', 'estado']);
         const iIbge = col(['codigo ibge', 'ibge', 'cod ibge']);
         if (iName === -1 && iIbge === -1) throw new Error('A planilha precisa ter a coluna "Município" (ou "Código IBGE"). Baixe o modelo.');
-        const defaultUf = t.uf || '';
+        const defaultUf = uf.value || t.uf || ''; // UF escolhida no seletor vale para as linhas sem UF
         const have = new Set((t.municipalities || []).map(m => String(m.ibgeCode || m.ibge || '')));
         const added = []; const dup = []; const notFound = [];
         rows.slice(1).forEach((r, i) => {
@@ -381,13 +415,26 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           toast(`Nenhuma cidade nova.${dup.length ? ` ${dup.length} já estava(m) na lista.` : ''}${notFound.length ? ` Não encontradas: ${notFound.slice(0, 5).join('; ')}.` : ''}`, 'warning', 8000);
           return;
         }
-        if (!t.municipalities) t.municipalities = [];
-        added.forEach(m => t.municipalities.push({ id: `mun_add_${Date.now()}_${m.c}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: 0, isSummoned: true, isSede: false,
-          inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 }));
-        await window.db.saveTrainingFull(t, `Cidades adicionadas por planilha: ${added.length}`);
-        await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
-        toast(`${added.length} cidade(s) adicionada(s)${dup.length ? `, ${dup.length} já existia(m)` : ''}${notFound.length ? `, ${notFound.length} não encontrada(s) (${notFound.slice(0, 3).join('; ')})` : ''}.`, notFound.length ? 'warning' : 'success', 9000);
-        ctx.rerender();
+        const notes = [];
+        if (dup.length) notes.push(`${dup.length} cidade(s) já estavam na lista e foram ignoradas: ${dup.slice(0, 8).join(', ')}${dup.length > 8 ? '…' : ''}.`);
+        if (notFound.length) notes.push(`${notFound.length} linha(s) não encontrada(s) no catálogo do IBGE: ${notFound.slice(0, 6).join('; ')}${notFound.length > 6 ? '…' : ''}.`);
+        pickModal({
+          title: 'Confirmar importação de cidades',
+          intro: `Encontramos ${added.length} cidade(s) nova(s) na planilha (linhas sem UF foram buscadas em ${defaultUf || 'qualquer UF'}). Desmarque as que não quer adicionar e confirme.`,
+          items: added.map(m => ({ id: String(m.c), label: `${m.n} (${m.u})` })),
+          confirmText: 'Adicionar cidades selecionadas',
+          notes,
+          onConfirm: async (ids) => {
+            const chosen = added.filter(m => ids.includes(String(m.c)));
+            if (!t.municipalities) t.municipalities = [];
+            chosen.forEach(m => t.municipalities.push({ id: `mun_add_${Date.now()}_${m.c}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: 0, isSummoned: true, isSede: false,
+              inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 }));
+            await window.db.saveTrainingFull(t, `Cidades adicionadas por planilha: ${chosen.length}`);
+            await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
+            toast(`${chosen.length} cidade(s) adicionada(s).`, 'success', 6000);
+            ctx.rerender();
+          }
+        });
       } catch (err) { toast(errMsg(err), 'error', 8000); }
     });
     const downloadModel = () => {
@@ -409,11 +456,36 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       XLSX.utils.book_append_sheet(wb, help, 'Instruções');
       XLSX.writeFile(wb, 'modelo-cidades-convidadas.xlsx');
     };
+    // Excluir cidades convidadas (escolhe na lista e confirma). Inscrições já feitas não são apagadas.
+    const removeCities = async () => {
+      const list = trainingMunicipalities(t);
+      if (!list.length) return toast('Não há cidades para excluir.', 'warning');
+      const { data } = await client().from('registrations').select('municipality').eq('training_id', t.id).eq('status', 'valida');
+      const counts = {};
+      (data || []).forEach(r => { counts[r.municipality] = (counts[r.municipality] || 0) + 1; });
+      pickModal({
+        title: 'Excluir cidades convidadas',
+        intro: 'Marque as cidades que saem da lista de convidadas. Elas deixam de aparecer no formulário de inscrição.',
+        items: list.map(m => ({ id: m.ibge || m.name, label: `${m.name} (${m.uf})`, note: counts[m.name] ? `${counts[m.name]} inscrito(s)` : 'sem inscritos', checked: false })),
+        confirmText: 'Excluir cidades selecionadas',
+        danger: true,
+        notes: ['As inscrições já recebidas continuam salvas; só a cidade sai da lista de convidadas. Para voltar, adicione a cidade de novo.'],
+        onConfirm: async (ids) => {
+          const drop = new Set(ids);
+          t.municipalities = (t.municipalities || []).filter(m => !drop.has(String(m.ibgeCode || m.ibge || m.name)));
+          await window.db.saveTrainingFull(t, `Cidades excluídas pelo painel de vagas: ${ids.length}`);
+          await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
+          toast(`${ids.length} cidade(s) excluída(s) da lista.`, 'success', 6000);
+          ctx.rerender();
+        }
+      });
+    };
     return el('div', { class: 'forms-toolbar', style: 'margin-bottom:0.8rem; flex-wrap:wrap;' }, [
-      el('strong', { text: 'Adicionar cidade convidada' }), uf, city, btn,
+      el('strong', { text: 'Adicionar cidade convidada' }), el('label', { class: 'admin-muted', for: 'mun-uf', text: 'UF' }), uf, city, btn,
       el('span', { class: 'admin-muted', text: 'ou' }),
-      el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Adicionar por planilha', onclick: () => sheetInput.click() }),
+      el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Adicionar por planilha', title: 'Linhas sem UF usam a UF escolhida ao lado', onclick: () => sheetInput.click() }),
       el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Baixar planilha modelo', onclick: downloadModel }),
+      el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir cidades...', onclick: removeCities }),
       sheetInput
     ]);
   }
