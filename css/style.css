@@ -4156,3 +4156,8 @@ body.light-theme .photo-source-addon.extra {
 
 
 
+
+/* Botão / indicador de sincronização com a nuvem */
+@keyframes sync-spin { to { transform: rotate(360deg); } }
+.sync-spin { animation: sync-spin 0.9s linear infinite; }
+#cloud-sync-btn:disabled { opacity: 0.7; cursor: wait; }

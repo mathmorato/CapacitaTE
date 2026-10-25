@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.19
+ * Versão: v.3.4.21
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.19';
+    this.version = 'v.3.4.21';
   }
 
   /**
@@ -207,6 +207,58 @@ class AutoReportApp {
   /* ==========================================================================
      Dashboard & Estatísticas Globais
      ========================================================================== */
+  /**
+   * Botão "Sincronizar": grava a capacitação aberta, sincroniza nos dois sentidos com a nuvem e atualiza a tela.
+   */
+  async syncWithCloud() {
+    if (!window.db) return;
+    const btn = document.getElementById('cloud-sync-btn');
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<svg class="sync-spin" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg><span>Sincronizando...</span>';
+    }
+
+    try {
+      // 1. Grava o que está aberto, para que as últimas alterações entrem na sincronização
+      const t = this.currentTraining;
+      if (t && this.activeView === 'wizard' && !t.isHistorical) {
+        this.saveCurrentStepData();
+        await window.db.saveTrainingFull(t, 'Salvamento antes da sincronização com a nuvem', false);
+      }
+
+      // 2. Sincroniza nos dois sentidos
+      const summary = await window.db.syncNow();
+
+      // 3. Se a capacitação aberta foi atualizada pela nuvem, recarrega-a para não sobrescrever a versão online
+      if (t && this.activeView === 'wizard' && summary.downloadedIds.includes(t.id)) {
+        await this.openWizard(t.id, this.currentStep || 1);
+        this.showToast('A capacitação aberta tinha uma versão mais nova na nuvem e foi atualizada.', 'info', 6000);
+      }
+
+      await this.refreshTrainingsList();
+      if (this.activeView === 'dashboard') this.renderDashboard();
+      else if (this.activeView === 'trainings' && typeof this.renderTrainingsList === 'function') this.renderTrainingsList();
+
+      const parts = [];
+      if (summary.uploaded) parts.push(`${summary.uploaded} enviada(s) para a nuvem`);
+      if (summary.downloaded) parts.push(`${summary.downloaded} baixada(s) da nuvem`);
+      if (summary.failed) {
+        this.showToast(`Sincronização concluída com ${summary.failed} falha(s)${parts.length ? ': ' + parts.join(', ') : ''}. Tente novamente.`, 'warning', 7000);
+      } else {
+        this.showToast(parts.length ? `Sincronização concluída: ${parts.join(', ')}.` : 'Tudo sincronizado: a versão local já é igual à online.', 'success', 5000);
+      }
+    } catch (err) {
+      console.error('Erro na sincronização com a nuvem:', err);
+      this.showToast(`Não foi possível sincronizar: ${err.message || 'falha de conexão'}. Os dados continuam salvos neste navegador.`, 'error', 7000);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+  }
+
   async refreshTrainingsList() {
     if (window.db) {
       this.trainingList = await window.db.getAllTrainings();
@@ -7499,7 +7551,7 @@ class AutoReportApp {
     const likedTexts = evals.map(e => e.likedAspects).filter(Boolean);
     const improveTexts = evals.map(e => e.improveAspects).filter(Boolean);
 
-    const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+    const cloudFont = this.getWordCloudFont();
 
     // Nuvem de Aspectos Positivos (Figura 7)
     const likedWords = window.wordCloudEngine.processTextList(likedTexts);
@@ -7529,7 +7581,7 @@ class AutoReportApp {
     // 1. Tipografia selecionada
     const fontSelect = document.getElementById('wordcloud-font-select');
     if (fontSelect) {
-      fontSelect.value = t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+      fontSelect.value = this.getWordCloudFont();
     }
 
     // 2. Figura 7 - Título
@@ -7627,27 +7679,89 @@ class AutoReportApp {
   }
 
   /**
-   * Aplica a fonte escolhida para os gráficos (Figuras 3 a 6) e sincroniza o seletor da Etapa 8
+   * Tipografia das figuras: uma fonte padrão (figureFontFamily) vale para os gráficos (Figuras 3 a 6) e para as
+   * nuvens de palavras (Figuras 7 e 8). Com separateFigureFonts, cada grupo usa a sua fonte (chartFontFamily e
+   * customWordCloudFont). Capacitações antigas usam a fonte já escolhida para a nuvem como fonte padrão.
+   */
+  getFigureFont() {
+    const t = this.currentTraining || {};
+    return t.figureFontFamily || t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+  }
+
+  getChartFont() {
+    const t = this.currentTraining || {};
+    return (t.separateFigureFonts && t.chartFontFamily) || this.getFigureFont();
+  }
+
+  getWordCloudFont() {
+    const t = this.currentTraining || {};
+    return (t.separateFigureFonts && t.customWordCloudFont) || this.getFigureFont();
+  }
+
+  /**
+   * Sincroniza os seletores de fonte da Etapa 8 com a capacitação (valores e visibilidade dos seletores separados)
+   */
+  syncFigureFontControls() {
+    const t = this.currentTraining;
+    if (!t) return;
+    const separate = Boolean(t.separateFigureFonts);
+    const set = (id, value) => { const el = document.getElementById(id); if (el && el.value !== value) el.value = value; };
+    set('figure-font-select', this.getFigureFont());
+    set('chart-font-select', this.getChartFont());
+    set('wordcloud-font-select', this.getWordCloudFont());
+    const check = document.getElementById('figure-font-separate');
+    if (check) check.checked = separate;
+    const chartRow = document.getElementById('chart-font-separate-row');
+    if (chartRow) chartRow.style.display = separate ? 'flex' : 'none';
+    const cloudCard = document.getElementById('wordcloud-font-card');
+    if (cloudCard) cloudCard.style.display = separate ? 'flex' : 'none';
+  }
+
+  /**
+   * Aplica a fonte vigente dos gráficos (Figuras 3 a 6) antes de renderizá-los
    */
   applyChartFont() {
-    const font = (this.currentTraining && this.currentTraining.chartFontFamily) || 'Plus Jakarta Sans';
     if (window.chartEngine && typeof window.chartEngine.setFontFamily === 'function') {
-      window.chartEngine.setFontFamily(font);
+      window.chartEngine.setFontFamily(this.getChartFont());
     }
-    const select = document.getElementById('chart-font-select');
-    if (select && select.value !== font) select.value = font;
+    this.syncFigureFontControls();
+  }
+
+  rerenderFigureFonts() {
+    this.renderEvaluationCharts();
+    this.renderWordClouds();
+    this.syncFigureFontControls();
+    this.saveCurrentStepData();
+  }
+
+  handleFigureFontChange(fontName) {
+    if (!this.currentTraining) return;
+    this.currentTraining.figureFontFamily = fontName || 'Plus Jakarta Sans';
+    this.rerenderFigureFonts();
+  }
+
+  restoreFigureFont() {
+    this.handleFigureFontChange('Plus Jakarta Sans');
+  }
+
+  toggleSeparateFigureFonts(separate) {
+    if (!this.currentTraining) return;
+    const t = this.currentTraining;
+    const base = this.getFigureFont();
+    if (separate) {
+      // Ao separar, gráficos e nuvens começam com a fonte padrão vigente
+      t.chartFontFamily = base;
+      t.customWordCloudFont = base;
+      t.wordCloudFontFamily = base;
+    }
+    t.figureFontFamily = base;
+    t.separateFigureFonts = Boolean(separate);
+    this.rerenderFigureFonts();
   }
 
   handleChartFontChange(fontName) {
     if (!this.currentTraining) return;
     this.currentTraining.chartFontFamily = fontName || 'Plus Jakarta Sans';
-    this.renderEvaluationCharts();
-    this.saveCurrentStepData();
-  }
-
-  restoreChartFont() {
-    if (!this.currentTraining) return;
-    this.currentTraining.chartFontFamily = 'Plus Jakarta Sans';
     this.renderEvaluationCharts();
     this.saveCurrentStepData();
   }
@@ -10000,7 +10114,7 @@ class AutoReportApp {
     if (window.wordCloudEngine) {
       const positiveTexts = evals.map(e => e.likedAspects || e.liked || '').filter(Boolean);
       const improveTexts = evals.map(e => e.improveAspects || e.improve || '').filter(Boolean);
-      const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+      const cloudFont = this.getWordCloudFont();
 
       const canvas7 = document.getElementById('report-preview-fig7-canvas');
       if (canvas7) {

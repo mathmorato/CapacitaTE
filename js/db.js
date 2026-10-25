@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.19
+ * Versão: v.3.4.21
  */
 
 const SUPABASE_CONFIG = {
@@ -150,9 +150,20 @@ class TrainingDB {
   /**
    * Atualiza o indicador visual de nuvem na barra superior
    */
-  updateCloudIndicator(isConnected) {
+  updateCloudIndicator(isConnected, state = '') {
     const el = document.getElementById('cloud-sync-status');
     if (!el) return;
+    if (isConnected && state === 'syncing') {
+      el.style.background = 'rgba(246, 168, 0, 0.12)';
+      el.style.color = 'var(--accent-gold-text, #F6A800)';
+      el.style.borderColor = 'rgba(246, 168, 0, 0.35)';
+      el.innerHTML = `
+        <svg class="sync-spin" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        <span>Sincronizando...</span>
+      `;
+      el.title = 'Sincronizando a versão local com a online';
+      return;
+    }
     if (isConnected) {
       el.style.background = 'rgba(16, 185, 129, 0.12)';
       el.style.color = '#10b981';
@@ -161,7 +172,9 @@ class TrainingDB {
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
         <span>Nuvem Ativa</span>
       `;
-      el.title = 'Conectado ao Supabase: Dados sincronizados em nuvem para todos os usuários';
+      el.title = this.lastSyncAt
+        ? `Conectado ao Supabase. Última sincronização: ${this.lastSyncAt.toLocaleString('pt-BR')}`
+        : 'Conectado ao Supabase: Dados sincronizados em nuvem para todos os usuários';
     } else {
       el.style.background = 'rgba(245, 158, 11, 0.12)';
       el.style.color = '#f59e0b';
@@ -175,70 +188,104 @@ class TrainingDB {
   }
 
   /**
-   * Sincroniza dados da nuvem para o IndexedDB local
+   * Sincronização automática em segundo plano (abertura do app e painel). Falhas não interrompem o uso local.
    */
   async syncFromCloud() {
-    if (!this.supabase || this.isSyncing) return;
-    this.isSyncing = true;
+    if (!this.supabase) return;
     try {
-      // 1. Sincronizar Capacitações com timeout de 3.5s para nunca travar em modo offline ou rede lenta
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3500));
-      const fetchTrainingsPromise = this.supabase.from('trainings').select('*');
-
-      const { data: cloudTrainings, error } = await Promise.race([fetchTrainingsPromise, timeoutPromise]);
-      if (error) {
-        console.warn('Aviso ao consultar trainings no Supabase:', error);
-        this.updateCloudIndicator(false);
-        this.isSyncing = false;
-        return;
-      }
-
-      this.updateCloudIndicator(true);
-
-      if (cloudTrainings && cloudTrainings.length > 0) {
-
-        // 1. Atualizar ou inserir registros vindos da nuvem
-        for (const row of cloudTrainings) {
-          if (row.data && row.id) {
-            const local = await this.get('trainings', row.id);
-            const cloudDate = new Date(row.updated_at || row.created_at || 0).getTime();
-            const localDate = new Date(local?.updatedAt || local?.createdAt || 0).getTime();
-
-            if (!local || cloudDate > localDate) {
-              await this.saveTrainingFull(row.data, 'Sincronização da Nuvem (Supabase)', false);
-            }
-          }
-        }
-
-      }
-
-      // 2. Capacitações que existem só neste computador (criadas offline ou cujo envio falhou) são enviadas
-      // para a nuvem; nunca são apagadas automaticamente
-      const cloudIds = new Set((cloudTrainings || []).map(r => r.id));
-      const allLocal = await this.getAll('trainings');
-      for (const loc of allLocal) {
-        if (loc.isHistorical || loc.status === 'historico') continue; // históricos vêm do banco, não são enviados
-        if (!cloudIds.has(loc.id)) {
-          const full = await this.getTrainingFull(loc.id);
-          if (full) await this.uploadTrainingToCloud(full);
-        }
-      }
-
-      // 2. Sincronizar Catálogo de Equipe Mestre
-      const { data: cloudTeam } = await this.supabase.from('master_team').select('*');
-      if (cloudTeam && cloudTeam.length > 0) {
-        for (const row of cloudTeam) {
-          if (row.data && row.id) {
-            await this.put('globalTeamCatalog', row.data);
-          }
-        }
-      }
+      await this.syncNow({ timeoutMs: 3500 });
     } catch (e) {
       console.warn('Operando com dados locais (modo offline/local):', e.message || e);
-      this.updateCloudIndicator(false);
-    } finally {
-      this.isSyncing = false;
     }
+  }
+
+  /**
+   * Sincroniza a versão local com a online, nos dois sentidos, comparando a data de atualização de cada capacitação:
+   * - mais nova na nuvem (ou só na nuvem): baixa para o navegador;
+   * - mais nova no navegador (ou só no navegador): envia para a nuvem;
+   * - registros históricos vêm do banco de dados e nunca são enviados; nada é apagado automaticamente.
+   * Retorna um resumo { downloaded, uploaded, unchanged, failed, downloadedIds }. Lança erro se a nuvem não responder.
+   * Chamadas simultâneas aguardam a sincronização em andamento e reutilizam o resultado dela.
+   */
+  syncNow({ timeoutMs = 20000 } = {}) {
+    if (!this.supabase) {
+      return Promise.reject(new Error('Conexão com a nuvem (Supabase) indisponível. Verifique a internet e recarregue a página.'));
+    }
+    if (this._syncPromise) return this._syncPromise;
+    this.isSyncing = true;
+    this.updateCloudIndicator(true, 'syncing');
+    this._syncPromise = this._runSync(timeoutMs)
+      .then(summary => {
+        this.lastSyncAt = new Date();
+        this.updateCloudIndicator(true);
+        return summary;
+      })
+      .catch(err => {
+        this.updateCloudIndicator(false);
+        throw err;
+      })
+      .finally(() => {
+        this.isSyncing = false;
+        this._syncPromise = null;
+      });
+    return this._syncPromise;
+  }
+
+  async _runSync(timeoutMs) {
+    const summary = { downloaded: 0, uploaded: 0, unchanged: 0, failed: 0, downloadedIds: [] };
+
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A nuvem não respondeu a tempo.')), timeoutMs));
+    const { data: cloudTrainings, error } = await Promise.race([this.supabase.from('trainings').select('*'), timeout]);
+    if (error) throw new Error(error.message || 'Falha ao consultar a nuvem.');
+
+    const cloudById = new Map((cloudTrainings || []).filter(r => r && r.id).map(r => [r.id, r]));
+    const timeOf = (v) => { const t = new Date(v || 0).getTime(); return isNaN(t) ? 0 : t; };
+
+    // 1. Registros da nuvem: baixa os mais novos que a cópia local
+    for (const row of cloudById.values()) {
+      if (!row.data) continue;
+      const local = await this.get('trainings', row.id);
+      const cloudTime = timeOf(row.data.updatedAt || row.updated_at || row.created_at);
+      const localTime = timeOf(local?.updatedAt || local?.createdAt);
+      if (!local || cloudTime > localTime) {
+        try {
+          const cloudData = { ...row.data, id: row.id, updatedAt: row.data.updatedAt || row.updated_at };
+          await this.saveTrainingFull(cloudData, 'Sincronização da Nuvem (Supabase)', false, true);
+          summary.downloaded++;
+          summary.downloadedIds.push(row.id);
+        } catch (e) {
+          console.warn('Falha ao baixar capacitação da nuvem:', row.id, e);
+          summary.failed++;
+        }
+      } else if (localTime === cloudTime) {
+        summary.unchanged++;
+      }
+    }
+
+    // 2. Registros locais: envia os que não estão na nuvem ou que são mais novos que a versão online
+    const allLocal = await this.getAll('trainings');
+    for (const loc of allLocal) {
+      if (loc.isHistorical || loc.status === 'historico') continue; // históricos vêm do banco, não são enviados
+      const row = cloudById.get(loc.id);
+      const cloudTime = row ? timeOf(row.data?.updatedAt || row.updated_at || row.created_at) : -1;
+      if (!row || timeOf(loc.updatedAt || loc.createdAt) > cloudTime) {
+        const full = await this.getTrainingFull(loc.id);
+        if (full && await this.uploadTrainingToCloud(full)) summary.uploaded++;
+        else summary.failed++;
+      }
+    }
+
+    // 3. Catálogo de Equipe Mestre (somente leitura a partir da nuvem)
+    try {
+      const { data: cloudTeam } = await this.supabase.from('master_team').select('*');
+      for (const row of (cloudTeam || [])) {
+        if (row.data && row.id) await this.put('globalTeamCatalog', row.data);
+      }
+    } catch (e) {
+      console.warn('Falha ao sincronizar a equipe mestra:', e);
+    }
+
+    return summary;
   }
 
   /**
@@ -259,11 +306,13 @@ class TrainingDB {
         updated_at: fullData.updatedAt || new Date().toISOString()
       });
       if (error) throw error;
-      this.updateCloudIndicator(true);
+      if (!this.isSyncing) this.updateCloudIndicator(true);
       console.log(`Capacitação sincronizada na nuvem: ${fullData.polo || fullData.id}`);
+      return true;
     } catch (err) {
       console.warn('Erro ao subir dados para a nuvem:', err);
       this.updateCloudIndicator(false);
+      return false;
     }
   }
 
@@ -427,11 +476,11 @@ class TrainingDB {
    * regrava os registros filhos (equipe, participantes, avaliações, mídias), e duas execuções simultâneas
    * (autosave + salvamento manual ou sincronização) poderiam duplicar ou perder registros.
    */
-  saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true) {
+  saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true, preserveUpdatedAt = false) {
     if (!data.id) data.id = `cap_${Date.now()}`;
     if (!this._saveQueues) this._saveQueues = new Map();
     const previous = this._saveQueues.get(data.id) || Promise.resolve();
-    const run = previous.catch(() => {}).then(() => this._saveTrainingFullNow(data, changeSummary, syncCloud));
+    const run = previous.catch(() => {}).then(() => this._saveTrainingFullNow(data, changeSummary, syncCloud, preserveUpdatedAt));
     this._saveQueues.set(data.id, run);
     run.finally(() => {
       if (this._saveQueues.get(data.id) === run) this._saveQueues.delete(data.id);
@@ -439,7 +488,7 @@ class TrainingDB {
     return run;
   }
 
-  async _saveTrainingFullNow(data, changeSummary, syncCloud) {
+  async _saveTrainingFullNow(data, changeSummary, syncCloud, preserveUpdatedAt = false) {
     const trainingId = data.id;
     const now = new Date().toISOString();
 
@@ -493,7 +542,7 @@ class TrainingDB {
       status: data.status || 'in_progress',
       progressPercent: data.progressPercent || 0,
       createdAt: data.createdAt || now,
-      updatedAt: now
+      updatedAt: (preserveUpdatedAt && data.updatedAt) ? data.updatedAt : now
     };
 
     // Salvar registro mestre
