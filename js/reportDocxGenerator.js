@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.14
+ * Versão: v.3.4.15
  */
 
 class ReportDocxGenerator {
@@ -251,16 +251,28 @@ class ReportDocxGenerator {
         return dataUrl;
       }
     };
+    // Imagem que não pode ser lida (corrompida ou em formato que o Word não aceita) é descartada:
+    // assim não ganha número de figura nem entrada no índice sem aparecer no documento
+    const usableImage = async (dataUrl) => {
+      const normalized = await safeNormalize(dataUrl);
+      const bytes = this.base64ToUint8Array(normalized);
+      if (bytes && this.getImageDimensionsFromBytes(bytes)) return normalized;
+      console.warn('Imagem ignorada no relatório por não poder ser lida.');
+      return '';
+    };
 
     const media = [];
     for (const m of (training.media || [])) {
       const copy = { ...m };
       if (copy.type === 'photo' && copy.blob) {
-        copy.blob = await safeNormalize(copy.blob);
+        copy.blob = await usableImage(copy.blob);
       }
       if (Array.isArray(copy.pageImages) && copy.pageImages.length > 0) {
         const pages = [];
-        for (const pg of copy.pageImages) pages.push(await safeNormalize(pg));
+        for (const pg of copy.pageImages) {
+          const img = await usableImage(pg);
+          if (img) pages.push(img);
+        }
         copy.pageImages = pages;
       }
       media.push(copy);
@@ -270,16 +282,31 @@ class ReportDocxGenerator {
     if (educationalTech) {
       const figures = [];
       for (const f of (educationalTech.figures || [])) {
-        figures.push(f && f.image ? { ...f, image: await safeNormalize(f.image) } : f);
+        figures.push(f && f.image ? { ...f, image: await usableImage(f.image) } : f);
       }
       const extraFigures = [];
       for (const ef of (educationalTech.extraFigures || [])) {
-        extraFigures.push(ef && ef.image ? { ...ef, image: await safeNormalize(ef.image) } : ef);
+        extraFigures.push(ef && ef.image ? { ...ef, image: await usableImage(ef.image) } : ef);
       }
       educationalTech = { ...educationalTech, figures, extraFigures };
     }
 
     return { ...training, media, educationalTech };
+  }
+
+  /**
+   * Pré-preenche um campo de índice (sumário, índice de figuras ou de tabelas) da biblioteca docx com as entradas
+   * já calculadas, para que o índice apareça mesmo antes de o Word atualizar os campos.
+   * Depende da estrutura interna do objeto (root[1] = conteúdo do campo, cujo último item fecha o campo):
+   * se ela não for a esperada (ex.: outra versão da biblioteca), nada é alterado e retorna false.
+   */
+  injectFieldEntries(field, paragraphs, headingParagraph = null) {
+    const content = field && Array.isArray(field.root) ? field.root[1] : null;
+    if (!content || !Array.isArray(content.root) || content.root.length === 0) return false;
+    if (headingParagraph) content.root.unshift(headingParagraph);
+    const endPara = content.root.pop();
+    content.root.push(...paragraphs, endPara);
+    return true;
   }
 
   /**
@@ -370,9 +397,24 @@ class ReportDocxGenerator {
    */
   renumberFigureReferences(text, baseToFinal) {
     if (!text || !baseToFinal) return text;
-    return String(text).replace(/\b(Figuras?)(\s+)(\d+(?:\s*(?:,|e|a)\s*\d+)*)/g, (m, word, space, nums) =>
-      word + space + nums.replace(/\d+/g, d => (baseToFinal[d] != null ? String(baseToFinal[d]) : d))
-    );
+    return String(text).replace(/\b(Figuras?)(\s+)(\d+(?:\s*(?:,|e|a)\s*\d+)*)/g, (m, word, space, nums) => {
+      // Intervalos ("Figuras 3 a 6") são mantidos como intervalo, com as extremidades renumeradas
+      if (/\sa\s/.test(nums)) {
+        return word + space + nums.replace(/\d+/g, d => (baseToFinal[d] != null ? String(baseToFinal[d]) : d));
+      }
+      // Listas ("Figuras 1 e 2", "Figuras 4, 5 e 6"): figuras removidas do relatório saem da lista,
+      // para que nenhuma referência aponte para outra figura
+      const all = nums.match(/\d+/g) || [];
+      const kept = all.filter(d => baseToFinal[d] != null).map(d => String(baseToFinal[d]));
+      if (kept.length === 0) return m; // nenhuma figura da referência está no relatório: mantém o texto original
+      if (kept.length === all.length) {
+        return word + space + nums.replace(/\d+/g, d => String(baseToFinal[d]));
+      }
+      const list = kept.length === 1 ? kept[0] : `${kept.slice(0, -1).join(', ')} e ${kept[kept.length - 1]}`;
+      const isUpper = word.charAt(0) === 'F';
+      const newWord = kept.length === 1 ? (isUpper ? 'Figura' : 'figura') : (isUpper ? 'Figuras' : 'figuras');
+      return newWord + space + list;
+    });
   }
 
   /**
@@ -3884,16 +3926,12 @@ class ReportDocxGenerator {
           );
         });
 
-        if (tof.root && tof.root[1] && tof.root[1].root) {
-          const content = tof.root[1];
-          const endPara = content.root.pop();
-          for (const fp of figParas) {
-            content.root.push(fp);
-          }
-          content.root.push(endPara);
+        if (this.injectFieldEntries(tof, figParas)) {
+          indicesChildren.push(tof);
+        } else {
+          // Estrutura interna da biblioteca docx diferente da esperada: usa a lista estática (com PAGEREF)
+          indicesChildren.push(...figParas);
         }
-
-        indicesChildren.push(tof);
       } else {
         figuresList.forEach(fig => {
           const textRuns = [];
@@ -4007,16 +4045,11 @@ class ReportDocxGenerator {
           );
         });
 
-        if (tot.root && tot.root[1] && tot.root[1].root) {
-          const content = tot.root[1];
-          const endPara = content.root.pop();
-          for (const tp of tabParas) {
-            content.root.push(tp);
-          }
-          content.root.push(endPara);
+        if (this.injectFieldEntries(tot, tabParas)) {
+          indicesChildren.push(tot);
+        } else {
+          indicesChildren.push(...tabParas);
         }
-
-        indicesChildren.push(tot);
       } else {
         tablesList.forEach(tab => {
           const tabChildren = [];
@@ -4139,19 +4172,12 @@ class ReportDocxGenerator {
         });
 
         // Inserir o título como primeiro elemento de sdtContent (toc.root[1]) e os itens pré-populados antes do endPara
-        if (toc.root && toc.root[1] && toc.root[1].root) {
-          const content = toc.root[1];
-          content.root.unshift(tocHeadingPara);
-          const endPara = content.root.pop();
-          for (const sp of sumParas) {
-            content.root.push(sp);
-          }
-          content.root.push(endPara);
+        if (this.injectFieldEntries(toc, sumParas, tocHeadingPara)) {
+          sumarioChildren.push(toc);
         } else {
-          sumarioChildren.push(tocHeadingPara);
+          // Estrutura interna da biblioteca docx diferente da esperada: sumário estático (com PAGEREF)
+          sumarioChildren.push(tocHeadingPara, ...sumParas);
         }
-
-        sumarioChildren.push(toc);
       } else {
         // Fallback caso TableOfContents não esteja disponível
         sumarioChildren.push(

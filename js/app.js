@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.14
+ * Versão: v.3.4.15
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.14';
+    this.version = 'v.3.4.15';
   }
 
   /**
@@ -1840,6 +1840,7 @@ class AutoReportApp {
   }
 
   useDefaultEduTechImage(figId) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
     if (!fig) return;
@@ -1856,6 +1857,7 @@ class AutoReportApp {
   }
 
   preloadAllDefaultEduTechExamples() {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const et = this.currentTraining.educationalTech;
     const f1 = et.figures.find(f => f.id === 'fig_1');
@@ -1875,6 +1877,7 @@ class AutoReportApp {
   }
 
   removeEduTechImage(figId) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
     if (fig) {
@@ -1887,6 +1890,7 @@ class AutoReportApp {
   }
 
   updateEduTechCaption(figId, val) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
     if (fig) {
@@ -1897,6 +1901,7 @@ class AutoReportApp {
   }
 
   updateEduTechSource(figId, val) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
     if (fig) {
@@ -1907,6 +1912,7 @@ class AutoReportApp {
   }
 
   addExtraEduTechFigure() {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const et = this.currentTraining.educationalTech;
     const count = (et.extraFigures || []).length;
@@ -1928,6 +1934,7 @@ class AutoReportApp {
   }
 
   removeExtraEduTechFigure(extraId) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const et = this.currentTraining.educationalTech;
     et.extraFigures = (et.extraFigures || []).filter(f => f.id !== extraId);
@@ -1937,6 +1944,7 @@ class AutoReportApp {
   }
 
   updateExtraEduTechTitle(extraId, val) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
     if (fig) {
@@ -1946,6 +1954,7 @@ class AutoReportApp {
   }
 
   updateExtraEduTechCaption(extraId, val) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
     if (fig) {
@@ -1956,6 +1965,7 @@ class AutoReportApp {
   }
 
   updateExtraEduTechSource(extraId, val) {
+    if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
     const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
     if (fig) {
@@ -8937,6 +8947,7 @@ class AutoReportApp {
   }
 
   confirmRemoveAppendix(docId) {
+    if (!this.currentTraining) return;
     const doc = (this.currentTraining.media || []).find(m => m.id === docId);
     const fileName = doc?.fileName || 'documento';
 
