@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.24
+ * Versão: v.3.4.25
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
@@ -739,11 +739,11 @@ class ReportDocxGenerator {
     addElement(textBlockHeight(300), true);
 
     let pFig4 = null;
-    if (chartsData?.fig4) pFig4 = addElement(6200, false, true);
+    if (chartsData?.fig4) pFig4 = addElement(6950, false, true);
     let pFig5 = null;
-    if (chartsData?.fig5) pFig5 = addElement(6200, false, true);
+    if (chartsData?.fig5) pFig5 = addElement(6950, false, true);
     let pFig6 = null;
-    if (chartsData?.fig6) pFig6 = addElement(6200, false, true);
+    if (chartsData?.fig6) pFig6 = addElement(6950, false, true);
 
     addElement(textBlockHeight(350), true); // intro nuvens
 
@@ -2775,7 +2775,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig4) {
-        const fig4Nodes = this.createImageParagraph(chartsData.fig4, 520, 250, this.applyFigureNumber('Figura 4. Avaliação da capacitação de todos os participantes.', figNums.fig_4), docxDeps, 'fig_4');
+        const fig4Nodes = this.createImageParagraph(chartsData.fig4, 630, 300, this.applyFigureNumber('Figura 4. Avaliação da capacitação de todos os participantes.', figNums.fig_4), docxDeps, 'fig_4');
         if (fig4Nodes) docChildren.push(...fig4Nodes);
       }
 
@@ -2790,7 +2790,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig5) {
-        const fig5Nodes = this.createImageParagraph(chartsData.fig5, 520, 250, this.applyFigureNumber('Figura 5. Avaliação da capacitação dos conselheiros CACS.', figNums.fig_5), docxDeps, 'fig_5');
+        const fig5Nodes = this.createImageParagraph(chartsData.fig5, 630, 300, this.applyFigureNumber('Figura 5. Avaliação da capacitação dos conselheiros CACS.', figNums.fig_5), docxDeps, 'fig_5');
         if (fig5Nodes) docChildren.push(...fig5Nodes);
       }
 
@@ -2805,7 +2805,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig6) {
-        const fig6Nodes = this.createImageParagraph(chartsData.fig6, 520, 250, this.applyFigureNumber('Figura 6. Avaliação da capacitação dos gestores municipais.', figNums.fig_6), docxDeps, 'fig_6');
+        const fig6Nodes = this.createImageParagraph(chartsData.fig6, 630, 300, this.applyFigureNumber('Figura 6. Avaliação da capacitação dos gestores municipais.', figNums.fig_6), docxDeps, 'fig_6');
         if (fig6Nodes) docChildren.push(...fig6Nodes);
       }
 
