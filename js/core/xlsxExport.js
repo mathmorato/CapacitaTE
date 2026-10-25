@@ -2,7 +2,7 @@
  * CapacitaTE - Exportação das respostas em .xlsx no formato das planilhas do Google Forms
  * Cabeçalhos copiados caractere por caractere das planilhas originais (input/ da 16ª CTE), para o
  * js/excelParser.js ler os arquivos exportados exatamente como lê os do Google. Usa o SheetJS local (window.XLSX).
- * Versão: v.4.3.2
+ * Versão: v.4.3.3
  */
 
 (function (root) {
@@ -177,6 +177,18 @@
     root.XLSX.writeFile(wb, name, { compression: true });
   }
 
+  // Presença: completa nascimento, telefone, município, categoria e cargos de quem já era inscrito (ou está no cadastro de pessoas)
+  async function attendanceRowsComplete(client, atts, trainingId) {
+    const [regs, people] = await Promise.all([
+      client.from('registrations').select('*').eq('training_id', trainingId).eq('status', 'valida'),
+      client.from('people').select('*').in('cpf', [...new Set(atts.map(a => a.cpf))].slice(0, 1000))
+    ]);
+    if (regs.error) throw regs.error;
+    const byCpf = new Map(((people && people.data) || []).map(p => [p.cpf, p]));
+    (regs.data || []).forEach(r => byCpf.set(r.cpf, Object.assign({}, byCpf.get(r.cpf) || {}, Object.fromEntries(Object.entries(r).filter(([, v]) => v !== null && v !== '')))));
+    return attendanceRows(atts, { fillFromRegistration: true, registrations: [...byCpf.values()] });
+  }
+
   // Busca as respostas de um módulo no Supabase e monta as linhas no formato da exportação (seção 12).
   // É o que o Relatório usa em "Usar dados do CapacitaTE": as linhas vão para o mesmo parser do upload de arquivo.
   async function fetchRows(client, mod, trainingId) {
@@ -187,11 +199,11 @@
     const { data, error } = await client.from(table).select('*').eq('training_id', trainingId);
     if (error) throw error;
     if (mod === 'inscricao') return registrationRows(data || [], { truthStatement: (form && form.config && form.config.truthStatement) || undefined });
-    if (mod === 'presenca') return attendanceRows(data || []);
+    if (mod === 'presenca') return attendanceRowsComplete(client, data || [], trainingId);
     return evaluationRows(data || [], { ratingItems: form && form.config && form.config.ratingItems });
   }
 
-  const api = { SHEET, HEADERS, registrationRows, attendanceRows, evaluationRows, fetchRows, workbook, fileName, download, stamp };
+  const api = { SHEET, HEADERS, registrationRows, attendanceRows, attendanceRowsComplete, evaluationRows, fetchRows, workbook, fileName, download, stamp };
   root.CapacitaTE = root.CapacitaTE || {};
   root.CapacitaTE.xlsxExport = api;
 })(window);
