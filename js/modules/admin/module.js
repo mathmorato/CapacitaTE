@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Administração (usuários, permissões e auditoria; só para admins)
- * Versão: v.4.1.8
+ * Versão: v.4.1.9
  */
 
 (function () {

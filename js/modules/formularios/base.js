@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.1.8
+ * Versão: v.4.1.9
  */
 
 (function () {
@@ -321,22 +321,22 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
 
   // Janela com lista de cidades marcáveis (confirmação antes de importar e exclusão de cidades)
   function pickModal({ title, intro, items, confirmText, danger = false, notes = [], onConfirm }) {
-    const boxes = items.map(it => el('input', { type: 'checkbox', checked: it.checked !== false, id: `pk-${it.id}`, 'aria-label': it.label }));
-    const all = el('input', { type: 'checkbox', checked: items.every(i => i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
-    all.addEventListener('change', () => { const on = all.checked; boxes.forEach(b => { b.checked = on; }); update(); });
+    const boxes = items.map(it => el('input', { type: 'checkbox', checked: !it.disabled && it.checked !== false, disabled: !!it.disabled, id: `pk-${it.id}`, 'aria-label': it.label }));
+    const all = el('input', { type: 'checkbox', checked: items.every(i => i.disabled || i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
+    all.addEventListener('change', () => { const on = all.checked; boxes.forEach(b => { if (!b.disabled) b.checked = on; }); update(); });
     const confirm = el('button', { type: 'button', class: `btn ${danger ? 'btn-secondary admin-danger-btn' : 'btn-primary'} btn-sm`, text: confirmText });
     const update = () => {
       const n = boxes.filter(b => b.checked).length;
       confirm.disabled = n === 0;
       confirm.textContent = `${confirmText} (${n})`;
-      all.checked = n === boxes.length;
+      all.checked = n > 0 && n === boxes.filter(b => !b.disabled).length;
     };
     boxes.forEach(b => b.addEventListener('change', update));
     const overlay = el('div', { class: 'pick-overlay', role: 'dialog', 'aria-modal': 'true', 'aria-label': title });
     const close = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     confirm.addEventListener('click', async () => {
-      const ids = items.filter((_, i) => boxes[i].checked).map(i => i.id);
+      const ids = items.filter((_, i) => boxes[i].checked && !boxes[i].disabled).map(i => i.id);
       confirm.disabled = true;
       try { await onConfirm(ids); close(); } catch (err) { toast(errMsg(err), 'error'); confirm.disabled = false; }
     });
@@ -463,19 +463,24 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const { data } = await client().from('registrations').select('municipality').eq('training_id', t.id).eq('status', 'valida');
       const counts = {};
       (data || []).forEach(r => { counts[r.municipality] = (counts[r.municipality] || 0) + 1; });
+      // O município sede (polo) não pode ser excluído: o relatório e o formulário dependem dele
+      const norm = (v) => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+      const sedeIds = new Set((t.municipalities || []).filter(m => m.isSede || (norm(m.name) === norm(t.polo) && String(m.uf || t.uf || '').toUpperCase() === String(t.uf || '').toUpperCase()))
+        .map(m => String(m.ibgeCode || m.ibge || m.name)));
       pickModal({
         title: 'Excluir cidades convidadas',
         intro: 'Marque as cidades que saem da lista de convidadas. Elas deixam de aparecer no formulário de inscrição.',
-        items: list.map(m => ({ id: m.ibge || m.name, label: `${m.name} (${m.uf})`, note: counts[m.name] ? `${counts[m.name]} inscrito(s)` : 'sem inscritos', checked: false })),
+        items: list.map(m => { const id = String(m.ibge || m.name); const sede = sedeIds.has(id); return { id, label: `${m.name} (${m.uf})`, note: sede ? 'município sede: não pode ser excluído' : (counts[m.name] ? `${counts[m.name]} inscrito(s)` : 'sem inscritos'), checked: false, disabled: sede }; }),
         confirmText: 'Excluir cidades selecionadas',
         danger: true,
         notes: ['As inscrições já recebidas continuam salvas; só a cidade sai da lista de convidadas. Para voltar, adicione a cidade de novo.'],
         onConfirm: async (ids) => {
-          const drop = new Set(ids);
+          const drop = new Set(ids.filter(id => !sedeIds.has(String(id)))); // proteção extra: a sede nunca sai
+          if (!drop.size) return;
           t.municipalities = (t.municipalities || []).filter(m => !drop.has(String(m.ibgeCode || m.ibge || m.name)));
-          await window.db.saveTrainingFull(t, `Cidades excluídas pelo painel de vagas: ${ids.length}`);
+          await window.db.saveTrainingFull(t, `Cidades excluídas pelo painel de vagas: ${drop.size}`);
           await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
-          toast(`${ids.length} cidade(s) excluída(s) da lista.`, 'success', 6000);
+          toast(`${drop.size} cidade(s) excluída(s) da lista.`, 'success', 6000);
           ctx.rerender();
         }
       });
