@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.3.6
+ * Versão: v.4.3.7
  */
 
 (function () {
@@ -82,12 +82,20 @@
   }
 
   // Texto de apresentação gerado a partir dos dados da capacitação (editável depois)
+  // Trecho do convite com a quantidade de municípios e os estados (ex.: " de 23 municípios dos Estados de Goiás e Mato Grosso")
+  function citiesPhrase(muns, fallbackUf) {
+    const full = (uf) => (window.reportDocxGenerator && typeof window.reportDocxGenerator.getUfFullName === 'function' ? window.reportDocxGenerator.getUfFullName(uf) : uf);
+    const ufs = [...new Set((muns || []).map(m => m.uf).filter(Boolean))];
+    if (!ufs.length && fallbackUf) ufs.push(fallbackUf);
+    const names = ufs.map(full).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    const n = (muns || []).length;
+    const states = names.length > 1 ? ` dos Estados de ${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}` : (names.length ? ` do Estado de ${names[0]}` : '');
+    return `${n ? ` de ${n} município${n === 1 ? '' : 's'}` : ''}${states}`;
+  }
+
   function buildIntro(t) {
-    const n = trainingMunicipalities(t).length;
-    const ufName = window.reportDocxGenerator && typeof window.reportDocxGenerator.getUfFullName === 'function'
-      ? window.reportDocxGenerator.getUfFullName(t.uf) : t.uf;
     const c = CapacitaTE.formSchema.DEFAULTS.contacts;
-    return `O Fundo Nacional de Desenvolvimento da Educação (FNDE), em parceria com o Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO), convida gestores municipais e conselheiros do CACS-FUNDEB${n ? ` de ${n} municípios` : ''}${ufName ? ` do Estado de ${ufName}` : ''} para a Capacitação em Transporte Escolar${t.locationVenue ? `, que será realizada no ${t.locationVenue}` : ''}${t.datesFormatted ? `, nos dias ${t.datesFormatted}` : ''}.
+    return `O Fundo Nacional de Desenvolvimento da Educação (FNDE), em parceria com o Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO), convida gestores municipais e conselheiros do CACS-FUNDEB${citiesPhrase(trainingMunicipalities(t), t.uf)} para a Capacitação em Transporte Escolar${t.locationVenue ? `, que será realizada no ${t.locationVenue}` : ''}${t.datesFormatted ? `, nos dias ${t.datesFormatted}` : ''}.
 
 A formação visa aprimorar a gestão do Programa Caminho da Escola e do Programa Nacional de Apoio ao Transporte do Escolar (PNATE) nos municípios. Em um ambiente de troca e diálogo, os participantes inscritos terão acesso às informações sobre os normativos dos programas federais de transporte escolar e orientações sobre execução dos recursos e prestação de contas.
 
@@ -132,6 +140,12 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   const AUTO_MUN_TRIED = new Set();
 
   async function updateForm(form, patch, auditAction) {
+    // Lista de cidades mudou: o convite da inscrição acompanha a quantidade de municípios e os estados
+    if (patch.config && patch.config.municipalities && typeof patch.config.intro === 'string') {
+      patch = Object.assign({}, patch, { config: Object.assign({}, patch.config, {
+        intro: patch.config.intro.replace(/ de \d+ municípios?( d[oa]s? Estados? de [^.]+?)?(?= para a Capacitação)/, citiesPhrase(patch.config.municipalities))
+      }) });
+    }
     const { data, error } = await client().from('forms').update(patch).eq('id', form.id).select().single();
     if (error) throw error;
     if (auditAction) await audit(auditAction, form.module_key, form.training_id, form.id, patch.status ? { status: patch.status } : null);
@@ -246,7 +260,9 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     // Atualização automática: se a lista da capacitação mudou, o formulário recebe a lista nova sozinho (link e QR Code não mudam).
     // Tenta uma vez para cada lista nova de cidades; se falhar, o aviso com o botão continua na tela.
     const autoKey = `${form.id}|${trainingMuns.map(m => m.name).join(',')}`;
-    if (munChanged && canEdit && !AUTO_MUN_TRIED.has(autoKey)) {
+    // Convite com a quantidade de municípios desatualizada (formulários criados antes da v.4.3.7) também é corrigido
+    const introStale = typeof cfg.intro === 'string' && cfg.intro.replace(/ de \d+ municípios?( d[oa]s? Estados? de [^.]+?)?(?= para a Capacitação)/, citiesPhrase(trainingMuns)) !== cfg.intro;
+    if ((munChanged || introStale) && canEdit && !AUTO_MUN_TRIED.has(autoKey)) {
       AUTO_MUN_TRIED.add(autoKey);
       updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMuns }) }, 'form.config')
         .then(() => { toast('Cidades do formulário atualizadas automaticamente.', 'success'); rerender(); })
