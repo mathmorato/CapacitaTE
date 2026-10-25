@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.8.8
+ * Versão: v.3.8.9
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.8.8';
+    this.version = 'v.3.8.9';
   }
 
   /**
@@ -93,6 +93,9 @@ class CapacitaTEApp {
     // 5. Na inicialização ou recarregamento, sempre abrir no Dashboard limpo
     history.replaceState(null, '', window.location.pathname);
     this.navigateTo('dashboard', false);
+
+    // Painel montado: tira a tela de carregamento
+    if (window.CapacitaTE && CapacitaTE.hideBoot) CapacitaTE.hideBoot();
 
     console.log('CapacitaTE pronto!');
   }

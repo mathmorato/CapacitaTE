@@ -19,6 +19,16 @@
   <link rel="stylesheet" href="css/print.css" media="print">
 </head>
 <body>
+  <!-- Tela de carregamento: cobre o painel até o login ou o painel estarem prontos (some via CapacitaTE.hideBoot) -->
+  <script>
+    try { if (localStorage.getItem('autoreport_theme') === 'light') document.body.classList.add('light-theme'); } catch (e) { /* sem localStorage */ } // chave legada mantida para compatibilidade
+  </script>
+  <div class="app-boot" id="app-boot" role="status" aria-live="polite">
+    <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="CECATE Centro-Oeste" class="app-boot-logo brand-logo-img logo-dark">
+    <img src="assets/CECATE_Centro-Oeste_Logo_Colorida_Horizontal_Completa-PNG.png" alt="CECATE Centro-Oeste" class="app-boot-logo brand-logo-img logo-light">
+    <div class="app-boot-spinner" aria-hidden="true"></div>
+    <p class="app-boot-text">Carregando o CapacitaTE...</p>
+  </div>
 
   <div class="app-container">
     
@@ -65,7 +75,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.3.8.8
+          CapacitaTE · v.3.8.9
         </div>
       </div>
     </aside>
@@ -1998,7 +2008,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.8.8 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.8.9 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -2008,7 +2018,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.8.8</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.8.9</span>
         </div>
       </footer>
     </div>

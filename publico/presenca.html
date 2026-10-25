@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#F6A800">
+  <title>Lista de Presença – CapacitaTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="publico.css">
+</head>
+<body data-module="presenca">
+  <header class="pub-header">
+    <img src="../assets/CECATE_Centro-Oeste_Logo_Colorida_Horizontal_Completa-PNG.png" alt="CECATE Centro-Oeste" class="pub-logo-light">
+    <img src="../assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="CECATE Centro-Oeste" class="pub-logo-dark">
+  </header>
+
+  <main class="pub-main" id="pub-app" aria-live="polite">
+    <noscript><p>Ative o JavaScript do navegador para responder ao formulário.</p></noscript>
+  </main>
+
+  <footer class="pub-footer">
+    <div class="pub-footer-logos">
+      <img src="../visualrelatorio/rodape/logo1_cecate.png" alt="CECATE">
+      <img src="../visualrelatorio/rodape/logo2_eng_transportes.png" alt="Engenharia de Transportes">
+      <img src="../visualrelatorio/rodape/logo3_fct.png" alt="FCT/UFG">
+    </div>
+    <div>Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste · UFG / FNDE</div>
+    <div>CapacitaTE · <span id="pub-version"></span></div>
+  </footer>
+
+  <!-- Somente o necessário: Supabase, configuração, CPF, formatos, esquema e o motor público -->
+  <script src="../js/vendor/supabase.umd.js"></script>
+  <script src="../js/env.local.js" onerror="this.remove()"></script>
+  <script src="../js/core/config.js"></script>
+  <script src="../js/core/supabaseClient.js"></script>
+  <script src="../js/core/cpf.js"></script>
+  <script src="../js/core/formats.js"></script>
+  <script src="../js/core/formSchema.js"></script>
+  <script src="publico.js"></script>
+</body>
+</html>
