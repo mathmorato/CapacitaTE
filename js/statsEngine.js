@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Motor de Estatísticas e Análise de Dados
- * Versão: v.4.2.3
+ * Versão: v.4.2.4
  */
 
 class StatsEngine {
