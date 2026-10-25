@@ -4,7 +4,7 @@
 > `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.5** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.6** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -28,6 +28,8 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 - **Segundo fator** dos formulários públicos: data de nascimento (ou e-mail, se não houver data). Não remover sem
   decisão explícita do usuário (LGPD).
 - **Sem domínio próprio por enquanto**; Site URL = GitHub Pages.
+- **Configuração do Supabase sempre por SQL** (arquivo em `supabase/migrations/` para colar no SQL Editor). Telas do painel
+  só para o que o SQL não alcança (publicar Edge Function, segredos das funções, SMTP e modelos de e-mail do Auth).
 
 ## 2. Configuração do Supabase (projeto `tjvhbkhttxbjajcznfrp`, organização CECATE-CO)
 
@@ -60,7 +62,7 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
 | 1. Núcleo modular (core, registro de módulos, router, menu gerado) | ✅ docx da 16ª CTE idêntico ao da v.3.7.6 | v.3.7.8 |
 | 2. Login e permissões | ✅ testado no Supabase real | v.3.8.0 – v.3.8.5, v.3.8.7 |
 | 3. Pessoas e formulários | 🔶 em andamento (falta inclusão manual, modo recepção, gráficos da avaliação, teste em celular real) | v.3.8.6 – v.3.9.0 |
-| 4. Exportação .xlsx no formato Google Forms | ⏳ | |
+| 4. Exportação .xlsx no formato Google Forms | ✅ teste 12.4: 18/18 (`scripts/validar-exportacao.html`) | v.3.9.6 |
 | 5. Integração com o Relatório + importação da base | ⏳ | |
 | 6. Segurança final (0005, checklist) | ⏳ | |
 
@@ -93,8 +95,16 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
   cancelar/restaurar; presença: quadro de frequência e exclusão de registros; avaliação: médias por item
   (geral, CACS, Gestão), taxa de resposta e exclusão. Atualização automática a cada 30 s.
 - ✅ QR: `js/vendor/qrcode.min.js` (qrcode-generator 1.4.4, MIT) + `js/core/qr.js`.
-- ⏳ **Próximo:** Fase 4 (exportação .xlsx dos três formulários no formato Google Forms) — o usuário pediu
-  exportar inscrições, presença e avaliação. Depois: inclusão manual (`staff_submit`), modo recepção, gráficos.
+- ✅ **Fase 4 (v.3.9.6):** `js/core/xlsxExport.js` gera as 3 planilhas com abas, cabeçalhos (copiados das originais
+  de `input/`, inclusive espaços, `
+` e `
+`), formatos e a aba "Inscritos" com COUNTIF/COUNTIFS e valores em
+  cache. Datas gravadas como número de série calculado do dia/hora de parede (o SheetJS deslocava em 1 h datas de
+  épocas com horário de verão: 19/02/2006 virava 18/02/2006 22:59). Botões na etapa 2 (permissão `export`, auditoria).
+  Teste `scripts/validar-exportacao.html` (abrir por servidor local): cabeçalhos, valores, ExcelParser e StatsEngine.
+- ✅ A pedido do usuário (v.3.9.6): removidos "Cancelar/Restaurar" das inscrições e "Excluir" dos registros de presença.
+- ⏳ **Próximo:** Fase 5 (Relatório usando os dados do CapacitaTE nas etapas 7 e 8 + importação da base) e Fase 6
+  (segurança final, migração 0005). Pendências menores: inclusão manual (`staff_submit`), modo recepção, gráficos.
 - ⏳ Teste em celular real (QR lido pela câmera) — só o usuário pode fazer.
 - ⏳ Permissões: os módulos novos devem se registrar com `actions` para aparecerem na matriz de permissões.
 

@@ -4,7 +4,7 @@
  *   2. Presença e avaliação (sessões de presença e avaliação com QR Code; exportação em Excel)
  *   3. Relatório final (assistente de 12 etapas que já existia)
  * Rota: #capacitacao/<id>[/<etapa>]
- * Versão: v.3.9.5
+ * Versão: v.3.9.6
  */
 
 (function () {
@@ -39,13 +39,58 @@
     ]);
   }
 
-  function exportCard() {
+  /**
+   * Exportação em Excel no formato das planilhas do Google Forms (js/core/xlsxExport.js)
+   */
+  async function exportModule(mod, training) {
+    const client = F.client();
+    const X = CapacitaTE.xlsxExport;
+    const { data: forms, error: fErr } = await client.from('forms').select('*').eq('training_id', training.id).eq('module_key', mod);
+    if (fErr) throw fErr;
+    const form = (forms || []).find(f => f.session_key === 'unico') || (forms || [])[0];
+    let aoa;
+    let municipalities = [];
+    if (mod === 'inscricao') {
+      const { data, error } = await client.from('registrations').select('*').eq('training_id', training.id);
+      if (error) throw error;
+      aoa = X.registrationRows(data || [], { truthStatement: (form && form.config && form.config.truthStatement) || undefined });
+      municipalities = ((form && form.config && form.config.municipalities) || F.trainingMunicipalities(training)).map(m => m.name);
+    } else if (mod === 'presenca') {
+      const { data, error } = await client.from('attendance').select('*').eq('training_id', training.id);
+      if (error) throw error;
+      aoa = X.attendanceRows(data || []);
+    } else {
+      const { data, error } = await client.from('evaluations').select('*').eq('training_id', training.id);
+      if (error) throw error;
+      aoa = X.evaluationRows(data || [], { ratingItems: form && form.config && form.config.ratingItems });
+    }
+    if (aoa.length <= 1) {
+      F.toast('Ainda não há respostas para exportar.', 'warning');
+      return;
+    }
+    X.download(X.workbook(mod, aoa, { municipalities }), X.fileName(mod, training.number));
+    if (CapacitaTE.audit) await CapacitaTE.audit.log('export', { module: mod, trainingId: training.id, details: { linhas: aoa.length - 1 } });
+    F.toast(`Planilha exportada (${aoa.length - 1} respostas).`, 'success');
+  }
+
+  function exportCard(training) {
+    const items = [['inscricao', 'Inscrições'], ['presenca', 'Lista de presença'], ['avaliacao', 'Avaliação']];
     return el('div', { class: 'glass-card forms-section' }, [
       el('h3', { class: 'forms-section-title', text: 'Exportar em Excel' }),
-      el('p', { class: 'admin-muted', text: 'Planilhas de inscrições, presença e avaliação no mesmo formato do Google Forms, prontas para o Relatório.' }),
-      el('div', { class: 'admin-actions' }, ['Inscrições', 'Lista de presença', 'Avaliação'].map(t =>
-        el('button', { type: 'button', class: 'btn btn-secondary btn-sm', disabled: true, title: 'Disponível na próxima versão', text: `${t} (.xlsx)` }))),
-      el('p', { class: 'admin-muted', style: 'margin-top:0.5rem;', text: 'A exportação será liberada na próxima versão (Fase 4 da especificação).' })
+      el('p', { class: 'admin-muted', text: 'Planilhas no mesmo formato do Google Forms (mesmas abas, colunas e textos), prontas para o Relatório final ou para enviar ao FNDE.' }),
+      el('div', { class: 'admin-actions' }, items.map(([mod, label]) => {
+        const allowed = CapacitaTE.can(mod, 'export', training.id);
+        return el('button', {
+          type: 'button', class: 'btn btn-secondary btn-sm', disabled: !allowed,
+          title: allowed ? `Baixar ${label} (.xlsx)` : 'Você não tem permissão para exportar este módulo',
+          text: `${label} (.xlsx)`,
+          onclick: async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            try { await exportModule(mod, training); } catch (err) { F.toast(F.errMsg(err), 'error'); } finally { btn.disabled = false; }
+          }
+        });
+      }))
     ]);
   }
 
@@ -110,7 +155,7 @@
     } else if (current === 2) {
       const pres = el('div');
       const aval = el('div');
-      body.append(el('h3', { class: 'cap-subtitle', text: 'Lista de presença' }), pres, el('h3', { class: 'cap-subtitle', text: 'Avaliação' }), aval, exportCard());
+      body.append(el('h3', { class: 'cap-subtitle', text: 'Lista de presença' }), pres, el('h3', { class: 'cap-subtitle', text: 'Avaliação' }), aval, exportCard(training));
       if (loggedIn) {
         await F.renderEmbedded('presenca', pres, id);
         await F.renderEmbedded('avaliacao', aval, id);

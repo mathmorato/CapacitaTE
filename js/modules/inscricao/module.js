@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.3.9.5
+ * Versão: v.3.9.6
  */
 
 (function () {
@@ -64,11 +64,10 @@
       // Inscrições
       const listBox = el('div');
       let term = '';
-      let statusFilter = 'valida';
       const draw = () => {
         listBox.textContent = '';
         const rows = regs
-          .filter(r => statusFilter === 'todas' || r.status === statusFilter)
+          .filter(r => r.status !== 'cancelada')
           .filter(r => !term || `${r.full_name} ${r.municipality} ${r.email}`.toLowerCase().includes(term))
           .map(r => el('tr', { class: r.status === 'cancelada' ? 'forms-row-cancelled' : null }, [
             el('td', { text: r.full_name || '—' }),
@@ -84,30 +83,13 @@
               r.answers && r.answers.email_sent_at ? el('span', { class: 'admin-chip', title: `E-mail de confirmação enviado em ${c.fmtDateTime(r.answers.email_sent_at)}`, text: 'e-mail enviado' }) : null,
               r.status === 'cancelada' ? el('span', { class: 'admin-chip', text: 'cancelada' }) : null
             ]),
-            el('td', { class: 'perm-col' }, canEdit ? el('button', {
-              type: 'button', class: `btn btn-secondary btn-sm${r.status === 'valida' ? ' admin-danger-btn' : ''}`,
-              text: r.status === 'valida' ? 'Cancelar' : 'Restaurar',
-              onclick: async (e) => {
-                e.currentTarget.disabled = true;
-                const next = r.status === 'valida' ? 'cancelada' : 'valida';
-                const { error: upErr } = await c.client().from('registrations').update({ status: next }).eq('id', r.id);
-                if (upErr) { c.toast(c.errMsg(upErr), 'error'); e.currentTarget.disabled = false; return; }
-                await c.audit(next === 'cancelada' ? 'submission.cancel' : 'submission.restore', 'inscricao', training.id, c.maskCpf(r.cpf));
-                c.toast(next === 'cancelada' ? 'Inscrição cancelada.' : 'Inscrição restaurada.', 'success');
-                c.rerender();
-              }
-            }) : null)
           ]));
-        listBox.append(c.table(['Nome', 'CPF', 'Município', 'Categoria', 'Cargo', 'Telefone', 'Enviada em', '', ''], rows, term ? 'Nada encontrado.' : 'Nenhuma inscrição ainda.'));
+        listBox.append(c.table(['Nome', 'CPF', 'Município', 'Categoria', 'Cargo', 'Telefone', 'Enviada em', ''], rows, term ? 'Nada encontrado.' : 'Nenhuma inscrição ainda.'));
       };
-      const statusSel = el('select', { class: 'form-control forms-filter', 'aria-label': 'Situação' }, [
-        el('option', { value: 'valida', text: 'Válidas' }), el('option', { value: 'cancelada', text: 'Canceladas' }), el('option', { value: 'todas', text: 'Todas' })
-      ]);
-      statusSel.addEventListener('change', () => { statusFilter = statusSel.value; draw(); });
       body.append(el('div', { class: 'glass-card forms-section' }, [
         el('div', { class: 'forms-toolbar' }, [
-          el('h3', { class: 'forms-section-title', text: `Inscrições (${regs.length})` }),
-          c.searchBox(v => { term = v; draw(); }), statusSel
+          el('h3', { class: 'forms-section-title', text: `Inscrições (${valid.length})` }),
+          c.searchBox(v => { term = v; draw(); })
         ]),
         listBox
       ]));
