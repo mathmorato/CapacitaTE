@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Catálogo Oficial de Estrutura de Cursos
- * Versão: v.3.8.6
+ * Versão: v.3.8.7
  */
 
 window.DEFAULT_COURSE_STRUCTURE = [

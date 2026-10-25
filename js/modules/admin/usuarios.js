@@ -1,6 +1,6 @@
 /**
- * CapacitaTE - Administração › Usuários (convidar, admin, ativo; renomear e excluir só pelo superadministrador)
- * Versão: v.3.8.6
+ * CapacitaTE - Administração › Usuários (convidar, admin, ativo; renomear e excluir só pelo Administrador Chefe)
+ * Versão: v.3.8.7
  */
 
 (function () {
@@ -33,9 +33,9 @@
       const chips = u.is_admin
         ? [el('span', { class: 'admin-chip', text: 'todos (admin)' })]
         : modulesOf(u.user_id).map(m => el('span', { class: 'admin-chip', text: m }));
-      if (u.is_superadmin) chips.unshift(el('span', { class: 'admin-chip', text: 'superadmin' }));
+      if (u.is_superadmin) chips.unshift(el('span', { class: 'admin-chip', text: 'admin chefe' }));
 
-      // Nome: editável só pelo superadministrador (Enter ou sair do campo salva)
+      // Nome: editável só pelo Administrador Chefe (Enter ou sair do campo salva)
       let nameCell;
       if (isSuper) {
         const nameInput = el('input', { type: 'text', class: 'form-control admin-name-input', value: u.full_name || '', 'aria-label': `Nome de ${u.email}` });
@@ -58,7 +58,7 @@
         nameCell = el('td', { text: u.full_name || '—' });
       }
 
-      // Excluir: só o superadministrador, nunca a própria conta nem outro superadministrador
+      // Excluir: só o Administrador Chefe, nunca a própria conta nem outro Administrador Chefe
       const actions = [];
       if (isSuper && u.user_id !== me && !u.is_superadmin) {
         actions.push(el('button', {
@@ -95,7 +95,7 @@
         el('thead', {}, el('tr', {}, ['Nome', 'E-mail', 'Admin', 'Ativo', 'Último acesso', 'Módulos', ...(isSuper ? ['Ações'] : [])].map((h, i) => el('th', { class: i === 2 || i === 3 || i === 6 ? 'perm-col' : null, text: h })))),
         el('tbody', {}, rows)
       ])),
-      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: isSuper ? 'Como superadministrador, você altera nomes (clique no nome, edite e tecle Enter) e exclui contas. Desativar bloqueia o acesso sem apagar nada. O último admin ativo e o superadministrador não podem ser rebaixados nem desativados.' : 'Desativar bloqueia o acesso sem apagar nada. Somente o superadministrador altera nomes e exclui contas. O último admin ativo não pode ser rebaixado nem desativado.' })
+      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: isSuper ? 'Como Administrador Chefe, você altera nomes (clique no nome, edite e tecle Enter) e exclui contas. Desativar bloqueia o acesso sem apagar nada. O último admin ativo e o Administrador Chefe não podem ser rebaixados nem desativados.' : 'Desativar bloqueia o acesso sem apagar nada. Somente o Administrador Chefe altera nomes e exclui contas. O último admin ativo não pode ser rebaixado nem desativado.' })
     ]));
 
     // Convidar

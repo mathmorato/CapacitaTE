@@ -33,6 +33,28 @@
         </a>
       </div>
 
+      <!-- Usuário conectado (preenchido por js/core/auth.js; oculto sem login) -->
+      <div class="sidebar-user-wrap" id="auth-user-chip" style="display:none;">
+        <button type="button" class="sidebar-user" id="auth-user-toggle" aria-haspopup="menu" aria-expanded="false" aria-controls="auth-user-menu">
+          <span class="sidebar-user-avatar" id="auth-user-initials" aria-hidden="true"></span>
+          <span class="sidebar-user-info">
+            <span class="sidebar-user-name" id="auth-user-name"></span>
+            <span class="sidebar-user-role" id="auth-user-role"></span>
+          </span>
+          <svg class="sidebar-user-caret" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div class="sidebar-user-menu" id="auth-user-menu" role="menu" hidden>
+          <button type="button" role="menuitem" class="sidebar-user-menu-item" onclick="CapacitaTE.userMenu.close(); CapacitaTE.profileView.open()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            Editar perfil
+          </button>
+          <button type="button" role="menuitem" class="sidebar-user-menu-item sidebar-user-logout" onclick="CapacitaTE.auth.signOut()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Sair
+          </button>
+        </div>
+      </div>
+
       <nav class="nav-menu" aria-label="Menu principal">
         <!-- Itens gerados por CapacitaTE.renderNav (js/core/moduleRegistry.js) a partir do registro de módulos -->
       </nav>
@@ -43,7 +65,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.3.8.6
+          CapacitaTE · v.3.8.7
         </div>
       </div>
     </aside>
@@ -76,11 +98,6 @@
           </button>
           <div id="autosave-status-badge" style="font-size:0.8rem; font-weight:600; color:var(--accent-success); display:flex; align-items:center; gap:0.35rem;">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Salvo
-          </div>
-          <div class="auth-user-chip" id="auth-user-chip" title="Usuário conectado">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span id="auth-user-name"></span>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="CapacitaTE.auth.signOut()" style="height:28px; padding:0 0.7rem; font-size:0.78rem;">Sair</button>
           </div>
           <button class="btn btn-secondary btn-sm" id="theme-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; gap:0.35rem; height:36px; padding:0 0.9rem; font-size:0.82rem; font-weight:600; box-sizing:border-box;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Modo Escuro
@@ -1981,7 +1998,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.8.6 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.8.7 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1991,13 +2008,56 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.8.6</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.8.7</span>
         </div>
       </footer>
     </div>
   </div>
 
   <!-- Modal: Criar Nova Estrutura de Curso (Catálogo / Modelos) -->
+  <!-- MODAL: MEU PERFIL (js/core/profileView.js) -->
+  <div class="modal-backdrop" id="modal-my-profile" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="my-profile-title">
+    <div class="glass-card modal-content" style="max-width:480px; width:90%; margin: 9vh auto; padding:2rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
+        <h3 id="my-profile-title" style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:0.4rem;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Meu perfil</span>
+        </h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="CapacitaTE.profileView.close()" aria-label="Fechar" style="display:inline-flex; align-items:center; justify-content:center; padding:0.25rem 0.45rem;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="form-my-profile" novalidate>
+        <div class="my-profile-photo">
+          <div class="sidebar-user-avatar my-profile-avatar" id="my-profile-avatar" aria-hidden="true"></div>
+          <div style="display:flex; flex-direction:column; gap:0.4rem; align-items:flex-start;">
+            <span class="form-label" style="margin:0;">Foto</span>
+            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+              <label class="btn btn-secondary btn-sm" for="my-profile-photo-input" style="cursor:pointer; margin:0;">Escolher foto</label>
+              <button type="button" class="btn btn-secondary btn-sm" id="my-profile-photo-remove">Remover</button>
+            </div>
+            <input type="file" id="my-profile-photo-input" accept="image/jpeg,image/png,image/webp" style="position:absolute; width:1px; height:1px; opacity:0;" aria-label="Escolher foto do perfil">
+            <span class="admin-muted">JPG, PNG ou WebP. A foto é recortada em quadrado.</span>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label" for="my-profile-name">Nome completo</label>
+          <input type="text" id="my-profile-name" class="form-control" autocomplete="name" required>
+        </div>
+        <div class="form-group" style="margin-bottom:0.5rem;">
+          <label class="form-label" for="my-profile-email">E-mail</label>
+          <input type="email" id="my-profile-email" class="form-control" autocomplete="email" required aria-describedby="my-profile-email-help">
+        </div>
+        <p id="my-profile-email-help" class="admin-muted" style="margin:0 0 1rem;">Ao trocar o e-mail, enviaremos um link de confirmação. A troca só vale depois do clique no link.</p>
+        <p class="auth-message" id="my-profile-msg" role="status" aria-live="polite" style="text-align:left; margin:0 0 1rem;"></p>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="CapacitaTE.profileView.close()">Cancelar</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="my-profile-save">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="modal-create-course-template" style="display:none;">
     <div class="glass-card modal-content" style="max-width:550px; width:90%; margin: 7vh auto; padding:2rem;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
@@ -3141,6 +3201,7 @@
   <script src="js/core/auth.js"></script>
   <script src="js/core/audit.js"></script>
   <script src="js/core/loginView.js"></script>
+  <script src="js/core/profileView.js"></script>
   <script src="js/core/cpf.js"></script>
   <script src="js/core/formats.js"></script>
 
