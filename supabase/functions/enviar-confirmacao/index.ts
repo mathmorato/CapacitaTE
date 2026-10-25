@@ -11,7 +11,7 @@
 // e, opcional, MAIL_FROM (padrão: "CECATE Centro-Oeste <cecate@ufg.br>").
 // SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY já existem no ambiente das Edge Functions.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
+import nodemailer from 'npm:nodemailer@6.9.16';
 
 const TABLES: Record<string, string> = { registrations: 'inscricao', attendance: 'presenca', evaluations: 'avaliacao' };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -95,14 +95,21 @@ Deno.serve(async (req) => {
   const pass = (Deno.env.get('GMAIL_APP_PASSWORD') || '').replace(/\s+/g, '');
   if (!user || !pass) return json({ error: 'Configure GMAIL_USER e GMAIL_APP_PASSWORD em Edge Functions > Secrets.' }, 500);
 
-  const client = new SMTPClient({ connection: { hostname: 'smtp.gmail.com', port: 465, tls: true, auth: { username: user, password: pass } } });
+  // Nodemailer monta o MIME corretamente (assunto com acentos, partes texto e HTML). O denomailer quebrava o assunto longo
+  // e o e-mail chegava com os cabeçalhos aparecendo no corpo.
+  const text = html
+    .replace(/<\/(tr|p|h2|div)>/gi, '\n')
+    .replace(/<\/td><td[^>]*>/gi, ': ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&middot;/g, '·').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n').trim();
+  const transporter = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user, pass } });
   try {
-    await client.send({ from: Deno.env.get('MAIL_FROM') || 'CECATE Centro-Oeste <cecate@ufg.br>', to: row.email, subject, html, content: 'auto' });
+    await transporter.sendMail({ from: Deno.env.get('MAIL_FROM') || 'CECATE Centro-Oeste <cecate@ufg.br>', to: row.email, subject, text, html });
   } catch (e) {
     await db.from('audit_log').insert({ action: 'email.error', module_key: TABLES[table], training_id: row.training_id, target: protocol(row.id), details: { message: String(e).slice(0, 300) } });
     return json({ error: 'Falha no envio do e-mail.' }, 502);
-  } finally {
-    try { await client.close(); } catch { /* conexão já encerrada */ }
   }
 
   await db.from(table).update({ answers: Object.assign({}, row.answers || {}, { email_sent_at: new Date().toISOString() }) }).eq('id', row.id);
