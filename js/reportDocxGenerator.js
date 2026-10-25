@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.12
+ * Versão: v.3.4.13
  */
 
 class ReportDocxGenerator {
@@ -404,12 +404,16 @@ class ReportDocxGenerator {
 
     // 1. Título / Legenda da Figura (Centralizada, Acima da Imagem - Modelo Oficial de Referência)
     if (captionText) {
-      const figMatch = captionText.match(/^Figura\s*(\d+)[\.:]?(.*)$/i);
+      // Quebras de linha na legenda viram espaço (senão a legenda perderia o campo de numeração automática)
+      captionText = String(captionText).replace(/\s+/g, ' ').trim();
+      // Só figuras do relatório (com marcador) entram na numeração automática; páginas de documentos anexados
+      // nos apêndices (sem marcador) nunca recebem o campo SEQ, mesmo que o nome do arquivo comece com "Figura N"
+      const figMatch = bookmarkId ? captionText.match(/^Figura\s*(\d+)\s*([.:])?(.*)$/i) : null;
       let captionRuns = [];
       if (figMatch && SimpleField) {
         const num = figMatch[1];
-        const sep = captionText.includes(':') ? ': ' : '. ';
-        const rest = figMatch[2] ? figMatch[2].replace(/^[\.:\s]+/, '') : '';
+        const sep = figMatch[2] === ':' ? ': ' : '. ';
+        const rest = figMatch[3] ? figMatch[3].replace(/^[\.:\s]+/, '') : '';
         captionRuns = [
           new TextRun({
             text: 'Figura ',
