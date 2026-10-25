@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.21
+ * Versão: v.3.4.22
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.21';
+    this.version = 'v.3.4.22';
   }
 
   /**
@@ -5151,9 +5151,13 @@ class AutoReportApp {
 
       return `
         <tr onclick="app.selectCourseTemplateForEdit('${t.id}')" style="${rowStyle}">
+          <!-- Status: modelo padrão ativo para novas capacitações -->
+          <td style="text-align:center; vertical-align:middle;">
+            ${isDefault ? '<span class="nav-badge badge-emerald font-bold" style="font-size:0.75rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Ativo</span>' : '<span class="nav-badge font-bold" style="font-size:0.75rem; background:rgba(166,166,166,0.15); color:var(--text-muted); display:inline-flex; align-items:center; gap:0.25rem;" title="Estrutura disponível; não é o modelo padrão para novas capacitações">Disponível</span>'}
+          </td>
+          <!-- Proteção: estrutura oficial protegida ou personalizada editável -->
           <td style="text-align:center; vertical-align:middle;">
             ${isProtected ? '<span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Protegido</span>' : '<span class="nav-badge font-bold" style="font-size:0.75rem; background:rgba(255,255,255,0.08); display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 1-2 2v14a2 2 0 0 1 2 2h14a2 2 0 0 1 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Editável</span>'}
-            ${isDefault ? '<span class="nav-badge badge-emerald font-bold" style="font-size:0.75rem; margin-left:0.25rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Ativo</span>' : ''}
           </td>
           <td style="text-align:left; vertical-align:middle;">
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
@@ -5206,7 +5210,8 @@ class AutoReportApp {
         <table class="report-data-table">
           <thead>
             <tr>
-              <th style="width: 130px; text-align:center; vertical-align:middle;">Status</th>
+              <th style="width: 120px; text-align:center; vertical-align:middle;">Status</th>
+              <th style="width: 120px; text-align:center; vertical-align:middle;">Proteção</th>
               <th style="text-align:left; vertical-align:middle;">Nome da Estrutura</th>
               <th style="width: 110px; text-align:center; vertical-align:middle;">Módulos</th>
               <th style="width: 130px; text-align:center; vertical-align:middle;">Carga Horária</th>
