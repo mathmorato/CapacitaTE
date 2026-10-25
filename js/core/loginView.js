@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Tela de Login (card central, logos CECATE, e-mail + senha, esqueci minha senha)
- * Versão: v.3.8.8
+ * Versão: v.3.8.9
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -9,6 +9,27 @@ window.CapacitaTE = window.CapacitaTE || {};
   const ICON = 'viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 
   let overlay = null;
+
+  /**
+   * Força da senha (0 a 4) com dicas do que falta. Mínimo aceito: 2 ("Razoável") e 8 caracteres.
+   */
+  function passwordStrength(p) {
+    const tips = [];
+    if (p.length < 8) tips.push('Use pelo menos 8 caracteres.');
+    if (!(/[a-z]/.test(p) && /[A-Z]/.test(p))) tips.push('Misture letras maiúsculas e minúsculas.');
+    if (!/\d/.test(p)) tips.push('Inclua números.');
+    if (!/[^A-Za-z0-9]/.test(p)) tips.push('Inclua um símbolo (ex.: # ! @).');
+    if (p.length < 12) tips.push('Para uma senha forte, use 12 caracteres ou mais.');
+    let score = 0;
+    if (p.length >= 8) {
+      score = 1 + [/[a-z]/.test(p) && /[A-Z]/.test(p), /\d/.test(p), /[^A-Za-z0-9]/.test(p)].filter(Boolean).length;
+      // "Forte" exige também 12 caracteres ou mais
+      if (score === 4 && p.length < 12) score = 3;
+      // Repetição de um só caractere ou senhas muito comuns
+      if (/^(.)\1+$/.test(p) || /^(12345678|123456789|1234567890|password|senha123|senha1234|abcd1234|qwerty123)$/i.test(p)) score = 1;
+    }
+    return { score, label: ['Muito fraca', 'Fraca', 'Razoável', 'Boa', 'Forte'][score], tips: score === 4 ? [] : tips };
+  }
 
   function build() {
     if (overlay) return overlay;
@@ -45,10 +66,18 @@ window.CapacitaTE = window.CapacitaTE || {};
 
         <form id="auth-recovery-form" class="auth-form" style="display:none;" novalidate>
           <div class="form-group">
-            <label class="form-label" for="auth-new-password">Senha (mínimo 8 caracteres)</label>
-            <input type="password" id="auth-new-password" class="form-control" autocomplete="new-password" minlength="8" required>
+            <label class="form-label" for="auth-new-password">Nova senha</label>
+            <input type="password" id="auth-new-password" class="form-control" autocomplete="new-password" minlength="8" required aria-describedby="auth-strength-text auth-strength-tips">
+            <div class="pwd-strength" aria-hidden="true"><div class="pwd-strength-bar" id="auth-strength-bar"></div></div>
+            <div class="pwd-strength-text" id="auth-strength-text" aria-live="polite"></div>
+            <ul class="pwd-strength-tips" id="auth-strength-tips"></ul>
           </div>
-          <button type="submit" class="btn btn-primary auth-submit">Salvar nova senha</button>
+          <div class="form-group">
+            <label class="form-label" for="auth-new-password2">Confirme a nova senha</label>
+            <input type="password" id="auth-new-password2" class="form-control" autocomplete="new-password" required aria-describedby="auth-match-text">
+            <div class="pwd-strength-text" id="auth-match-text" aria-live="polite"></div>
+          </div>
+          <button type="submit" class="btn btn-primary auth-submit" id="auth-recovery-btn">Salvar senha</button>
         </form>
 
         <p class="auth-message" id="auth-message" role="status" aria-live="polite"></p>
@@ -86,16 +115,37 @@ window.CapacitaTE = window.CapacitaTE || {};
         msg(err.message, 'error');
       }
     });
+    const pwd1 = overlay.querySelector('#auth-new-password');
+    const pwd2 = overlay.querySelector('#auth-new-password2');
+    const updateStrength = () => {
+      const r = passwordStrength(pwd1.value);
+      const bar = overlay.querySelector('#auth-strength-bar');
+      bar.style.width = pwd1.value ? `${Math.max(1, r.score) * 25}%` : '0';
+      bar.className = `pwd-strength-bar pwd-level-${r.score}`;
+      overlay.querySelector('#auth-strength-text').textContent = pwd1.value ? `Força da senha: ${r.label}` : '';
+      const tips = overlay.querySelector('#auth-strength-tips');
+      tips.textContent = '';
+      if (pwd1.value) r.tips.forEach(t => { const li = document.createElement('li'); li.textContent = t; tips.appendChild(li); });
+      const match = overlay.querySelector('#auth-match-text');
+      match.textContent = pwd2.value ? (pwd1.value === pwd2.value ? 'As senhas conferem.' : 'As senhas não são iguais.') : '';
+      match.className = `pwd-strength-text ${pwd2.value && pwd1.value === pwd2.value ? 'pwd-ok' : 'pwd-bad'}`;
+    };
+    pwd1.addEventListener('input', updateStrength);
+    pwd2.addEventListener('input', updateStrength);
     overlay.querySelector('#auth-recovery-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const pwd = overlay.querySelector('#auth-new-password').value;
-      if (pwd.length < 8) return msg('A senha precisa ter pelo menos 8 caracteres.', 'error');
+      const r = passwordStrength(pwd1.value);
+      if (r.score < 2) return msg('Escolha uma senha mais forte: ' + r.tips.join(' ').toLowerCase(), 'error');
+      if (pwd1.value !== pwd2.value) return msg('As duas senhas não são iguais.', 'error');
+      const btn = overlay.querySelector('#auth-recovery-btn');
+      btn.disabled = true;
       try {
-        await CapacitaTE.auth.updatePassword(pwd);
-        msg('Senha alterada. Entrando...', 'success');
+        await CapacitaTE.auth.updatePassword(pwd1.value);
+        msg('Senha salva. Entrando...', 'success');
         setTimeout(() => window.location.reload(), 900);
       } catch (err) {
-        msg(err.message, 'error');
+        btn.disabled = false;
+        msg(/same|different/i.test(err.message) ? 'A nova senha precisa ser diferente da atual.' : err.message, 'error');
       }
     });
     overlay.querySelector('#auth-continue-btn').addEventListener('click', () => CapacitaTE.auth.continueWithoutLogin());
@@ -105,6 +155,7 @@ window.CapacitaTE = window.CapacitaTE || {};
   const api = {
     show({ allowTransition = false, message = '' } = {}) {
       build();
+      if (CapacitaTE.hideBoot) CapacitaTE.hideBoot();
       document.body.classList.add('auth-locked');
       overlay.classList.add('active');
       overlay.querySelector('#auth-transition').style.display = allowTransition ? 'flex' : 'none';
@@ -117,6 +168,8 @@ window.CapacitaTE = window.CapacitaTE || {};
       overlay.querySelector('#auth-login-form').style.display = 'none';
       overlay.querySelector('#auth-recovery-form').style.display = 'block';
       overlay.querySelector('#auth-transition').style.display = 'none';
+      overlay.querySelector('#auth-new-password').value = '';
+      overlay.querySelector('#auth-new-password2').value = '';
       api.setMessage(type === 'invite' ? 'Bem-vindo(a) ao CapacitaTE! Crie a sua senha para concluir o cadastro.' : 'Defina a sua nova senha.', 'info');
     },
 
@@ -133,5 +186,18 @@ window.CapacitaTE = window.CapacitaTE || {};
     }
   };
 
+  api.passwordStrength = passwordStrength;
   CapacitaTE.loginView = api;
+
+  /**
+   * Esconde a tela de carregamento (chamado quando o login aparece ou quando o painel termina de montar)
+   */
+  CapacitaTE.hideBoot = () => {
+    const boot = document.getElementById('app-boot');
+    if (!boot || boot.classList.contains('hidden')) return;
+    boot.classList.add('hidden');
+    setTimeout(() => boot.remove(), 450);
+  };
+  // Segurança: nunca deixa a tela de carregamento presa
+  setTimeout(() => CapacitaTE.hideBoot(), 20000);
 })();

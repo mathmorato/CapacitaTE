@@ -4580,3 +4580,42 @@ body.light-theme .admin-chip { color: var(--accent-primary-hover); }
 .sidebar-user-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .my-profile-photo { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
 .my-profile-avatar { flex: 0 0 72px; width: 72px; height: 72px; font-size: 1.4rem; }
+
+/* Tela de carregamento inicial (some quando o login ou o painel ficam prontos) */
+.app-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 6000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--bg-primary);
+  background-image: var(--gradient-glow);
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.app-boot.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.app-boot-logo { width: 220px; max-width: 70vw; height: auto; }
+.app-boot-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  animation: app-boot-spin 0.9s linear infinite;
+}
+.app-boot-text { margin: 0; color: var(--text-secondary); font-size: 0.95rem; font-weight: 500; }
+@keyframes app-boot-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .app-boot-spinner { animation-duration: 2.4s; } }
+
+/* Força da senha (criação e troca de senha) */
+.pwd-strength { height: 6px; border-radius: 99px; background: var(--bg-input); border: 1px solid var(--border-color); margin-top: 0.5rem; overflow: hidden; }
+.pwd-strength-bar { height: 100%; width: 0; border-radius: 99px; transition: width 0.25s ease, background 0.25s ease; }
+.pwd-level-0, .pwd-level-1 { background: var(--accent-danger); }
+.pwd-level-2 { background: var(--accent-primary); }
+.pwd-level-3, .pwd-level-4 { background: var(--accent-success); }
+.pwd-strength-text { font-size: 0.8rem; margin-top: 0.3rem; color: var(--text-secondary); min-height: 1em; }
+.pwd-strength-text.pwd-ok { color: var(--accent-success); }
+.pwd-strength-text.pwd-bad { color: var(--accent-danger); }
+.pwd-strength-tips { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.78rem; color: var(--text-muted); }
