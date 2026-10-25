@@ -14,3 +14,8 @@ Desktop.ini
 
 # Claude Code local config and worktrees
 .claude/
+
+# Pastas locais de exemplos e dados de referência (não versionadas)
+/01-Avaliacao exemplo/
+/02-Relatórios exemplos/
+/03-Lista de presença/
