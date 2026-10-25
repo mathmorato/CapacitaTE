@@ -1,6 +1,6 @@
-/**
+﻿/**
  * AutoReport CECATE - Catálogo Oficial de Estrutura de Cursos
- * Versão: v.3.4.16
+ * Versão: v.3.4.17
  */
 
 window.DEFAULT_COURSE_STRUCTURE = [
@@ -398,4 +398,5 @@ window.courseStructureHelper = {
     return { totalGestor, totalCACS };
   }
 };
+
 

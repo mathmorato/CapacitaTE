@@ -1,6 +1,6 @@
-/**
+﻿/**
  * AutoReport CECATE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
- * Versão: v.3.4.16
+ * Versão: v.3.4.17
  */
 
 window.OFFICIAL_PRONOUNS = [
@@ -251,3 +251,4 @@ window.saveMasterTeam = function(team) {
     console.warn('Erro ao salvar equipe mestra:', e);
   }
 };
+

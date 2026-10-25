@@ -1,6 +1,6 @@
-/**
+﻿/**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.16
+ * Versão: v.3.4.17
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.16';
+    this.version = 'v.3.4.17';
   }
 
   /**
@@ -297,9 +297,9 @@ class AutoReportApp {
                 : `<span class="nav-badge badge-cyan" style="display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Em Andamento</span>`);
 
           return `
-            <div class="glass-card" style="margin-bottom:1rem; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-left: 4px solid ${isHist ? '#f59e0b' : 'var(--accent-secondary)'};">
+            <div class="glass-card" style="margin-bottom:1rem; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-left: 4px solid ${isHist ? '#F6A800' : 'var(--accent-secondary)'};">
               <div style="display:flex; align-items:center; gap:1rem;">
-                <div style="width:48px; height:48px; border-radius:var(--radius-md); background:${isHist ? 'linear-gradient(135deg, #d97706, #b45309)' : 'var(--gradient-brand)'}; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; color:white;">
+                <div style="width:48px; height:48px; border-radius:var(--radius-md); background:${isHist ? 'linear-gradient(135deg, #C98A00, #b45309)' : 'var(--gradient-brand)'}; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; color:white;">
                   ${t.number}
                 </div>
                 <div>
@@ -321,7 +321,7 @@ class AutoReportApp {
               <div style="display:flex; align-items:center; gap:1.25rem;">
                 <div style="text-align:right;">
                   <div style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Situação</div>
-                  <div style="font-size:0.9rem; font-weight:700; color:${isHist ? '#f59e0b' : (t.progressPercent === 100 ? 'var(--accent-success)' : 'var(--accent-secondary)')};">
+                  <div style="font-size:0.9rem; font-weight:700; color:${isHist ? '#F6A800' : (t.progressPercent === 100 ? 'var(--accent-success)' : 'var(--accent-secondary)')};">
                     ${isHist ? 'Preservada' : `${t.progressPercent || 0}% Concluído`}
                   </div>
                 </div>
@@ -652,7 +652,7 @@ class AutoReportApp {
       }
 
       return `
-        <tr style="background:${r.selected ? 'rgba(59, 130, 246, 0.04)' : 'transparent'};">
+        <tr style="background:${r.selected ? 'rgba(246, 168, 0, 0.04)' : 'transparent'};">
           <td style="text-align:center;">
             <input type="checkbox" ${r.selected ? 'checked' : ''} onchange="app.toggleImportMunicipalityRow(${r.lineNum}, this.checked)">
           </td>
@@ -952,7 +952,7 @@ class AutoReportApp {
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 ${this.escapeHtml(m.name)} (${m.uf || poloUf})
               </span>
-              <span style="font-family:monospace; color:var(--accent-secondary); font-size:0.72rem;">IBGE: ${m.code || 'N/A'}</span>
+              <span style="font-family:monospace; color:var(--accent-gold-text); font-size:0.72rem;">IBGE: ${m.code || 'N/A'}</span>
               <div style="display:flex; align-items:center; gap:0.2rem;">
                 <span style="font-size:0.72rem; color:var(--text-muted);">Distância:</span>
                 <input type="number" step="0.1" min="0" value="${parseFloat(distVal).toFixed(1)}" style="width:65px; font-size:0.75rem; padding:0.1rem 0.3rem; text-align:right; font-family:monospace;" class="form-control form-control-sm" onchange="app.updateConvocacaoMunicipalityDistance(${idx}, this.value)">
@@ -1374,10 +1374,10 @@ class AutoReportApp {
     const titleEl = document.getElementById('wizard-header-title');
     if (titleEl) {
       if (t.isHistorical) {
-        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:#f59e0b;">${this.escapeHtml(t.polo || 'Polo')} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
+        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:var(--accent-gold-text);">${this.escapeHtml(t.polo || 'Polo')} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
       } else {
         const poloText = t.polo ? `${this.escapeHtml(t.polo)} (${t.uf || 'UF'})` : 'Nova Capacitação em Branco';
-        titleEl.innerHTML = `Capacitação Nº ${t.number || 16} • <span style="color:var(--accent-secondary);">${poloText}</span>`;
+        titleEl.innerHTML = `Capacitação Nº ${t.number || 16} • <span style="color:var(--accent-gold-text);">${poloText}</span>`;
       }
     }
 
@@ -2769,9 +2769,9 @@ class AutoReportApp {
       statusEl.style.alignItems = 'center';
       statusEl.style.justifyContent = 'center';
       statusEl.style.gap = '0.5rem';
-      statusEl.style.background = 'rgba(59, 130, 246, 0.15)';
-      statusEl.style.border = '1px solid rgba(59, 130, 246, 0.35)';
-      statusEl.style.color = '#60a5fa';
+      statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
+      statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
+      statusEl.style.color = '#FAC35E';
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
         <span>Gravando dados da capacitação com segurança...</span>
@@ -2898,9 +2898,9 @@ class AutoReportApp {
       statusEl.style.alignItems = 'center';
       statusEl.style.justifyContent = 'center';
       statusEl.style.gap = '0.5rem';
-      statusEl.style.background = 'rgba(59, 130, 246, 0.15)';
-      statusEl.style.border = '1px solid rgba(59, 130, 246, 0.35)';
-      statusEl.style.color = '#60a5fa';
+      statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
+      statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
+      statusEl.style.color = '#FAC35E';
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
         <span>Gravando dados da capacitação com segurança...</span>
@@ -3054,9 +3054,9 @@ class AutoReportApp {
       statusEl.style.alignItems = 'center';
       statusEl.style.justifyContent = 'center';
       statusEl.style.gap = '0.5rem';
-      statusEl.style.background = 'rgba(59, 130, 246, 0.15)';
-      statusEl.style.border = '1px solid rgba(59, 130, 246, 0.35)';
-      statusEl.style.color = '#60a5fa';
+      statusEl.style.background = 'rgba(246, 168, 0, 0.15)';
+      statusEl.style.border = '1px solid rgba(246, 168, 0, 0.35)';
+      statusEl.style.color = '#FAC35E';
       statusEl.innerHTML = `
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
         <span>Gravando dados da capacitação com segurança...</span>
@@ -3728,7 +3728,7 @@ class AutoReportApp {
     if (muns.length === 0) {
       container.innerHTML = `
         <div style="text-align:center; padding:2.5rem 1.5rem; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-md); color:var(--text-muted);">
-          <div style="display:flex; justify-content:center; margin-bottom:0.75rem; color:var(--accent-primary);">
+          <div style="display:flex; justify-content:center; margin-bottom:0.75rem; color:var(--accent-gold-text);">
             <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10v2"></path><path d="M15 10v2"></path><path d="M9 14v2"></path><path d="M15 14v2"></path></svg>
           </div>
           <h4 style="margin:0 0 0.5rem 0; color:var(--text-primary); font-weight:700;">Nenhum município cadastrado na lista da Tabela 1</h4>
@@ -4114,10 +4114,10 @@ class AutoReportApp {
     }
     if (this.munSortOrder === 'asc') {
       // Crescente: linhas ordenadas com seta para cima
-      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#f59e0b;"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 9 18 6 21 9"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
+      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text);"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 9 18 6 21 9"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
     } else {
       // Decrescente: linhas ordenadas com seta para baixo
-      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#f59e0b;"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 15 18 18 21 15"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
+      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text);"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 15 18 18 21 15"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
     }
   }
 
@@ -4576,11 +4576,11 @@ class AutoReportApp {
     if (!cardEl || !contentEl) return;
 
     if (state === 'warning') {
-      cardEl.style.background = 'rgba(245, 158, 11, 0.08)';
-      cardEl.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+      cardEl.style.background = 'rgba(246, 168, 0, 0.08)';
+      cardEl.style.border = '1px solid rgba(246, 168, 0, 0.3)';
       contentEl.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-          <h4 style="margin:0; color:#fbbf24; display:flex; align-items:center; gap:0.5rem; font-size:1rem; font-weight:700;">
+          <h4 style="margin:0; color:var(--accent-gold-text); display:flex; align-items:center; gap:0.5rem; font-size:1rem; font-weight:700;">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span>Atenção: Redirecionamento para Gerenciador Geral de Estruturas</span>
           </h4>
@@ -4590,7 +4590,7 @@ class AutoReportApp {
         </div>
         <p style="font-size:0.88rem; color:var(--text-primary); line-height:1.5; margin:0 0 1.25rem 0;">
           Você será redirecionado para a página de <strong>Configurações do Catálogo Geral de Estruturas do Curso</strong>.<br>
-          <span style="color:#fbbf24; font-weight:600; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Recomendação Importante:</span> Qualquer alteração realizada neste relatório poderá ser perdida se não for salva. Recomendamos <strong>salvar os dados atuais</strong> antes de continuar.
+          <span style="color:var(--accent-gold-text); font-weight:600; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>Recomendação Importante:</span> Qualquer alteração realizada neste relatório poderá ser perdida se não for salva. Recomendamos <strong>salvar os dados atuais</strong> antes de continuar.
         </p>
         <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
           <button type="button" class="btn btn-primary" onclick="app.saveAndRedirectToCourseSettings()" style="font-weight:700; display:inline-flex; align-items:center; gap:0.4rem;">
@@ -5094,7 +5094,7 @@ class AutoReportApp {
       });
 
       const rowStyle = isSelected ? 
-        'background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b; font-weight:600;' : 
+        'background: rgba(246, 168, 0, 0.12); border-left: 4px solid #F6A800; font-weight:600;' : 
         'cursor:pointer;';
 
       return `
@@ -5932,7 +5932,7 @@ class AutoReportApp {
         dropzone.addEventListener(eventName, () => {
           dropzone.classList.add('dragover');
           dropzone.style.borderColor = 'var(--accent-blue)';
-          dropzone.style.background = 'rgba(59, 130, 246, 0.15)';
+          dropzone.style.background = 'rgba(246, 168, 0, 0.15)';
         }, false);
       });
 
@@ -6123,10 +6123,10 @@ class AutoReportApp {
     if (titleEl) titleEl.textContent = 'Removendo...';
     if (msgEl) msgEl.textContent = 'Aguarde enquanto a exclusão é processada com segurança.';
 
-    if (card) card.style.borderColor = 'rgba(99, 102, 241, 0.35)';
+    if (card) card.style.borderColor = 'rgba(246, 168, 0, 0.35)';
     if (iconContainer) {
-      iconContainer.style.background = 'rgba(99, 102, 241, 0.15)';
-      iconContainer.style.color = '#6366f1';
+      iconContainer.style.background = 'rgba(246, 168, 0, 0.15)';
+      iconContainer.style.color = '#F6A800';
     }
     if (iconAlert) iconAlert.style.display = 'none';
     if (iconLoading) iconLoading.style.display = 'flex';
@@ -6630,10 +6630,10 @@ class AutoReportApp {
     }
     if (this.attendanceSortDir === 'asc') {
       // Crescente: linhas ordenadas com seta para cima
-      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#f59e0b;"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 9 18 6 21 9"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
+      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text);"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 9 18 6 21 9"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
     } else {
       // Decrescente: linhas ordenadas com seta para baixo
-      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:#f59e0b;"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 15 18 18 21 15"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
+      return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text);"><line x1="3" y1="6" x2="11" y2="6"></line><line x1="3" y1="12" x2="9" y2="12"></line><line x1="3" y1="18" x2="7" y2="18"></line><polyline points="15 15 18 18 21 15"></polyline><line x1="18" y1="6" x2="18" y2="18"></line></svg>`;
     }
   }
 
@@ -6848,7 +6848,7 @@ class AutoReportApp {
       } else {
         statusBanner.innerHTML = `
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
-          <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.25); padding:0.85rem 1.1rem; border-radius:var(--radius-md);">
+          <div style="background:rgba(246, 168, 0, 0.08); border:1px solid rgba(246, 168, 0, 0.25); padding:0.85rem 1.1rem; border-radius:var(--radius-md);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
               <strong style="color:var(--accent-blue-text); font-size:0.88rem; display:flex; align-items:center; gap:0.35rem;">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Planilha 1: Inscrições
@@ -6905,7 +6905,7 @@ class AutoReportApp {
           </div>
 
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:0.75rem; margin-bottom:0.85rem;">
-            <div style="background:rgba(59, 130, 246, 0.05); border:1px solid var(--accent-blue-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
+            <div style="background:rgba(246, 168, 0, 0.05); border:1px solid var(--accent-blue-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
               <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.15rem;">Inscrições Válidas</div>
               <div style="font-size:1.15rem; font-weight:800; color:var(--accent-blue-text);">${regList.length}</div>
               <div style="font-size:0.72rem; color:var(--text-muted);">${regCacs} CACS | ${regGestores} Gestão</div>
@@ -6917,13 +6917,13 @@ class AutoReportApp {
               <div style="font-size:0.72rem; color:var(--text-muted);">${attCacs} CACS | ${attGestores} Gestão</div>
             </div>
 
-            <div style="background:rgba(245, 158, 11, 0.05); border:1px solid var(--accent-amber-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
+            <div style="background:rgba(246, 168, 0, 0.05); border:1px solid var(--accent-amber-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
               <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.15rem;">Cruzamento Presença</div>
               <div style="font-size:1.15rem; font-weight:800; color:var(--text-primary);">${ipCount} <span style="font-size:0.75rem; font-weight:600; color:var(--accent-emerald-text);">(${ipPercent}%)</span></div>
               <div style="font-size:0.72rem; color:var(--text-muted);">${apCount} presentes sem inscrição</div>
             </div>
 
-            <div style="background:rgba(99, 102, 241, 0.05); border:1px solid rgba(99, 102, 241, 0.25); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
+            <div style="background:rgba(246, 168, 0, 0.05); border:1px solid rgba(246, 168, 0, 0.25); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
               <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.15rem;">Tabela 4 Sincronizada</div>
               <div style="font-size:1.15rem; font-weight:800; color:var(--accent-amber-text);">${totalPresInMuns} / ${totalInscInMuns}</div>
               <div style="font-size:0.72rem; color:var(--text-muted);">${munsWithPresence} de ${muns.length} municípios com presença</div>
@@ -6999,7 +6999,7 @@ class AutoReportApp {
       const showCpfCheck = (!!p.cpf && p.cpf !== '-') && (p.isCpfValidated || isApWithMunAndVinculo);
 
       return `
-        <tr style="${isRowIncomplete ? 'background: rgba(245, 158, 11, 0.05);' : ''}">
+        <tr style="${isRowIncomplete ? 'background: rgba(246, 168, 0, 0.05);' : ''}">
           <td style="vertical-align:middle;"><strong>${this.escapeHtml(p.name || 'Não informado')}</strong></td>
           <td style="font-family:monospace; vertical-align:middle; white-space:nowrap;">
             ${this.escapeHtml(p.cpf || '-')}
@@ -7022,7 +7022,7 @@ class AutoReportApp {
             <span style="font-size:0.85rem; color:var(--text-secondary);">
               Exibindo <strong>${consolidatedList.length}</strong> participantes (Inscritos: <strong>${regList.length}</strong> | Presentes: <strong>${attList.length}</strong>):
             </span>
-            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(148, 163, 184, 0.08); padding:0.4rem 0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(166, 166, 166, 0.08); padding:0.4rem 0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
               <span style="font-weight:700; color:var(--text-primary); display:inline-flex; align-items:center; gap:0.35rem;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 Legenda:
@@ -7208,7 +7208,7 @@ class AutoReportApp {
         const cacsCount = evals.filter(e => e.representation === 'CACS-FUNDEB').length;
         const gestCount = evals.length - cacsCount;
         statusBanner.innerHTML = `
-          <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.25); padding:0.85rem 1.1rem; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
+          <div style="background:rgba(246, 168, 0, 0.08); border:1px solid rgba(246, 168, 0, 0.25); padding:0.85rem 1.1rem; border-radius:var(--radius-md); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
             <div>
               <strong style="color:var(--accent-blue-text); font-size:0.88rem; display:flex; align-items:center; gap:0.35rem;">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Planilha de Avaliação Importada
@@ -7265,7 +7265,7 @@ class AutoReportApp {
         textarea.value = savedComment;
         if (badge) {
           badge.textContent = 'Comentário Personalizado';
-          badge.style.background = 'rgba(245, 158, 11, 0.15)';
+          badge.style.background = 'rgba(246, 168, 0, 0.15)';
           badge.style.color = 'var(--accent-amber-text)';
         }
       } else {
@@ -7274,7 +7274,7 @@ class AutoReportApp {
         this.currentTraining.evaluationComments[key] = expectedDefaultText;
         if (badge) {
           badge.textContent = `Sugestão Padrão: ${currentTemplateObj.badge || currentTemplateObj.name}`;
-          badge.style.background = 'rgba(59, 130, 246, 0.15)';
+          badge.style.background = 'rgba(246, 168, 0, 0.15)';
           badge.style.color = 'var(--accent-blue-text)';
         }
       }
@@ -7345,7 +7345,7 @@ class AutoReportApp {
     const badge = document.getElementById(`eval-comment-${figKey}-badge`);
     if (badge && selectedTemplate) {
       badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
-      badge.style.background = 'rgba(59, 130, 246, 0.15)';
+      badge.style.background = 'rgba(246, 168, 0, 0.15)';
       badge.style.color = 'var(--accent-blue-text)';
     }
 
@@ -7376,11 +7376,11 @@ class AutoReportApp {
     if (badge) {
       if (value.trim() === defaultComment.trim()) {
         badge.textContent = `Sugestão Padrão: ${currentTemplateObj?.badge || 'Análise de Conteúdo'}`;
-        badge.style.background = 'rgba(59, 130, 246, 0.15)';
+        badge.style.background = 'rgba(246, 168, 0, 0.15)';
         badge.style.color = 'var(--accent-blue-text)';
       } else {
         badge.textContent = 'Comentário Personalizado';
-        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+        badge.style.background = 'rgba(246, 168, 0, 0.15)';
         badge.style.color = 'var(--accent-amber-text)';
       }
     }
@@ -7420,7 +7420,7 @@ class AutoReportApp {
     const badge = document.getElementById(`eval-comment-${figKey}-badge`);
     if (badge && selectedTemplate) {
       badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
-      badge.style.background = 'rgba(59, 130, 246, 0.15)';
+      badge.style.background = 'rgba(246, 168, 0, 0.15)';
       badge.style.color = 'var(--accent-blue-text)';
     }
 
@@ -7472,7 +7472,7 @@ class AutoReportApp {
           ctx7.textAlign = 'center';
           ctx7.textBaseline = 'middle';
           ctx7.font = '600 13px "Plus Jakarta Sans", sans-serif';
-          ctx7.fillStyle = isDark ? '#64748b' : '#94a3b8';
+          ctx7.fillStyle = isDark ? '#757575' : '#A6A6A6';
           ctx7.fillText('Nenhuma avaliação importada no momento', canvas7.width / 2, canvas7.height / 2);
           ctx7.restore();
         }
@@ -7486,7 +7486,7 @@ class AutoReportApp {
           ctx8.textAlign = 'center';
           ctx8.textBaseline = 'middle';
           ctx8.font = '600 13px "Plus Jakarta Sans", sans-serif';
-          ctx8.fillStyle = isDark ? '#64748b' : '#94a3b8';
+          ctx8.fillStyle = isDark ? '#757575' : '#A6A6A6';
           ctx8.fillText('Nenhuma avaliação importada no momento', canvas8.width / 2, canvas8.height / 2);
           ctx8.restore();
         }
@@ -7849,7 +7849,7 @@ class AutoReportApp {
     if (event.currentTarget && event.currentTarget.style) {
       event.currentTarget.style.transition = 'transform 0.15s ease, border-color 0.15s ease';
       event.currentTarget.style.transform = 'scale(1.02)';
-      event.currentTarget.style.borderColor = 'var(--accent-blue-text, #3b82f6)';
+      event.currentTarget.style.borderColor = 'var(--accent-blue-text, #F6A800)';
     }
   }
 
@@ -8549,7 +8549,7 @@ class AutoReportApp {
                 <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
               <div style="display:flex; align-items:center; gap:0.35rem;">
-                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(246, 168, 0, 0.15); color:var(--accent-blue-text, #F6A800); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
                 <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
               </div>
             </div>
@@ -8632,15 +8632,15 @@ class AutoReportApp {
                 <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
               <div style="display:flex; align-items:center; gap:0.35rem;">
-                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
-                <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(246, 168, 0, 0.15); color:var(--accent-blue-text, #F6A800); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                <span class="nav-badge" style="background:rgba(246, 168, 0, 0.15); color:var(--accent-gold-text); font-size:0.72rem;">Pendente</span>
               </div>
             </div>
 
             <div class="upload-dropzone" 
                  onclick="const inp = document.getElementById('file-slot-${slot.slotId}'); if(inp) inp.click();" 
-                 style="padding:1.75rem 1rem; border-radius:var(--radius-sm); border:2px dashed #f59e0b; cursor:pointer; background:rgba(245, 158, 11, 0.03); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:140px;">
-              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-primary); margin-bottom:0.6rem;">
+                 style="padding:1.75rem 1rem; border-radius:var(--radius-sm); border:2px dashed #F6A800; cursor:pointer; background:rgba(246, 168, 0, 0.03); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:140px;">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text); margin-bottom:0.6rem;">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
@@ -8727,7 +8727,7 @@ class AutoReportApp {
              ondragover="app.handlePhotoDragOverCard(event)"
              ondragleave="app.handlePhotoDragLeaveCard(event)"
              ondrop="app.handlePhotoDropCard('${photo.id}', event)"
-             style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; border:1px solid rgba(59, 130, 246, 0.3); cursor:grab;">
+             style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; border:1px solid rgba(246, 168, 0, 0.3); cursor:grab;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <strong style="color:var(--accent-blue-text); font-size:0.88rem;">
               <span id="photo-header-title-${photo.id}">${this.escapeHtml(fullCaption)}</span>
@@ -9065,7 +9065,7 @@ class AutoReportApp {
           </div>
           <div class="metric-info">
             <h4>Taxa de Participação</h4>
-            <div class="metric-value" style="color:var(--accent-secondary);">${metrics.participationRateGeneral}%</div>
+            <div class="metric-value" style="color:var(--accent-gold-text);">${metrics.participationRateGeneral}%</div>
             <div class="metric-trend">${metrics.totalPresent} presentes / ${metrics.totalInscribed} inscritos</div>
           </div>
         </div>
@@ -9095,7 +9095,7 @@ class AutoReportApp {
 
       <div class="wizard-card">
         <h4 class="wizard-card-title" style="display:flex; align-items:center; gap:0.4rem;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-secondary);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-gold-text);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <span>Checklist de Auditoria & Validação Cruzada</span>
         </h4>
         <div style="margin-top:1rem;">
@@ -9116,7 +9116,7 @@ class AutoReportApp {
 
           <div class="audit-item ${metrics.evalStatsGeneral.totalResponses > 0 ? 'valid' : 'warning'}">
             <div><strong>Pesquisa Avaliativa:</strong> ${metrics.evalStatsGeneral.totalResponses} avaliações processadas na escala Likert.</div>
-            <span class="nav-badge" style="${metrics.evalStatsGeneral.totalResponses > 0 ? 'background:rgba(16, 185, 129, 0.15); color:#10b981;' : 'background:rgba(245, 158, 11, 0.15); color:#f59e0b;'} display:inline-flex; align-items:center; gap:0.25rem;">
+            <span class="nav-badge" style="${metrics.evalStatsGeneral.totalResponses > 0 ? 'background:rgba(16, 185, 129, 0.15); color:#10b981;' : 'background:rgba(246, 168, 0, 0.15); color:var(--accent-gold-text);'} display:inline-flex; align-items:center; gap:0.25rem;">
               ${metrics.evalStatsGeneral.totalResponses > 0 ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Validado</span>' : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><span>Pendência</span>'}
             </span>
           </div>
@@ -9132,7 +9132,7 @@ class AutoReportApp {
           ${metrics.auditIssues.map(issue => `
             <div class="audit-item ${issue.type}">
               <div><strong>Alerta do Sistema:</strong> ${issue.message}</div>
-              <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;">Atenção</span>
+              <span class="nav-badge" style="background:rgba(246, 168, 0, 0.15); color:var(--accent-gold-text);">Atenção</span>
             </div>
           `).join('')}
         </div>
@@ -10890,7 +10890,7 @@ class AutoReportApp {
 
               return `
                 <tr>
-                  <td style="text-align:center; font-weight:800; font-size:1.05rem; color:var(--accent-secondary);">${t.number}</td>
+                  <td style="text-align:center; font-weight:800; font-size:1.05rem; color:var(--accent-gold-text);">${t.number}</td>
                   <td><strong>${this.escapeHtml(t.polo || 'Polo Regional')}</strong></td>
                   <td><span class="nav-badge">${t.uf || 'MT'}</span></td>
                   <td style="font-size:0.85rem;">${t.datesFormatted || t.startDate || '-'}</td>
@@ -10989,7 +10989,7 @@ class AutoReportApp {
       const el = document.getElementById(id);
       if (el) {
         el.disabled = isLocked;
-        el.style.background = isLocked ? 'var(--bg-input)' : 'rgba(15, 23, 42, 0.95)';
+        el.style.background = isLocked ? 'var(--bg-input)' : 'rgba(32, 32, 32, 0.95)';
         el.style.cursor = isLocked ? 'not-allowed' : 'text';
       }
     });
@@ -11115,10 +11115,10 @@ class AutoReportApp {
 
     const toastIcons = {
       delete: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:#ef4444; flex-shrink:0;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`,
-      warning: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:#f59e0b; flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+      warning: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:var(--accent-gold-text); flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
       success: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:#10b981; flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
       error: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:#ef4444; flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
-      info: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:#60a5fa; flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+      info: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:8px; color:var(--accent-gold-text); flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
     };
 
     const toast = document.createElement('div');
@@ -11203,3 +11203,4 @@ window.app = new AutoReportApp();
 document.addEventListener('DOMContentLoaded', () => {
   window.app.init();
 });
+
