@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Auditoria: grava eventos em audit_log pela função log_event (servidor define o usuário)
- * Versão: v.4.3.0
+ * Versão: v.4.3.1
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
