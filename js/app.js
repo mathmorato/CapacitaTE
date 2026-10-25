@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.19
+ * Versão: v.3.4.20
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.19';
+    this.version = 'v.3.4.20';
   }
 
   /**
@@ -7499,7 +7499,7 @@ class AutoReportApp {
     const likedTexts = evals.map(e => e.likedAspects).filter(Boolean);
     const improveTexts = evals.map(e => e.improveAspects).filter(Boolean);
 
-    const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+    const cloudFont = this.getWordCloudFont();
 
     // Nuvem de Aspectos Positivos (Figura 7)
     const likedWords = window.wordCloudEngine.processTextList(likedTexts);
@@ -7529,7 +7529,7 @@ class AutoReportApp {
     // 1. Tipografia selecionada
     const fontSelect = document.getElementById('wordcloud-font-select');
     if (fontSelect) {
-      fontSelect.value = t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+      fontSelect.value = this.getWordCloudFont();
     }
 
     // 2. Figura 7 - Título
@@ -7627,27 +7627,89 @@ class AutoReportApp {
   }
 
   /**
-   * Aplica a fonte escolhida para os gráficos (Figuras 3 a 6) e sincroniza o seletor da Etapa 8
+   * Tipografia das figuras: uma fonte padrão (figureFontFamily) vale para os gráficos (Figuras 3 a 6) e para as
+   * nuvens de palavras (Figuras 7 e 8). Com separateFigureFonts, cada grupo usa a sua fonte (chartFontFamily e
+   * customWordCloudFont). Capacitações antigas usam a fonte já escolhida para a nuvem como fonte padrão.
+   */
+  getFigureFont() {
+    const t = this.currentTraining || {};
+    return t.figureFontFamily || t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+  }
+
+  getChartFont() {
+    const t = this.currentTraining || {};
+    return (t.separateFigureFonts && t.chartFontFamily) || this.getFigureFont();
+  }
+
+  getWordCloudFont() {
+    const t = this.currentTraining || {};
+    return (t.separateFigureFonts && t.customWordCloudFont) || this.getFigureFont();
+  }
+
+  /**
+   * Sincroniza os seletores de fonte da Etapa 8 com a capacitação (valores e visibilidade dos seletores separados)
+   */
+  syncFigureFontControls() {
+    const t = this.currentTraining;
+    if (!t) return;
+    const separate = Boolean(t.separateFigureFonts);
+    const set = (id, value) => { const el = document.getElementById(id); if (el && el.value !== value) el.value = value; };
+    set('figure-font-select', this.getFigureFont());
+    set('chart-font-select', this.getChartFont());
+    set('wordcloud-font-select', this.getWordCloudFont());
+    const check = document.getElementById('figure-font-separate');
+    if (check) check.checked = separate;
+    const chartRow = document.getElementById('chart-font-separate-row');
+    if (chartRow) chartRow.style.display = separate ? 'flex' : 'none';
+    const cloudCard = document.getElementById('wordcloud-font-card');
+    if (cloudCard) cloudCard.style.display = separate ? 'flex' : 'none';
+  }
+
+  /**
+   * Aplica a fonte vigente dos gráficos (Figuras 3 a 6) antes de renderizá-los
    */
   applyChartFont() {
-    const font = (this.currentTraining && this.currentTraining.chartFontFamily) || 'Plus Jakarta Sans';
     if (window.chartEngine && typeof window.chartEngine.setFontFamily === 'function') {
-      window.chartEngine.setFontFamily(font);
+      window.chartEngine.setFontFamily(this.getChartFont());
     }
-    const select = document.getElementById('chart-font-select');
-    if (select && select.value !== font) select.value = font;
+    this.syncFigureFontControls();
+  }
+
+  rerenderFigureFonts() {
+    this.renderEvaluationCharts();
+    this.renderWordClouds();
+    this.syncFigureFontControls();
+    this.saveCurrentStepData();
+  }
+
+  handleFigureFontChange(fontName) {
+    if (!this.currentTraining) return;
+    this.currentTraining.figureFontFamily = fontName || 'Plus Jakarta Sans';
+    this.rerenderFigureFonts();
+  }
+
+  restoreFigureFont() {
+    this.handleFigureFontChange('Plus Jakarta Sans');
+  }
+
+  toggleSeparateFigureFonts(separate) {
+    if (!this.currentTraining) return;
+    const t = this.currentTraining;
+    const base = this.getFigureFont();
+    if (separate) {
+      // Ao separar, gráficos e nuvens começam com a fonte padrão vigente
+      t.chartFontFamily = base;
+      t.customWordCloudFont = base;
+      t.wordCloudFontFamily = base;
+    }
+    t.figureFontFamily = base;
+    t.separateFigureFonts = Boolean(separate);
+    this.rerenderFigureFonts();
   }
 
   handleChartFontChange(fontName) {
     if (!this.currentTraining) return;
     this.currentTraining.chartFontFamily = fontName || 'Plus Jakarta Sans';
-    this.renderEvaluationCharts();
-    this.saveCurrentStepData();
-  }
-
-  restoreChartFont() {
-    if (!this.currentTraining) return;
-    this.currentTraining.chartFontFamily = 'Plus Jakarta Sans';
     this.renderEvaluationCharts();
     this.saveCurrentStepData();
   }
@@ -10000,7 +10062,7 @@ class AutoReportApp {
     if (window.wordCloudEngine) {
       const positiveTexts = evals.map(e => e.likedAspects || e.liked || '').filter(Boolean);
       const improveTexts = evals.map(e => e.improveAspects || e.improve || '').filter(Boolean);
-      const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+      const cloudFont = this.getWordCloudFont();
 
       const canvas7 = document.getElementById('report-preview-fig7-canvas');
       if (canvas7) {
