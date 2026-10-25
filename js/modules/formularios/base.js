@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.2
+ * Versão: v.4.2.3
  */
 
 (function () {
@@ -304,9 +304,9 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   }
 
   // ---------- tabelas ----------
-  function table(headers, rows, emptyText) {
+  function table(headers, rows, emptyText, extraClass) {
     if (!rows.length) return el('p', { class: 'admin-muted', text: emptyText || 'Nenhuma resposta ainda.' });
-    return el('div', { class: 'data-table-container', style: 'overflow-x:auto;' }, el('table', { class: 'data-table admin-table' }, [
+    return el('div', { class: 'data-table-container', style: 'overflow-x:auto;' }, el('table', { class: `data-table admin-table${extraClass ? ` ${extraClass}` : ''}` }, [
       el('thead', {}, el('tr', {}, headers.map(h => el('th', { text: h })))),
       el('tbody', {}, rows)
     ]));
