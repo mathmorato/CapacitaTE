@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Login, Sessão, Perfil e Permissões do Usuário Atual (Supabase Auth)
- * Versão: v.3.8.6
+ * Versão: v.3.8.7
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -151,10 +151,12 @@ window.CapacitaTE = window.CapacitaTE || {};
         return false;
       }
       this.profile = { is_admin: !!data[0].is_admin, email: user.email };
-      // Superadministrador (migração 0002b): sem a coluna, a consulta falha e o papel fica desligado
+      // Administrador Chefe (coluna is_superadmin, migração 0002b): sem a coluna, a consulta falha e o papel fica desligado
       try {
-        const own = await client.from('profiles').select('is_superadmin').eq('user_id', user.id).maybeSingle();
+        const own = await client.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
         this.profile.is_superadmin = !own.error && !!(own.data && own.data.is_superadmin);
+        this.profile.full_name = (own.data && own.data.full_name) || '';
+        this.profile.avatar = (own.data && own.data.avatar) || null;
       } catch (e) {
         this.profile.is_superadmin = false;
       }
@@ -219,13 +221,39 @@ window.CapacitaTE = window.CapacitaTE || {};
     renderUserChip() {
       const chip = document.getElementById('auth-user-chip');
       if (!chip) return;
-      if (this.mode === 'authenticated' && this.user) {
-        chip.style.display = 'inline-flex';
-        const name = document.getElementById('auth-user-name');
-        if (name) name.textContent = this.user.email + (this.profile?.is_superadmin ? ' · superadmin' : (this.profile?.is_admin ? ' · admin' : ''));
-      } else {
+      if (this.mode !== 'authenticated' || !this.user) {
         chip.style.display = 'none';
+        return;
       }
+      const name = (this.profile && this.profile.full_name) || this.user.email;
+      const role = this.profile?.is_superadmin ? 'Administrador Chefe' : (this.profile?.is_admin ? 'Administrador' : 'Usuário');
+      const initials = name.split(/[\s@.]+/).filter(Boolean).filter((w, i, a) => i === 0 || i === a.length - 1)
+        .map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      chip.style.display = 'block';
+      const toggle = document.getElementById('auth-user-toggle');
+      if (toggle) toggle.title = `${name} (${this.user.email})`;
+      // No cartão lateral: primeiro e último nome (o nome completo e o e-mail aparecem ao passar o mouse)
+      const words = name.includes('@') ? [name] : name.split(/\s+/).filter(Boolean);
+      document.getElementById('auth-user-name').textContent = words.length > 2 ? `${words[0]} ${words[words.length - 1]}` : words.join(' ');
+      document.getElementById('auth-user-role').textContent = role;
+      CapacitaTE.renderAvatar(document.getElementById('auth-user-initials'), this.profile && this.profile.avatar, initials);
+    }
+  };
+
+  /**
+   * Mostra a foto do perfil (data URL validada no servidor) ou, sem foto, as iniciais
+   */
+  CapacitaTE.renderAvatar = (el, avatar, initials) => {
+    if (!el) return;
+    el.textContent = '';
+    el.dataset.initials = initials || '';
+    if (avatar && /^data:image\/(jpeg|png|webp);base64,/.test(avatar)) {
+      const img = document.createElement('img');
+      img.src = avatar;
+      img.alt = '';
+      el.appendChild(img);
+    } else {
+      el.textContent = initials || '';
     }
   };
 
