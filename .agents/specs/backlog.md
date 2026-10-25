@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.1.0** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.1.1** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -32,6 +32,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.0.5:** (a) Reorganização pedida pelo usuário: o **Relatório final** saiu da página da capacitação e virou aba de **Relatórios** (nova tela `view-report-final`, `app.renderReportFinal`); a página `#capacitacao/<id>` tem 3 etapas: 1 Cadastro e inscrição, 2 Presença, 3 Avaliação (cada uma com o seu formulário e a sua exportação). (b) Admin ganhou as abas **Pessoas** (busca, edição, histórico) e **Importar base** (mapeamento de colunas, pré-visualização, política de conflito, lotes de 500, planilha de rejeitadas). (c) Criadas, **sem aplicar**: `0004h_lixeira_excluir_definitivo.sql` (precisa ser rodada: botão Excluir permanentemente), `0004i_pessoas_importacao.sql` (precisa ser rodada: Pessoas e Importar), `0005_rls_endurecida.sql` (só depois do checklist em `publicacao-e-seguranca.md`). Nada disso foi testado no navegador nem contra a nuvem (as funções SQL novas dependem de o usuário aplicar as migrações).
 
 **v.4.1.0 (fechamento do escopo combinado):** Modo recepção (botão no cartão de cada formulário: QR em tela cheia), inclusão manual de respostas (inscrição e presença, via `staff_submit`, testada na nuvem), barras na prévia da avaliação, `scripts/testes-formularios.html` e `node scripts/testes-formularios.js` (16/16), checklist de segurança em Configurações (verificações ao vivo).
+
+**v.4.1.1:** o botão Excluir da lista de capacitações (e `openConfirmDeleteModal`) só aparece e funciona para administrador (`app.canDeleteTraining`); antes qualquer usuário via. Correção pedida pelo usuário; o banco só passa a impor isso com a 0005.
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h_lixeira_excluir_definitivo.sql` (botão Excluir permanentemente) e `0004i_pessoas_importacao.sql` (Admin › Pessoas e Importar base). Sem elas esses botões dão erro.
