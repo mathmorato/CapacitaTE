@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.0.2
+ * Versão: v.4.0.3
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.0.2';
+    this.version = 'v.4.0.3';
   }
 
   /**
@@ -6287,14 +6287,50 @@ class CapacitaTEApp {
     });
   }
 
+  /**
+   * Fase 5: "Usar dados do CapacitaTE". Busca as respostas no Supabase, monta as linhas no mesmo formato da exportação
+   * em Excel e entrega ao MESMO parser do upload, então o cálculo do relatório não muda.
+   */
+  async importFromCapacitaTE(kind) {
+    const mod = { inscricao: 'inscricao', presenca: 'presenca', avaliacao: 'avaliacao' }[kind];
+    const handler = { inscricao: 'handleRegistrationFileUpload', presenca: 'handleAttendanceFileUpload', avaliacao: 'handleEvaluationFileUpload' }[kind];
+    if (!mod || !this.currentTraining) return;
+    const C = window.CapacitaTE;
+    try {
+      const client = C && C.supabaseClient ? C.supabaseClient.get() : null;
+      if (!client || !C.auth || C.auth.mode !== 'authenticated') {
+        this.showToast('Entre com a sua conta para usar os dados do CapacitaTE.', 'warning');
+        return;
+      }
+      if (!C.can(mod, 'view', this.currentTraining.id)) {
+        this.showToast('Você não tem permissão para ver essas respostas.', 'warning');
+        return;
+      }
+      this.showToast('Buscando as respostas no CapacitaTE...');
+      const rows = await C.xlsxExport.fetchRows(client, mod, this.currentTraining.id);
+      if (rows.length <= 1) {
+        this.showToast('O CapacitaTE ainda não tem respostas deste formulário para esta capacitação.', 'warning');
+        return;
+      }
+      await this[handler]({ rows, source: 'capacitate' });
+    } catch (err) {
+      console.error('Erro ao usar dados do CapacitaTE:', err);
+      this.showToast(`Não foi possível buscar os dados: ${err.message || err}`, 'error');
+    }
+  }
+
   async handleRegistrationFileUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file || !window.excelParser) return;
+    const file = event.target && event.target.files ? event.target.files[0] : null;
+    const fromRows = event.rows || null; // linhas montadas a partir dos dados do CapacitaTE (Supabase)
+    if ((!file && !fromRows) || !window.excelParser) return;
 
     try {
       this.showToast('Lendo planilha de inscrições...');
-      const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
-      const firstSheet = sheets[sheetNames[0]];
+      let firstSheet = fromRows;
+      if (!firstSheet) {
+        const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
+        firstSheet = sheets[sheetNames[0]];
+      }
 
       const parsed = window.excelParser.parseRegistrationRows(firstSheet, null, this.currentTraining.uf || 'MT');
       if (parsed.length === 0) {
@@ -6303,6 +6339,7 @@ class CapacitaTEApp {
       }
 
       this.currentTraining.registrations = parsed;
+      this.currentTraining.sources = Object.assign({}, this.currentTraining.sources, { inscricao: fromRows ? 'capacitate' : 'arquivo' });
 
       // Reconciliar inscritos e presentes na lista de municípios
       this.reconcileMunicipalitiesFromRegistrationAndAttendance();
@@ -6320,13 +6357,17 @@ class CapacitaTEApp {
   }
 
   async handleAttendanceFileUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file || !window.excelParser) return;
+    const file = event.target && event.target.files ? event.target.files[0] : null;
+    const fromRows = event.rows || null; // linhas montadas a partir dos dados do CapacitaTE (Supabase)
+    if ((!file && !fromRows) || !window.excelParser) return;
 
     try {
       this.showToast('Lendo planilha de presença...');
-      const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
-      const firstSheet = sheets[sheetNames[0]];
+      let firstSheet = fromRows;
+      if (!firstSheet) {
+        const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
+        firstSheet = sheets[sheetNames[0]];
+      }
 
       const parsed = window.excelParser.parseAttendanceRows(firstSheet, null, this.currentTraining.uf || 'MT');
       if (parsed.length === 0) {
@@ -6335,6 +6376,7 @@ class CapacitaTEApp {
       }
 
       this.currentTraining.attendance = parsed;
+      this.currentTraining.sources = Object.assign({}, this.currentTraining.sources, { presenca: fromRows ? 'capacitate' : 'arquivo' });
 
       // Reconciliar presença com a lista de municípios
       this.reconcileMunicipalitiesFromRegistrationAndAttendance();
@@ -7421,13 +7463,17 @@ class CapacitaTEApp {
      ETAPA 7: AVALIAÇÃO (UPLOAD, MÉDIAS, GRÁFICOS & NUVEM)
      ========================================================================== */
   async handleEvaluationFileUpload(event) {
-    const file = event.target.files?.[0];
-    if (!file || !window.excelParser) return;
+    const file = event.target && event.target.files ? event.target.files[0] : null;
+    const fromRows = event.rows || null; // linhas montadas a partir dos dados do CapacitaTE (Supabase)
+    if ((!file && !fromRows) || !window.excelParser) return;
 
     try {
       this.showToast('Processando planilha de avaliações...');
-      const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
-      const firstSheet = sheets[sheetNames[0]];
+      let firstSheet = fromRows;
+      if (!firstSheet) {
+        const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
+        firstSheet = sheets[sheetNames[0]];
+      }
 
       const parsed = window.excelParser.parseEvaluationRows(firstSheet, null, this.currentTraining.uf || 'MT');
       if (parsed.length === 0) {
@@ -7438,6 +7484,7 @@ class CapacitaTEApp {
       // Comentários padrão das figuras foram gerados com os dados antigos: descarta para regenerar
       this.resetDefaultFigureComments();
       this.currentTraining.evaluations = parsed;
+      this.currentTraining.sources = Object.assign({}, this.currentTraining.sources, { avaliacao: fromRows ? 'capacitate' : 'arquivo' });
       this.renderEvaluationStep();
       this.renderEvaluationCharts();
       this.renderWordClouds();
@@ -9486,6 +9533,46 @@ class CapacitaTEApp {
   /* ==========================================================================
      ETAPA 10: PAINEL DE CONFERÊNCIA GERAL & AUDITORIA
      ========================================================================== */
+  /**
+   * Conferências cruzadas entre inscrições, presença e avaliações (seção 13 da especificação).
+   * Devolve itens no mesmo formato de metrics.auditIssues ({ type, message }).
+   */
+  crossCheckIssues(t) {
+    const norm = (v) => String(v || '').replace(/\D/g, '');
+    const key = (v) => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const regs = t.registrations || [];
+    const atts = t.attendance || [];
+    const evs = t.evaluations || [];
+    const issues = [];
+    const list = (arr) => arr.slice(0, 5).join(', ') + (arr.length > 5 ? ` e mais ${arr.length - 5}` : '');
+
+    if (regs.length && atts.length) {
+      const regCpf = new Set(regs.map(r => norm(r.cpf)).filter(Boolean));
+      const out = atts.filter(a => norm(a.cpf) && !regCpf.has(norm(a.cpf))).map(a => a.name || a.cpf);
+      if (out.length) issues.push({ type: 'warning', message: `${out.length} presente(s) não inscrito(s): ${list([...new Set(out)])}.` });
+    }
+    const summoned = new Set((t.municipalities || []).filter(m => m.isSummoned !== false).map(m => key(m.name)));
+    if (regs.length && summoned.size) {
+      const out = regs.filter(r => r.municipality && !summoned.has(key(r.municipality))).map(r => `${r.name || r.cpf} (${r.municipality})`);
+      if (out.length) issues.push({ type: 'warning', message: `${out.length} inscrito(s) de município não convocado: ${list(out)}.` });
+    }
+    if (atts.length && evs.length) {
+      const attCpf = new Set(atts.map(a => norm(a.cpf)).filter(Boolean));
+      const out = evs.filter(e => norm(e.cpf) && !attCpf.has(norm(e.cpf))).map(e => e.name || e.cpf);
+      if (out.length) issues.push({ type: 'warning', message: `${out.length} avaliação(ões) de quem não esteve presente: ${list([...new Set(out)])}.` });
+    }
+    const names = new Map();
+    [...regs, ...atts, ...evs].forEach(p => {
+      const c = norm(p.cpf);
+      if (!c || !p.name) return;
+      if (!names.has(c)) names.set(c, new Set());
+      names.get(c).add(key(p.name));
+    });
+    const dup = [...names.entries()].filter(([, set]) => set.size > 1).map(([c]) => c);
+    if (dup.length) issues.push({ type: 'warning', message: `${dup.length} CPF(s) aparecem com nomes diferentes: ${list(dup)}.` });
+    return issues;
+  }
+
   renderConferenceStep() {
     const container = document.getElementById('wizard-conference-content');
     if (!container || !this.currentTraining || !window.statsEngine) return;
@@ -9565,7 +9652,9 @@ class CapacitaTEApp {
             </span>
           </div>
 
-          ${metrics.auditIssues.map(issue => `
+          ${(this.currentTraining.sources ? `<div class="audit-item valid"><div><strong>Fonte dos dados:</strong> ${['inscricao:Inscrições', 'presenca:Presença', 'avaliacao:Avaliações'].map(x => { const [k, n] = x.split(':'); const v = this.currentTraining.sources[k]; return v ? `${n}: ${v === 'capacitate' ? 'CapacitaTE' : 'arquivo'}` : ''; }).filter(Boolean).join(' · ')}.</div></div>` : '')}
+
+          ${[...metrics.auditIssues, ...this.crossCheckIssues(this.currentTraining)].map(issue => `
             <div class="audit-item ${issue.type}">
               <div><strong>Alerta do Sistema:</strong> ${issue.message}</div>
               <span class="nav-badge" style="background:rgba(246, 168, 0, 0.15); color:var(--accent-gold-text);">Atenção</span>

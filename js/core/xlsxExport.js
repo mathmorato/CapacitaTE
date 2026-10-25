@@ -2,7 +2,7 @@
  * CapacitaTE - Exportação das respostas em .xlsx no formato das planilhas do Google Forms
  * Cabeçalhos copiados caractere por caractere das planilhas originais (input/ da 16ª CTE), para o
  * js/excelParser.js ler os arquivos exportados exatamente como lê os do Google. Usa o SheetJS local (window.XLSX).
- * Versão: v.4.0.2
+ * Versão: v.4.0.3
  */
 
 (function (root) {
@@ -177,7 +177,21 @@
     root.XLSX.writeFile(wb, name, { compression: true });
   }
 
-  const api = { SHEET, HEADERS, registrationRows, attendanceRows, evaluationRows, workbook, fileName, download, stamp };
+  // Busca as respostas de um módulo no Supabase e monta as linhas no formato da exportação (seção 12).
+  // É o que o Relatório usa em "Usar dados do CapacitaTE": as linhas vão para o mesmo parser do upload de arquivo.
+  async function fetchRows(client, mod, trainingId) {
+    const { data: forms, error: fErr } = await client.from('forms').select('*').eq('training_id', trainingId).eq('module_key', mod);
+    if (fErr) throw fErr;
+    const form = (forms || []).find(f => f.session_key === 'unico') || (forms || [])[0];
+    const table = { inscricao: 'registrations', presenca: 'attendance', avaliacao: 'evaluations' }[mod];
+    const { data, error } = await client.from(table).select('*').eq('training_id', trainingId);
+    if (error) throw error;
+    if (mod === 'inscricao') return registrationRows(data || [], { truthStatement: (form && form.config && form.config.truthStatement) || undefined });
+    if (mod === 'presenca') return attendanceRows(data || []);
+    return evaluationRows(data || [], { ratingItems: form && form.config && form.config.ratingItems });
+  }
+
+  const api = { SHEET, HEADERS, registrationRows, attendanceRows, evaluationRows, fetchRows, workbook, fileName, download, stamp };
   root.CapacitaTE = root.CapacitaTE || {};
   root.CapacitaTE.xlsxExport = api;
 })(window);
