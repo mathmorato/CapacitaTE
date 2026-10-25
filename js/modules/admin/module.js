@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Administração (usuários, permissões e auditoria; só para admins)
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 (function () {
@@ -36,7 +36,7 @@
   function permissionColumns() {
     const cols = [];
     CapacitaTE.modules.forEach(mod => {
-      if (mod.key === 'admin') return;
+      if (mod.key === 'admin' || mod.key === 'capacitacao') return;
       mod.actions.forEach(action => cols.push({ module_key: mod.key, moduleTitle: mod.title, action }));
     });
     return cols;

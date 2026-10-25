@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Relatório (adaptador fino do assistente de 12 etapas existente em js/app.js)
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 (function () {
@@ -10,6 +10,30 @@
     if (!window.app || !trainingId) return;
     return window.app.openWizard(trainingId, parseInt(step) || 1);
   };
+
+  /**
+   * Abas de Relatórios no topo das telas Equipe Técnica e Estrutura do Curso
+   */
+  function addReportTabs() {
+    const tabs = [{ view: 'team', label: 'Equipe Técnica' }, { view: 'course-structure', label: 'Estrutura do Curso' }];
+    tabs.forEach(({ view }) => {
+      const section = document.getElementById(`view-${view}`);
+      if (!section || section.querySelector(':scope > .reports-tabs')) return;
+      const nav = document.createElement('nav');
+      nav.className = 'reports-tabs';
+      nav.setAttribute('aria-label', 'Relatórios');
+      tabs.forEach(t => {
+        const a = document.createElement('a');
+        a.href = `#${t.view}`;
+        a.textContent = t.label;
+        a.className = `reports-tab${t.view === view ? ' active' : ''}`;
+        if (t.view === view) a.setAttribute('aria-current', 'page');
+        nav.appendChild(a);
+      });
+      section.insertBefore(nav, section.firstChild);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', addReportTabs);
 
   CapacitaTE.registerModule({
     key: 'relatorio',
@@ -22,19 +46,16 @@
     // As telas do relatório continuam em index.html; montar o módulo é abrir o assistente da capacitação
     mount: (container, ctx = {}) => openReport(ctx.trainingId, ctx.step),
 
-    // Mesmos itens, ícones e ordem do menu lateral anterior à plataforma modular
+    // Capacitações (cada uma com as 3 etapas) e Relatórios (Equipe Técnica e Estrutura do Curso)
     menu: [
       {
         view: 'trainings', title: 'Capacitações', order: 10,
         icon: `<svg ${ICON_ATTRS}><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>`
       },
       {
-        view: 'team', title: 'Equipe Técnica', order: 20,
-        icon: `<svg ${ICON_ATTRS}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`
-      },
-      {
-        view: 'course-structure', title: 'Estrutura do Curso', order: 30,
-        icon: `<svg ${ICON_ATTRS}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`
+        // Equipe Técnica e Estrutura do Curso ficam como abas dentro de Relatórios
+        view: 'team', views: ['team', 'course-structure'], title: 'Relatórios', order: 30,
+        icon: `<svg ${ICON_ATTRS}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`
       }
     ],
 

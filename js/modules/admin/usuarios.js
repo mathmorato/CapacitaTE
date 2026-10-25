@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Usuários (convidar, admin, ativo; renomear e excluir só pelo Administrador Chefe)
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 (function () {
@@ -101,10 +101,66 @@
     // Convidar
     const name = el('input', { type: 'text', class: 'form-control', id: 'admin-invite-name', autocomplete: 'off' });
     const email = el('input', { type: 'email', class: 'form-control', id: 'admin-invite-email', autocomplete: 'off' });
-    const permBoxes = permissionColumns().map(c => {
-      const box = el('input', { type: 'checkbox', 'data-module': c.module_key, 'data-action': c.action });
-      return { c, box, label: el('label', { style: 'display:inline-flex; align-items:center; gap:0.35rem; margin-right:1rem; font-size:0.85rem;' }, [box, `${c.moduleTitle}: ${ACTION_LABELS[c.action] || c.action}`]) };
+    // Permissões iniciais: uma lista suspensa por módulo, com níveis de acesso em vez de caixinhas soltas
+    const MODULE_HINTS = {
+      relatorio: 'Capacitações e o assistente do relatório em Word',
+      inscricao: 'Formulário de inscrição, QR Code e inscritos',
+      presenca: 'Sessões de presença, QR Code e frequência',
+      avaliacao: 'Formulário de avaliação, QR Code e resultados'
+    };
+    const modulesForInvite = [];
+    permissionColumns().forEach(c => {
+      let m = modulesForInvite.find(x => x.key === c.module_key);
+      if (!m) { m = { key: c.module_key, title: c.moduleTitle, actions: [] }; modulesForInvite.push(m); }
+      m.actions.push(c.action);
     });
+    // Níveis: cada um inclui os anteriores (editar e exportar/gerar já incluem ver)
+    const levelsFor = (actions) => {
+      const levels = [{ value: '', label: 'Sem acesso', actions: [] }, { value: 'view', label: 'Ver', actions: ['view'] }];
+      if (actions.includes('edit')) levels.push({ value: 'edit', label: 'Ver e editar', actions: ['view', 'edit'] });
+      const extra = actions.filter(a => !['view', 'edit'].includes(a));
+      if (extra.length) levels.push({ value: 'all', label: `Acesso completo (${['editar', ...extra.map(a => ACTION_LABELS[a] || a)].join(', ')})`, actions: actions.slice() });
+      return levels;
+    };
+    const permSelects = modulesForInvite.map(m => {
+      const levels = levelsFor(m.actions);
+      const id = `admin-invite-perm-${m.key}`;
+      const select = el('select', { class: 'form-control', id }, levels.map(l => el('option', { value: l.value, text: l.label })));
+      return {
+        m, levels, select,
+        row: el('div', { class: 'invite-perm-row' }, [
+          el('label', { class: 'invite-perm-name', for: id }, [el('strong', { text: m.title }), el('span', { text: MODULE_HINTS[m.key] || '' })]),
+          select
+        ])
+      };
+    });
+    const presetSel = el('select', { class: 'form-control', id: 'admin-invite-preset' }, [
+      el('option', { value: '', text: 'Personalizado' }),
+      el('option', { value: 'equipe', text: 'Equipe de campo (formulários)' }),
+      el('option', { value: 'relatorio', text: 'Relatório (acesso completo)' }),
+      el('option', { value: 'leitura', text: 'Somente leitura' }),
+      el('option', { value: 'nenhum', text: 'Sem acesso por enquanto' })
+    ]);
+    presetSel.addEventListener('change', () => {
+      const p = presetSel.value;
+      permSelects.forEach(({ m, levels, select }) => {
+        const has = (v) => levels.some(l => l.value === v);
+        if (p === 'equipe') select.value = m.key === 'relatorio' ? '' : (has('edit') ? 'edit' : 'view');
+        else if (p === 'relatorio') select.value = m.key === 'relatorio' ? (has('all') ? 'all' : 'edit') : '';
+        else if (p === 'leitura') select.value = 'view';
+        else if (p === 'nenhum') select.value = '';
+      });
+    });
+    permSelects.forEach(({ select }) => select.addEventListener('change', () => { presetSel.value = ''; }));
+    const permissionsBlock = el('fieldset', { class: 'invite-perms' }, [
+      el('legend', { class: 'form-label', text: 'Permissões iniciais' }),
+      el('div', { class: 'invite-perm-row invite-perm-preset' }, [
+        el('label', { class: 'invite-perm-name', for: 'admin-invite-preset' }, [el('strong', { text: 'Perfil pronto' }), el('span', { text: 'Preenche os módulos abaixo de uma vez' })]),
+        presetSel
+      ]),
+      ...permSelects.map(p => p.row),
+      el('p', { class: 'admin-muted', style: 'margin:0.5rem 0 0;', text: 'Dá para ajustar depois na aba Permissões. Administradores têm acesso a tudo.' })
+    ]);
     const inviteMsg = el('p', { class: 'auth-message', style: 'text-align:left;' });
     const inviteBtn = el('button', { type: 'submit', class: 'btn btn-primary btn-sm', text: 'Enviar convite' });
     const inviteForm = el('form', { novalidate: true }, [
@@ -112,8 +168,7 @@
         el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'admin-invite-name', text: 'Nome' }), name]),
         el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'admin-invite-email', text: 'E-mail' }), email])
       ]),
-      el('p', { class: 'form-label', style: 'margin:1rem 0 0.4rem;', text: 'Permissões iniciais' }),
-      el('div', {}, permBoxes.map(p => p.label)),
+      permissionsBlock,
       el('div', { style: 'margin-top:1rem;' }, inviteBtn),
       inviteMsg
     ]);
@@ -131,7 +186,7 @@
         body: {
           action: 'invite', email: email.value.trim(), full_name: name.value.trim(),
           redirect_to: window.location.href.split('#')[0],
-          permissions: permBoxes.filter(p => p.box.checked).map(p => ({ module_key: p.c.module_key, action: p.c.action }))
+          permissions: permSelects.flatMap(({ m, levels, select }) => (levels.find(l => l.value === select.value) || { actions: [] }).actions.map(action => ({ module_key: m.key, action })))
         }
       });
       inviteBtn.disabled = false;

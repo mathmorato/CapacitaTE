@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Roteador por Hash do Painel
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
