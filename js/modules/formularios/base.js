@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.4
+ * Versão: v.4.2.5
  */
 
 (function () {
@@ -318,24 +318,34 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
-  // Carregamento em tela: barra animada e texto enquanto algo é gravado (devolve a função que fecha)
+  // Carregamento em tela: barra animada e texto enquanto algo é gravado. Devolve done(mensagem?): sem mensagem só fecha;
+  // com mensagem mostra a confirmação "Concluído" e espera o clique em Continuar.
   function showBusy(text) {
-    const node = el('div', { class: 'busy-overlay', role: 'status', 'aria-live': 'polite' }, el('div', { class: 'busy-card glass-card' }, [
-      el('strong', { text }),
-      el('div', { class: 'busy-bar' }, el('span')),
-      el('small', { class: 'admin-muted', text: 'Aguarde, não feche esta janela.' })
-    ]));
+    const title = el('strong', { text });
+    const bar = el('div', { class: 'busy-bar' }, el('span'));
+    const hint = el('small', { class: 'admin-muted', text: 'Aguarde, não feche esta janela.' });
+    const card = el('div', { class: 'busy-card glass-card' }, [title, bar, hint]);
+    const node = el('div', { class: 'busy-overlay', role: 'status', 'aria-live': 'polite' }, card);
     document.body.appendChild(node);
     const since = Date.now();
-    return async () => {
-      const wait = Math.max(0, 700 - (Date.now() - since)); // mostra por um tempo mínimo para não piscar
+    return async (successMessage) => {
+      const wait = Math.max(0, 700 - (Date.now() - since)); // tempo mínimo para não piscar
       if (wait) await new Promise(r => setTimeout(r, wait));
+      if (successMessage) {
+        await new Promise(resolve => {
+          const ok = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Continuar', onclick: resolve });
+          card.textContent = '';
+          card.append(el('div', { class: 'busy-check', 'aria-hidden': 'true', text: '✓' }), el('strong', { text: 'Concluído' }), el('p', { class: 'admin-muted', style: 'margin:0;', text: successMessage }), ok);
+          node.setAttribute('role', 'alertdialog');
+          ok.focus();
+        });
+      }
       node.remove();
     };
   }
 
   // Janela com lista de cidades marcáveis (confirmação antes de importar e exclusão de cidades)
-  function pickModal({ title, intro, items, confirmText, danger = false, notes = [], busyText, onConfirm }) {
+  function pickModal({ title, intro, items, confirmText, danger = false, notes = [], busyText, afterClose, onConfirm }) {
     const boxes = items.map(it => el('input', { type: 'checkbox', checked: !it.disabled && it.checked !== false, disabled: !!it.disabled, id: `pk-${it.id}`, 'aria-label': it.label }));
     const all = el('input', { type: 'checkbox', checked: items.every(i => i.disabled || i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
     all.addEventListener('change', () => { const on = all.checked; boxes.forEach(b => { if (!b.disabled) b.checked = on; }); update(); });
@@ -354,7 +364,12 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const ids = items.filter((_, i) => boxes[i].checked && !boxes[i].disabled).map(i => i.id);
       confirm.disabled = true;
       const done = showBusy(busyText || 'Salvando...');
-      try { await onConfirm(ids); await done(); close(); } catch (err) { await done(); toast(errMsg(err), 'error'); confirm.disabled = false; }
+      try {
+        const msg = await onConfirm(ids);
+        await done(typeof msg === 'string' ? msg : undefined);
+        close();
+        if (afterClose) afterClose();
+      } catch (err) { await done(); toast(errMsg(err), 'error'); confirm.disabled = false; }
     });
     overlay.append(el('div', { class: 'pick-card glass-card' }, [
       el('h3', { style: 'margin:0 0 0.3rem;', text: title }),
@@ -443,6 +458,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           items: added.map(m => ({ id: String(m.c), label: `${m.n} (${m.u})` })),
           confirmText: 'Adicionar cidades selecionadas',
           busyText: 'Adicionando cidades e atualizando o formulário...',
+          afterClose: () => ctx.rerender(),
           notes,
           onConfirm: async (ids) => {
             const chosen = added.filter(m => ids.includes(String(m.c)));
@@ -451,8 +467,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
               inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 }));
             await window.db.saveTrainingFull(t, `Cidades adicionadas por planilha: ${chosen.length}`);
             await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
-            toast(`${chosen.length} cidade(s) adicionada(s).`, 'success', 6000);
-            ctx.rerender();
+            return `${chosen.length} cidade(s) adicionada(s) à capacitação e ao formulário de inscrição.`;
           }
         });
       } catch (err) { toast(errMsg(err), 'error', 8000); } finally { await doneReading(); }
@@ -493,6 +508,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         items: list.map(m => { const id = String(m.ibge || m.name); const sede = sedeIds.has(id); return { id, label: `${m.name} (${m.uf})`, note: sede ? 'município sede: não pode ser excluído' : (counts[m.name] ? `${counts[m.name]} inscrito(s)` : 'sem inscritos'), checked: false, disabled: sede }; }),
         confirmText: 'Excluir cidades selecionadas',
         busyText: 'Excluindo cidades e atualizando o formulário...',
+        afterClose: () => ctx.rerender(),
         danger: true,
         notes: ['As inscrições já recebidas continuam salvas; só a cidade sai da lista de convidadas. Para voltar, adicione a cidade de novo.'],
         onConfirm: async (ids) => {
@@ -501,8 +517,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           t.municipalities = (t.municipalities || []).filter(m => !drop.has(String(m.ibgeCode || m.ibge || m.name)));
           await window.db.saveTrainingFull(t, `Cidades excluídas pelo painel de vagas: ${drop.size}`);
           await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
-          toast(`${drop.size} cidade(s) excluída(s) da lista.`, 'success', 6000);
-          ctx.rerender();
+          return `${drop.size} cidade(s) excluída(s) da lista de convidadas e do formulário de inscrição.`;
         }
       });
     };

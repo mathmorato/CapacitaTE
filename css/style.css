@@ -4749,3 +4749,4 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 /* Tabela compacta (espaçamento simples entre as linhas) */
 .data-table.table-compact th, .data-table.table-compact td { padding: 0.28rem 0.7rem; line-height: 1.25; }
 .data-table.table-compact tbody tr { height: auto; }
+.busy-check { width: 48px; height: 48px; margin: 0 auto; border-radius: 50%; background: var(--accent-emerald-bg, rgba(16, 185, 129, 0.18)); color: var(--accent-emerald-text, #10b981); font-size: 1.6rem; line-height: 48px; font-weight: 700; }

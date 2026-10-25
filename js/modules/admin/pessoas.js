@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Pessoas e Importar base
- * Versão: v.4.2.4
+ * Versão: v.4.2.5
  */
 
 (function () {
