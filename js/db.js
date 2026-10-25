@@ -1,65 +1,10 @@
 /**
  * CapacitaTE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.7
+ * Versão: v.3.7.8
  */
 
-// Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
-// js/env.local.js (gerado a partir do .env por atualizar-env.bat), o próprio .env (app aberto por um servidor
-// local) e, por último, os valores abaixo. A chave nunca precisa ir para o código publicado.
-const SUPABASE_CONFIG = {
-  url: 'https://dcsrcyemyvufevuskciz.supabase.co',
-  anonKey: 'sb_publishable_81j3KojA3AaV8Hqn24EGmQ_PekAy7hQ'
-};
-
-/**
- * Lê KEY=VALOR de um texto no formato .env (ignora linhas vazias e comentários)
- */
-function parseEnvText(text) {
-  const env = {};
-  String(text || '').split(/\r?\n/).forEach(line => {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-    if (!m || line.trim().startsWith('#')) return;
-    env[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
-  });
-  return env;
-}
-
-/**
- * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
- */
-const CLOUD_STORAGE_KEYS = { url: 'autoreport_supabase_url', key: 'autoreport_supabase_key' }; // chave legada mantida para compatibilidade
-
-function getSavedCloudConfig() {
-  try {
-    const url = localStorage.getItem(CLOUD_STORAGE_KEYS.url);
-    const key = localStorage.getItem(CLOUD_STORAGE_KEYS.key);
-    return url && key ? { SUPABASE_URL: url, SUPABASE_ANON_KEY: key } : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-async function loadSupabaseEnv() {
-  const saved = getSavedCloudConfig();
-  if (saved) {
-    SUPABASE_CONFIG.url = saved.SUPABASE_URL.replace(/\/+$/, '');
-    SUPABASE_CONFIG.anonKey = saved.SUPABASE_ANON_KEY;
-    SUPABASE_CONFIG.source = 'navegador';
-    return;
-  }
-  let env = (typeof window !== 'undefined' && window.APP_ENV) || null;
-  if (!env && typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) {
-    try {
-      const res = await fetch('.env', { cache: 'no-store' });
-      if (res.ok) env = parseEnvText(await res.text());
-    } catch (e) { /* sem .env acessível: mantém a configuração padrão */ }
-  }
-  if (env && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
-    SUPABASE_CONFIG.url = env.SUPABASE_URL.replace(/\/+$/, '');
-    SUPABASE_CONFIG.anonKey = env.SUPABASE_ANON_KEY;
-    SUPABASE_CONFIG.source = '.env';
-  }
-}
+// A configuração da nuvem (SUPABASE_CONFIG, getSavedCloudConfig, loadSupabaseEnv) fica em js/core/config.js
+// e o client único em js/core/supabaseClient.js.
 
 class TrainingDB {
   constructor() {
@@ -185,7 +130,7 @@ class TrainingDB {
   initSupabase() {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       try {
-        this.supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        this.supabase = CapacitaTE.supabaseClient.get();
         this.isCloudConnected = true;
         this.updateCloudIndicator(true);
         console.log('Supabase Cloud conectado com sucesso!');
@@ -206,6 +151,7 @@ class TrainingDB {
    */
   async reconnectSupabase() {
     await loadSupabaseEnv();
+    CapacitaTE.supabaseClient.reset();
     this.supabase = null;
     this.initSupabase();
     return this.supabase ? this.syncNow() : null;

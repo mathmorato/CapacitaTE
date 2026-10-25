@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.7
+ * Versão: v.3.7.8
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.7';
+    this.version = 'v.3.7.8';
   }
 
   /**
@@ -77,7 +77,8 @@ class CapacitaTEApp {
     // 3. Inicializar Configurações Globais
     this.initGlobalSettings();
 
-    // 4. Vincular Eventos Globais
+    // 4. Gerar o menu lateral a partir do registro de módulos e vincular eventos globais
+    if (window.CapacitaTE && typeof CapacitaTE.renderNav === 'function') CapacitaTE.renderNav();
     this.bindEvents();
     this.initDragAndDropHandlers();
 
@@ -95,7 +96,7 @@ class CapacitaTEApp {
      Navegação & SPA Router
      ========================================================================== */
   handleRoute() {
-    const hash = window.location.hash.replace('#', '');
+    const hash = window.location.hash.replace(/^#\/?/, '');
     if (!hash || hash === 'dashboard') {
       this.navigateTo('dashboard', false);
     } else if (hash.startsWith('wizard/')) {
@@ -11663,8 +11664,13 @@ class CapacitaTEApp {
       ripple.addEventListener('animationend', () => ripple.remove());
     }, { passive: true });
 
-    // Window popstate / hashchange
-    window.addEventListener('hashchange', () => this.handleRoute());
+    // Window popstate / hashchange: rotas dos módulos primeiro (js/core/router.js), depois as telas do painel
+    if (window.CapacitaTE && CapacitaTE.router) {
+      CapacitaTE.router.setFallback(() => this.handleRoute());
+      CapacitaTE.router.start();
+    } else {
+      window.addEventListener('hashchange', () => this.handleRoute());
+    }
   }
 }
 
