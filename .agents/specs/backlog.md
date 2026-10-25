@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.2.5** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.2.6** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -62,6 +62,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.2.4:** removido o rótulo "UF" solto ao lado do seletor de UF no Painel de vagas (o seletor já diz "Selecionar UF").
 
 **v.4.2.5:** depois da barra de carregamento (importar cidades por planilha e excluir cidades), aparece a confirmação "Concluído" com a mensagem e o botão Continuar; a lista só atualiza depois do clique (`showBusy` devolve `done(mensagem)`, `pickModal` aceita `afterClose`). Não testado no navegador.
+
+**v.4.2.6:** Painel de vagas com a coluna "Código INEP" (código do município, igual ao IBGE de 7 dígitos) antes do Município. Interpretação do pedido "código INEP e a cidade": o usuário pode ter querido outra coisa (confirmar).
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
