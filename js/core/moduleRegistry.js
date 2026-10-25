@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Registro de Módulos e Menu Lateral Gerado pelo Registro
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -22,6 +22,7 @@ CapacitaTE.modules = new Map();
  *
  * @typedef {Object} MenuItem
  * @property {string} view   tela do painel (data-view e hash)
+ * @property {string[]} [views] outras telas em que o item fica destacado
  * @property {string} title
  * @property {string} icon
  * @property {number} order
@@ -74,6 +75,7 @@ CapacitaTE.getMenuItems = () => {
   const items = [...CapacitaTE.shellMenu];
   CapacitaTE.modules.forEach(mod => {
     if (!CapacitaTE.can(mod.key, 'view')) return;
+    if (Array.isArray(mod.menu) && mod.menu.length === 0) return;
     const menu = Array.isArray(mod.menu) ? mod.menu
       : [{ view: mod.key, title: mod.title, icon: mod.icon, order: mod.order }];
     menu.forEach(item => items.push({ ...item, moduleKey: mod.key }));
@@ -95,6 +97,7 @@ CapacitaTE.renderNav = (navEl = document.querySelector('.nav-menu')) => {
     a.dataset.view = item.view;
     a.id = `nav-${item.view}`;
     if (item.moduleKey) a.dataset.module = item.moduleKey;
+    if (Array.isArray(item.views)) a.dataset.views = item.views.join(',');
     a.innerHTML = item.icon; // SVG fixo definido no código do módulo, nunca dado de usuário
     const label = document.createElement('span');
     label.textContent = item.title;

@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.8.9
+ * Versão: v.3.9.0
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.8.9';
+    this.version = 'v.3.9.0';
   }
 
   /**
@@ -141,7 +141,8 @@ class CapacitaTEApp {
     // Atualizar itens do menu lateral
     document.querySelectorAll('.nav-item').forEach(item => {
       const targetView = item.getAttribute('data-view');
-      if (targetView === viewId || (viewId === 'wizard' && targetView === 'trainings')) {
+      const extraViews = (item.getAttribute('data-views') || '').split(',');
+      if (targetView === viewId || extraViews.includes(viewId) || (viewId === 'wizard' && targetView === 'trainings')) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
@@ -399,9 +400,9 @@ class CapacitaTEApp {
                   </div>
                 </div>
                 <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-                  <button class="btn btn-secondary btn-sm" onclick="app.openWizard('${t.id}', 1)" title="${isHist ? 'Visualizar dados' : 'Continuar edição'}">
-                    ${isHist ? `${window.icons.search} Consultar` : `${window.icons.edit} Continuar`}
-                  </button>
+                  ${isHist
+                    ? `<button class="btn btn-secondary btn-sm" onclick="app.openWizard('${t.id}', 1)" title="Visualizar dados">${window.icons.search} Consultar</button>`
+                    : `<a class="btn btn-secondary btn-sm" href="#capacitacao/${encodeURIComponent(t.id)}/1" title="Abrir as etapas: inscrição, presença e avaliação, relatório">${window.icons.folder} Abrir</a>`}
                   ${isHist
                     ? `<span class="nav-badge badge-amber" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Registro do Histórico Protegido - Exclusão desabilitada">${window.icons.lock} Protegido</span>`
                     : `<button class="btn btn-secondary btn-sm btn-action-delete" onclick="app.openConfirmDeleteModal('${t.id}')" style="display:inline-flex; align-items:center;" title="Excluir este relatório permanentemente">
@@ -11282,9 +11283,9 @@ class CapacitaTEApp {
                   <td>${statusBadge}</td>
                   <td style="text-align:center; white-space:nowrap;">
                     <div style="display:inline-flex; gap:0.4rem; justify-content:center; align-items:center;">
-                      <button class="btn btn-secondary btn-sm" onclick="app.openWizard('${t.id}', 1)" style="display:inline-flex; align-items:center;" title="${isHist ? 'Consultar' : 'Editar'}">
-                        ${isHist ? `${window.icons.search} Consultar` : `${window.icons.edit} Editar`}
-                      </button>
+                      ${isHist
+                        ? `<button class="btn btn-secondary btn-sm" onclick="app.openWizard('${t.id}', 1)" style="display:inline-flex; align-items:center;" title="Consultar">${window.icons.search} Consultar</button>`
+                        : `<a class="btn btn-primary btn-sm" href="#capacitacao/${encodeURIComponent(t.id)}/1" style="display:inline-flex; align-items:center;" title="Abrir as etapas: inscrição, presença e avaliação, relatório">${window.icons.folder} Abrir</a>`}
                       ${isHist
                         ? `<span class="nav-badge badge-amber" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Histórico protegido - exclusão desabilitada">${window.icons.lock} Protegido</span>`
                         : `<button class="btn btn-secondary btn-sm btn-action-delete" onclick="app.openConfirmDeleteModal('${t.id}')" style="display:inline-flex; align-items:center;" title="Excluir este relatório">
