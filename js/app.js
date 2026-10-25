@@ -1,6 +1,6 @@
-﻿/**
+/**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.17
+ * Versão: v.3.4.18
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.17';
+    this.version = 'v.3.4.18';
   }
 
   /**
@@ -9871,23 +9871,22 @@ class AutoReportApp {
 
         <!-- FIGURAS 7 E 8 (NUVENS DE PALAVRAS) -->
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig7Comment}</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin:2rem 0; page-break-inside:avoid;">
-          <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
-            <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-              <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
-            </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig7Source)}</p>
+        <!-- Figuras 7 e 8 uma abaixo da outra, na mesma ordem do documento Word (comentário 7, Figura 7, comentário 8, Figura 8) -->
+        <div style="max-width:600px; margin:2rem auto; text-align:center; page-break-inside:avoid;">
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
+          <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
           </div>
-          <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
-            <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-              <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
-            </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig8Source)}</p>
-          </div>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig7Source)}</p>
         </div>
-        <p style="text-align:justify; line-height:1.6; margin-top:0.5rem; margin-bottom:1.5rem;">${fig8Comment}</p>
+        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig8Comment}</p>
+        <div style="max-width:600px; margin:2rem auto; text-align:center; page-break-inside:avoid;">
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
+          <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+            <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
+          </div>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig8Source)}</p>
+        </div>
 
         <!-- 6. REGISTROS FOTOGRÁFICOS -->
         <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
