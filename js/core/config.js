@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Configuração do Núcleo (endereço e chave pública da nuvem, URL pública)
- * Versão: v.3.9.8
+ * Versão: v.3.9.9
  */
 
 window.CapacitaTE = window.CapacitaTE || {};

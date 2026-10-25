@@ -1,7 +1,7 @@
 /**
  * CapacitaTE - Módulo Lista de Presença (um formulário para todos os dias; frequência por dia de envio)
  * Cada envio é registrado no dia em que foi feito (migração 0004d), então o quadro tem uma coluna por dia.
- * Versão: v.3.9.8
+ * Versão: v.3.9.9
  */
 
 (function () {
@@ -135,11 +135,14 @@
         el('td', { text: a.municipality || '—' }),
         el('td', { text: a.was_registered ? 'Sim' : 'Não' }),
         el('td', { text: c.fmtDateTime(a.submitted_at) }),
+        el('td', { class: 'perm-col' }, canEdit ? c.deleteButton('attendance', a, 'presença') : null),
       ]));
       body.append(el('details', { class: 'glass-card forms-section forms-config' }, [
         el('summary', { text: `Registros de presença (${attendance.length})` }),
-        c.table(['Dia', 'Nome', 'CPF', 'Município', 'Inscrito?', 'Registrado em'], recRows)
+        c.table(['Dia', 'Nome', 'CPF', 'Município', 'Inscrito?', 'Registrado em', ''], recRows)
       ]));
+      const trash = await c.trashSection('attendance', 'presenças');
+      if (trash) body.append(trash);
     }
   });
 })();

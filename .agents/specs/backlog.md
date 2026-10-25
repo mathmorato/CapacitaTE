@@ -5,12 +5,21 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.8** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.9** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
 
-## 0. Retomada rápida (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
+## 0. Retomada rápida (atualizada em 25/10/2026, versão v.3.9.9)
+
+**Novidades após a retomada abaixo:** (a) e-mail de confirmação **funcionando** (segredos do Gmail cadastrados; 0004e e 0004f
+aplicadas; testado pela auditoria `net._http_response` = 200). (b) **v.3.9.9 — Lixeira:** botão Excluir em inscrições,
+presenças e avaliações; a resposta vai para `public.deleted_responses` e pode ser restaurada (seção "Lixeira" de cada
+módulo). Migração **0004g aplicada** pelo usuário. RPCs `staff_delete_response(p_table, p_id)` e `staff_restore_response(p_deleted)`;
+exigem edição no módulo; auditoria `submission.delete`/`submission.restore`. Testado com a conta robô (excluir, restaurar,
+anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
+
+## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 
 **Onde paramos:** Fases 0–4 concluídas; Fase 3 com pendências menores; Fases 5 e 6 por fazer. A última entrega foi a
 v.3.9.7 (formulários conforme `formularios.md`, PDF, tema escuro, limite de tentativas desligado).
