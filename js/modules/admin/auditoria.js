@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Auditoria (últimos 200 eventos)
- * Versão: v.3.8.0
+ * Versão: v.3.8.1
  */
 
 (function () {
