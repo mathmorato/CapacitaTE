@@ -4,7 +4,7 @@
  *   2. Presença e avaliação (sessões de presença e avaliação com QR Code; exportação em Excel)
  *   3. Avaliação (o Relatório final fica em Relatórios › Relatório final)
  * Rota: #capacitacao/<id>[/<etapa>]
- * Versão: v.4.3.2
+ * Versão: v.4.3.3
  */
 
 (function () {
@@ -58,7 +58,7 @@
     } else if (mod === 'presenca') {
       const { data, error } = await client.from('attendance').select('*').eq('training_id', training.id);
       if (error) throw error;
-      aoa = X.attendanceRows(data || []);
+      aoa = await X.attendanceRowsComplete(client, data || [], training.id);
     } else {
       const { data, error } = await client.from('evaluations').select('*').eq('training_id', training.id);
       if (error) throw error;
