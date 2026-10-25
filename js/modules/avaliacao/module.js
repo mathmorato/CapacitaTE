@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Avaliação (formulário, taxa de resposta, médias por item e respostas)
- * Versão: v.4.1.4
+ * Versão: v.4.1.5
  */
 
 (function () {
@@ -68,6 +68,27 @@
         ]),
         c.table(['Item', 'Média geral', 'CACS-FUNDEB', 'Gestão municipal', 'Gráfico (0 a 5)'], rows),
         el('p', { class: 'admin-muted', style: 'margin-top:0.6rem;', text: 'Os gráficos e nuvens de palavras completos continuam no Relatório (etapas 8 e 12).' })
+      ]));
+
+
+      // Distribuição das notas (1 a 5) por item e palavras mais citadas nos comentários
+      const STOP = new Set('a o as os um uma de da do das dos e em no na nos nas para por com sem que se foi ser sao mais muito muita muitos tambem como mas ao aos ou ja nao sim isso essa esse este esta ela ele foram tem ter ate sobre entre quando bem pouco poderia poderiam seria curso formacao capacitacao aspectos'.split(' '));
+      const plain = (v) => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const freq = new Map();
+      evals.forEach(e => [e.liked, e.improve, e.comments].forEach(txt => plain(txt).split(/[^a-z]+/).filter(w => w.length > 3 && !STOP.has(w)).forEach(w => freq.set(w, (freq.get(w) || 0) + 1))));
+      const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 24);
+      const maxF = top.length ? top[0][1] : 1;
+      const dist = [1, 2, 3, 4, 5].map(n => ({ n, c: evals.filter(e => Number(e.ratings && e.ratings.geral) === n).length }));
+      const maxD = Math.max(1, ...dist.map(d => d.c));
+      body.append(el('div', { class: 'glass-card forms-section' }, [
+        el('h3', { class: 'forms-section-title', text: 'Nota geral e palavras mais citadas' }),
+        el('div', { style: 'display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.2rem;' }, [
+          el('div', {}, [el('strong', { text: 'Distribuição da nota geral' }),
+            ...dist.map(d => el('div', { class: 'eval-dist-row' }, [el('span', { text: `Nota ${d.n}` }), el('div', { class: 'eval-bar' }, el('span', { style: `width:${(d.c / maxD) * 100}%` })), el('span', { text: String(d.c) })]))]),
+          el('div', {}, [el('strong', { text: 'Palavras mais citadas (gostou, melhorar e comentários)' }),
+            top.length ? el('div', { class: 'eval-words' }, top.map(([w, n]) => el('span', { class: 'eval-word', style: `font-size:${(0.8 + (n / maxF) * 1.1).toFixed(2)}rem;`, title: `${n} citação(ões)`, text: w })))
+              : el('p', { class: 'admin-muted', text: 'Ainda não há comentários.' })])
+        ])
       ]));
 
       // Respostas
