@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Meu Perfil (o próprio usuário altera nome, e-mail e foto) e menu do usuário no menu lateral
- * Versão: v.3.8.7
+ * Versão: v.3.8.8
  */
 
 window.CapacitaTE = window.CapacitaTE || {};

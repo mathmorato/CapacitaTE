@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Processador e Analisador de Planilhas Excel
- * Versão: v.3.8.7
+ * Versão: v.3.8.8
  */
 
 class ExcelParser {
