@@ -30,6 +30,13 @@
   --gradient-card: linear-gradient(180deg, rgba(44, 44, 44, 0.5) 0%, rgba(32, 32, 32, 0.85) 100%);
   --gradient-glow: radial-gradient(circle at 50% 0%, rgba(246, 168, 0, 0.15), transparent 70%);
 
+  /* Movimento: curvas e durações das transições (usadas em todo o CSS) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.18s var(--ease-out);
+  --transition-normal: 0.3s var(--ease-out);
+  --transition-slow: 0.45s var(--ease-out);
+
   /* Spacing & Sizing */
   --sidebar-width: 260px;
   --header-height: 70px;
@@ -373,7 +380,19 @@ body.light-theme .brand-logo-img.logo-light {
 
 .view-section {
   display: none;
-  animation: fadeIn 0.3s ease-in-out;
+}
+
+.view-section.active > * {
+  animation: viewEnter 0.45s var(--ease-out) both;
+}
+.view-section.active > *:nth-child(2) { animation-delay: 0.05s; }
+.view-section.active > *:nth-child(3) { animation-delay: 0.1s; }
+.view-section.active > *:nth-child(4) { animation-delay: 0.15s; }
+.view-section.active > *:nth-child(n+5) { animation-delay: 0.2s; }
+
+@keyframes viewEnter {
+  from { opacity: 0; transform: translateY(12px) scale(0.995); }
+  to { opacity: 1; transform: none; }
 }
 
 .view-section.active {
@@ -1785,7 +1804,21 @@ body.light-theme .step-tab-btn.active .step-tab-num {
 /* Wizard Step Content */
 .wizard-step-panel {
   display: none;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.35s var(--ease-out);
+}
+
+/* Etapas do assistente: deslizam no sentido da navegação */
+.wizard-step-panel.active.step-enter-forward { animation: stepEnterForward 0.4s var(--ease-out) both; }
+.wizard-step-panel.active.step-enter-back { animation: stepEnterBack 0.4s var(--ease-out) both; }
+
+@keyframes stepEnterForward {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes stepEnterBack {
+  from { opacity: 0; transform: translateX(-28px); }
+  to { opacity: 1; transform: none; }
 }
 
 .wizard-step-panel.active {
@@ -4161,3 +4194,241 @@ body.light-theme .photo-source-addon.extra {
 @keyframes sync-spin { to { transform: rotate(360deg); } }
 .sync-spin { animation: sync-spin 0.9s linear infinite; }
 #cloud-sync-btn:disabled { opacity: 0.7; cursor: wait; }
+
+/* ==========================================================================
+   Microinterações: botões, abas, menu e transição de tema
+   ========================================================================== */
+.btn, .nav-item, .step-tab-btn, .filter-tab-btn, .team-tab-btn, .master-team-tab-btn {
+  position: relative;
+  overflow: hidden;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast),
+              box-shadow var(--transition-normal), transform 0.22s var(--ease-spring), opacity var(--transition-fast) !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+
+.btn:active:not(:disabled),
+.nav-item:active,
+.step-tab-btn:active,
+.filter-tab-btn:active,
+.team-tab-btn:active,
+.master-team-tab-btn:active {
+  transform: scale(0.96) !important;
+  transition-duration: 0.08s !important;
+}
+
+.btn:focus-visible, .nav-item:focus-visible, .step-tab-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Onda a partir do ponto clicado (criada por app.js) */
+.ui-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(0);
+  opacity: 0.35;
+  background: currentColor;
+  animation: uiRipple 0.55s var(--ease-out) forwards;
+}
+
+@keyframes uiRipple {
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* Item ativo do menu: barra lateral desliza para dentro */
+.nav-item.active {
+  animation: navActivate 0.35s var(--ease-out);
+}
+
+@keyframes navActivate {
+  from { box-shadow: inset 0 0 0 0 transparent; background-position: -100% 0; }
+}
+
+/* Cartões e linhas de lista respondem ao passar o mouse */
+.glass-card, .stat-card, .training-card {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal), background-color var(--transition-normal);
+}
+
+/* Troca de tema claro/escuro suave (classe aplicada só durante a troca) */
+body.theme-transition,
+body.theme-transition *:not(canvas):not(.ui-ripple) {
+  transition: background-color 0.35s var(--ease-out), color 0.35s var(--ease-out), border-color 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out) !important;
+}
+
+/* Quem pediu menos movimento no sistema não vê animações */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ui-ripple { display: none; }
+}
+
+/* ==========================================================================
+   Seletor de etapas do assistente: destaque deslizante e marcação de concluídas
+   ========================================================================== */
+.stepper-nav { position: relative; }
+.stepper-nav .step-tab-btn { position: relative; z-index: 1; }
+
+/* Destaque único que desliza até a etapa ativa (posicionado por app.js) */
+.stepper-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--radius-md);
+  background: var(--accent-blue-bg);
+  border: 1px solid var(--accent-blue-border);
+  box-shadow: 0 4px 18px rgba(246, 168, 0, 0.22);
+  transition: transform 0.55s var(--ease-spring), width 0.45s var(--ease-out), height 0.45s var(--ease-out), opacity 0.3s ease;
+  will-change: transform;
+}
+.stepper-indicator::before {
+  /* brilho que percorre o destaque a cada movimento */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  opacity: 0;
+}
+.stepper-indicator.moving::before { animation: indicatorShine 0.7s var(--ease-out); }
+@keyframes indicatorShine {
+  0% { opacity: 1; background-position: 120% 0; }
+  100% { opacity: 0; background-position: -60% 0; }
+}
+.stepper-indicator.no-transition { transition: none !important; }
+body.light-theme .stepper-indicator { background: #FFF1CC; border-color: #F6A800; }
+
+/* Com o destaque ativo, o botão em si fica transparente (o destaque é que aparece) */
+body .stepper-nav.has-indicator .step-tab-btn.active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Número da etapa: fica verde ao concluir e surge com animação */
+.step-tab-num { position: relative; transition: background-color 0.35s var(--ease-out), color 0.35s var(--ease-out), transform 0.35s var(--ease-spring); }
+.step-tab-num svg { width: 13px; height: 13px; display: block; }
+.step-tab-btn.active .step-tab-num { transform: scale(1.12); }
+
+.step-tab-num.check-pop {
+  animation: checkPop 0.6s var(--ease-spring) both;
+  animation-delay: var(--pop-delay, 0s);
+}
+.step-tab-num.check-pop svg path,
+.step-tab-num.check-pop svg polyline {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkDraw 0.45s var(--ease-out) forwards;
+  animation-delay: calc(var(--pop-delay, 0s) + 0.18s);
+}
+.step-tab-num.check-pop::after {
+  /* anel verde que se expande */
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-success);
+  opacity: 0;
+  animation: checkRing 0.7s var(--ease-out) forwards;
+  animation-delay: calc(var(--pop-delay, 0s) + 0.1s);
+}
+@keyframes checkPop {
+  0% { transform: scale(0.2) rotate(-90deg); opacity: 0; }
+  60% { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes checkDraw { to { stroke-dashoffset: 0; } }
+@keyframes checkRing {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+/* Texto da etapa concluída recebe um leve brilho verde ao ser marcada */
+.step-tab-btn.just-completed .step-tab-text { animation: completedText 0.9s var(--ease-out); animation-delay: var(--pop-delay, 0s); }
+@keyframes completedText {
+  0% { color: var(--accent-success); }
+  100% { color: inherit; }
+}
+
+/* Número que volta ao desmarcar (ao retornar a etapas anteriores) */
+.step-tab-num.num-return { animation: numReturn 0.35s var(--ease-out); }
+@keyframes numReturn {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepper-indicator, .stepper-indicator::before { transition: none !important; animation: none !important; }
+}
+
+/* ==========================================================================
+   Destaque deslizante reutilizável (menu lateral e grupos de abas)
+   O destaque é um único elemento que desliza até o item .active (posicionado por app.js)
+   ========================================================================== */
+.has-slide-indicator > :not(.slide-indicator) { position: relative; z-index: 1; }
+
+.slide-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transition: transform 0.55s var(--ease-spring), width 0.4s var(--ease-out), height 0.4s var(--ease-out), opacity 0.25s ease;
+  will-change: transform;
+}
+.slide-indicator.visible { opacity: 1; }
+.slide-indicator.no-transition { transition: none !important; }
+.slide-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  opacity: 0;
+}
+.slide-indicator.moving::before { animation: indicatorShine 0.7s var(--ease-out); }
+
+/* Menu lateral: fundo dourado suave com a barra vertical à esquerda */
+.slide-indicator-nav { background: rgba(246, 168, 0, 0.15); }
+.slide-indicator-nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  background: var(--accent-primary);
+}
+
+/* Abas: pílula com borda dourada */
+.slide-indicator-tab {
+  background: var(--accent-blue-bg);
+  border: 1px solid var(--accent-blue-border);
+  box-shadow: 0 0 12px var(--accent-blue-bg);
+}
+body.light-theme .slide-indicator-tab { background: #FFF1CC; border-color: #F6A800; }
+
+/* Com o destaque ativo, o item em si fica sem fundo (o destaque é que aparece) */
+body .has-slide-indicator > .active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-indicator, .slide-indicator::before { transition: none !important; animation: none !important; }
+}

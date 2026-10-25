@@ -1,10 +1,11 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.2
+ * Versão: v.3.7.5
  */
 
-// Configuração da nuvem. Prioridade: js/env.local.js (gerado a partir do .env por atualizar-env.bat),
-// depois o próprio .env (quando o app é aberto por um servidor local) e, por último, os valores abaixo.
+// Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
+// js/env.local.js (gerado a partir do .env por atualizar-env.bat), o próprio .env (app aberto por um servidor
+// local) e, por último, os valores abaixo. A chave nunca precisa ir para o código publicado.
 const SUPABASE_CONFIG = {
   url: 'https://dcsrcyemyvufevuskciz.supabase.co',
   anonKey: 'sb_publishable_81j3KojA3AaV8Hqn24EGmQ_PekAy7hQ'
@@ -26,7 +27,26 @@ function parseEnvText(text) {
 /**
  * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
  */
+const CLOUD_STORAGE_KEYS = { url: 'autoreport_supabase_url', key: 'autoreport_supabase_key' };
+
+function getSavedCloudConfig() {
+  try {
+    const url = localStorage.getItem(CLOUD_STORAGE_KEYS.url);
+    const key = localStorage.getItem(CLOUD_STORAGE_KEYS.key);
+    return url && key ? { SUPABASE_URL: url, SUPABASE_ANON_KEY: key } : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function loadSupabaseEnv() {
+  const saved = getSavedCloudConfig();
+  if (saved) {
+    SUPABASE_CONFIG.url = saved.SUPABASE_URL.replace(/\/+$/, '');
+    SUPABASE_CONFIG.anonKey = saved.SUPABASE_ANON_KEY;
+    SUPABASE_CONFIG.source = 'navegador';
+    return;
+  }
   let env = (typeof window !== 'undefined' && window.APP_ENV) || null;
   if (!env && typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) {
     try {
@@ -179,6 +199,16 @@ class TrainingDB {
       this.isCloudConnected = false;
       this.updateCloudIndicator(false);
     }
+  }
+
+  /**
+   * Recarrega a configuração da nuvem (após salvar ou remover na tela Configurações) e reconecta
+   */
+  async reconnectSupabase() {
+    await loadSupabaseEnv();
+    this.supabase = null;
+    this.initSupabase();
+    return this.supabase ? this.syncNow() : null;
   }
 
   /**
