@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.3
+ * Versão: v.3.7.4
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.3';
+    this.version = 'v.3.7.4';
   }
 
   /**
@@ -156,6 +156,9 @@ class AutoReportApp {
     if (activeSection) {
       activeSection.classList.add('active');
     }
+
+    // Assistente ficou visível: posiciona o destaque do seletor de etapas sem animar
+    if (viewId === 'wizard') requestAnimationFrame(() => this.moveStepperIndicator(true));
 
     // Ações específicas de cada view
     if (viewId === 'settings') this.renderCloudSettings();
@@ -1169,6 +1172,82 @@ class AutoReportApp {
     this.populateAllWizardForms();
   }
 
+  /**
+   * Seletor de etapas: marca ativa/concluídas, troca o número por ✓ com animação em sequência
+   * e desliza o destaque até a etapa ativa
+   */
+  updateStepperTabs() {
+    const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    let popOrder = 0;
+    document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
+      const s = idx + 1;
+      const wasCompleted = tab.classList.contains('completed');
+      const isCompleted = s < this.currentStep;
+      tab.classList.toggle('active', s === this.currentStep);
+      tab.classList.toggle('completed', isCompleted);
+      const num = tab.querySelector('.step-tab-num');
+      if (!num) return;
+      num.classList.remove('check-pop', 'num-return');
+      tab.classList.remove('just-completed');
+      if (isCompleted) {
+        if (!num.querySelector('svg')) num.innerHTML = checkSvg;
+        if (!wasCompleted) {
+          // Etapas recém-concluídas surgem uma após a outra
+          const delay = `${(popOrder++) * 0.07}s`;
+          num.style.setProperty('--pop-delay', delay);
+          tab.style.setProperty('--pop-delay', delay);
+          void num.offsetWidth; // reinicia a animação
+          num.classList.add('check-pop');
+          tab.classList.add('just-completed');
+        }
+      } else if (num.querySelector('svg') || num.textContent.trim() !== String(s)) {
+        num.textContent = String(s);
+        if (wasCompleted) {
+          void num.offsetWidth;
+          num.classList.add('num-return');
+        }
+      }
+    });
+    this.moveStepperIndicator();
+  }
+
+  moveStepperIndicator(instant = false) {
+    const nav = document.querySelector('.stepper-nav');
+    const active = nav && nav.querySelector('.step-tab-btn.active');
+    if (!nav || !active) return;
+    let indicator = nav.querySelector('.stepper-indicator');
+    const firstPlacement = !indicator;
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'stepper-indicator';
+      indicator.setAttribute('aria-hidden', 'true');
+      nav.insertBefore(indicator, nav.firstChild);
+      nav.classList.add('has-indicator');
+    }
+    // Painel oculto (outra tela aberta): reposiciona quando ficar visível
+    if (!active.offsetWidth) return;
+    const place = () => {
+      indicator.style.width = `${active.offsetWidth}px`;
+      indicator.style.height = `${active.offsetHeight}px`;
+      indicator.style.transform = `translate(${active.offsetLeft}px, ${active.offsetTop}px)`;
+    };
+    if (firstPlacement || instant) {
+      indicator.classList.add('no-transition');
+      place();
+      void indicator.offsetWidth;
+      indicator.classList.remove('no-transition');
+    } else {
+      indicator.classList.remove('moving');
+      void indicator.offsetWidth;
+      indicator.classList.add('moving');
+      place();
+    }
+    // No layout horizontal (celular), mantém a etapa ativa visível
+    if (nav.scrollWidth > nav.clientWidth && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
+
   validateCurrentStep(stepNumber = this.currentStep) {
     if (!this.currentTraining) return true;
     const t = this.currentTraining;
@@ -1331,12 +1410,8 @@ class AutoReportApp {
     this.currentStep = targetStep;
     window.location.hash = `wizard/${this.currentTraining?.id || ''}/${this.currentStep}`;
 
-    // Atualizar abas do Stepper
-    document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
-      const s = idx + 1;
-      tab.classList.toggle('active', s === this.currentStep);
-      tab.classList.toggle('completed', s < this.currentStep);
-    });
+    // Atualizar abas do Stepper (destaque deslizante e ✓ das etapas concluídas)
+    this.updateStepperTabs();
 
     // Alternar painéis
     document.querySelectorAll('.wizard-step-panel').forEach(panel => {
@@ -11486,6 +11561,12 @@ class AutoReportApp {
       if (e.target.closest('#view-wizard') && this.currentTraining) {
         this.saveCurrentStepData();
       }
+    });
+
+    // Destaque do seletor de etapas acompanha mudanças de tamanho da janela
+    window.addEventListener('resize', () => {
+      clearTimeout(this._stepperResizeTimer);
+      this._stepperResizeTimer = setTimeout(() => this.moveStepperIndicator(true), 120);
     });
 
     // Microinteração: onda a partir do ponto clicado em botões, menu e abas

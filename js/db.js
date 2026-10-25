@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.3
+ * Versão: v.3.7.4
  */
 
 // Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
