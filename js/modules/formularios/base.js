@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.8
+ * Versão: v.4.2.9
  */
 
 (function () {
@@ -399,6 +399,13 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     update();
   }
 
+  // Distância em linha reta (km) de uma cidade até o município sede (polo) da capacitação
+  function distanceFromSede(training, name, uf) {
+    const P = window.convocacaoParser;
+    if (!P || !P.calculateDistanceToPolo || !training || !training.polo) return 0;
+    return Number(P.calculateDistanceToPolo(name, uf, training.polo, training.uf)) || 0;
+  }
+
   // Adicionar cidade convidada direto no painel de vagas: grava na capacitação (Etapa 2 do cadastro) e no formulário
   function addMunicipalityBox(ctx, form) {
     const t = ctx.training;
@@ -422,7 +429,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       btn.disabled = true;
       try {
         if (!t.municipalities) t.municipalities = [];
-        t.municipalities.push({ id: `mun_add_${Date.now()}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: 0, isSummoned: true, isSede: false,
+        t.municipalities.push({ id: `mun_add_${Date.now()}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: distanceFromSede(t, m.n, m.u), isSummoned: true, isSede: false,
           inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 });
         await window.db.saveTrainingFull(t, `Cidade adicionada pelo painel de vagas: ${m.n}/${m.u}`);
         await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
@@ -478,7 +485,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           onConfirm: async (ids) => {
             const chosen = added.filter(m => ids.includes(String(m.c)));
             if (!t.municipalities) t.municipalities = [];
-            chosen.forEach(m => t.municipalities.push({ id: `mun_add_${Date.now()}_${m.c}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: 0, isSummoned: true, isSede: false,
+            chosen.forEach(m => t.municipalities.push({ id: `mun_add_${Date.now()}_${m.c}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: distanceFromSede(t, m.n, m.u), isSummoned: true, isSede: false,
               inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 }));
             await window.db.saveTrainingFull(t, `Cidades adicionadas por planilha: ${chosen.length}`);
             await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
@@ -686,7 +693,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const forms = await loadForms(def.key, training.id);
       body.textContent = '';
       const ctxRef = {};
-      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), addMunicipalityBox: (f) => addMunicipalityBox(ctxRef, f), manualBox: (f) => manualBox(ctxRef, f), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
+      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), distanceFromSede, addMunicipalityBox: (f) => addMunicipalityBox(ctxRef, f), manualBox: (f) => manualBox(ctxRef, f), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
       Object.assign(ctxRef, ctx);
       await def.render(body, ctx);
     } catch (err) {
@@ -703,7 +710,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   }
 
   CapacitaTE.formModules = {
-    el, toast, client, errMsg, publicUrl, trainingMunicipalities, loadTraining,
+    el, toast, client, errMsg, publicUrl, trainingMunicipalities, loadTraining, distanceFromSede,
     /**
      * Registra um módulo de formulário: def = { key, title, icon, order, render(body, ctx) }
      */
