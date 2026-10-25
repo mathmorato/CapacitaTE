@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.3.9.3
+ * Versão: v.3.9.4
  */
 
 (function () {
@@ -249,6 +249,8 @@ E-mail: ${c.email}`;
       fields.push(el('label', { class: 'forms-check', for: `cfg-only-${form.id}` }, [extraInputs.only, 'Aceitar somente quem registrou presença']));
     }
     extraInputs.allowEdit = el('input', { type: 'checkbox', checked: !!cfg.allowEdit, id: `cfg-edit-${form.id}` });
+    extraInputs.sendEmail = el('input', { type: 'checkbox', checked: cfg.sendEmail !== false, id: `cfg-mail-${form.id}` });
+    fields.push(el('label', { class: 'forms-check', for: `cfg-mail-${form.id}` }, [extraInputs.sendEmail, 'Enviar e-mail de confirmação para quem responder']));
     if (mod !== 'presenca') fields.push(el('label', { class: 'forms-check', for: `cfg-edit-${form.id}` }, [extraInputs.allowEdit, 'Permitir que a pessoa atualize a própria resposta enquanto o formulário estiver aberto']));
 
     const munCount = (cfg.municipalities || []).length;
@@ -269,7 +271,7 @@ E-mail: ${c.email}`;
           const opens = fromLocalInput(fOpens.value);
           const closes = fromLocalInput(fCloses.value);
           if (opens && closes && new Date(closes) <= new Date(opens)) throw new Error('O fechamento precisa ser depois da abertura.');
-          const newCfg = Object.assign({}, form.config, { title: fTitle.value.trim() || form.config.title, allowEdit: extraInputs.allowEdit.checked });
+          const newCfg = Object.assign({}, form.config, { title: fTitle.value.trim() || form.config.title, allowEdit: extraInputs.allowEdit.checked, sendEmail: extraInputs.sendEmail.checked });
           if (extraInputs.intro) newCfg.intro = extraInputs.intro.value.trim();
           if (extraInputs.max) newCfg.maxPerMunicipalityPerCategory = extraInputs.max.value ? parseInt(extraInputs.max.value, 10) : null;
           if (extraInputs.label) newCfg.label = extraInputs.label.value.trim();
