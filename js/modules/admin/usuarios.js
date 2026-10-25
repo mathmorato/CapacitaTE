@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Usuários (convidar, admin, ativo, definir nova senha)
- * Versão: v.3.8.0
+ * Versão: v.3.8.1
  */
 
 (function () {
