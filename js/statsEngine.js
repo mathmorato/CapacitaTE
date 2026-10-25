@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.6.7
+ * Versão: v.3.6.8
  */
 
 class StatsEngine {
@@ -630,15 +630,15 @@ class StatsEngine {
         <tr>
           <td style="text-align:center; font-family:monospace; font-weight:600;">${leftM.ibgeCode || '-'}</td>
           <td style="text-align:left; font-weight:600;">${leftM.name || ''}</td>
-          <td style="text-align:center;">${lPreC}/${lInsC}</td>
-          <td style="text-align:center;">${lPreG}/${lInsG}</td>
-          <td style="text-align:center; font-weight:700;">${lPreTot}/${lInsTot}</td>
+          <td style="text-align:center;">${lPreC}</td>
+          <td style="text-align:center;">${lPreG}</td>
+          <td style="text-align:center; font-weight:700;">${lPreTot}</td>
           <td style="width:8px; padding:0; background:transparent; border-left:none; border-right:1px solid var(--border-color, #cbd5e1);"></td>
           <td style="text-align:center; font-family:monospace; font-weight:600;">${rightM ? (rightM.ibgeCode || '-') : ''}</td>
           <td style="text-align:left; font-weight:600;">${rightM ? (rightM.name || '') : ''}</td>
-          <td style="text-align:center;">${rightM ? `${rPreC}/${rInsC}` : ''}</td>
-          <td style="text-align:center;">${rightM ? `${rPreG}/${rInsG}` : ''}</td>
-          <td style="text-align:center; font-weight:700;">${rightM ? `${rPreTot}/${rInsTot}` : ''}</td>
+          <td style="text-align:center;">${rightM ? rPreC : ''}</td>
+          <td style="text-align:center;">${rightM ? rPreG : ''}</td>
+          <td style="text-align:center; font-weight:700;">${rightM ? rPreTot : ''}</td>
         </tr>
       `;
     }
@@ -650,11 +650,11 @@ class StatsEngine {
             <tr>
               <th rowspan="2" style="width:11%; text-align:center;">Código IBGE</th>
               <th rowspan="2" style="text-align:left;">Nome do Município</th>
-              <th colspan="3" style="width:21%; text-align:center;">Nº de Participantes / Nº de Inscritos</th>
+              <th colspan="3" style="width:21%; text-align:center;">Número de Participantes</th>
               <th rowspan="2" style="width:8px; padding:0; background:transparent; border-left:none; border-right:1px solid var(--border-color, #cbd5e1);"></th>
               <th rowspan="2" style="width:11%; text-align:center;">Código IBGE</th>
               <th rowspan="2" style="text-align:left;">Nome do Município</th>
-              <th colspan="3" style="width:21%; text-align:center;">Nº de Participantes / Nº de Inscritos</th>
+              <th colspan="3" style="width:21%; text-align:center;">Número de Participantes</th>
             </tr>
             <tr>
               <th style="width:7%; text-align:center;">CACS</th>
