@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Login, Sessão, Perfil e Permissões do Usuário Atual (Supabase Auth)
- * Versão: v.3.8.2
+ * Versão: v.3.8.3
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -20,8 +20,10 @@ window.CapacitaTE = window.CapacitaTE || {};
     new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
   ]);
 
-  // O link de redefinição de senha chega com #...type=recovery; o app limpa o hash depois, então guarda agora
-  const openedFromRecoveryLink = /type=recovery/.test(window.location.hash || '');
+  // Links de redefinição de senha (#...type=recovery) e de convite (#...type=invite) exigem definir a senha;
+  // o app limpa o hash depois, então guarda agora
+  const linkType = ((window.location.hash || '').match(/type=(recovery|invite)/) || [])[1] || null;
+  const openedFromRecoveryLink = !!linkType;
 
   let resolveReady;
   const ready = new Promise(resolve => { resolveReady = resolve; });
@@ -87,7 +89,7 @@ window.CapacitaTE = window.CapacitaTE || {};
       try { session = (await client.auth.getSession()).data.session; } catch (e) { session = null; }
 
       if (session && openedFromRecoveryLink) {
-        CapacitaTE.loginView.showRecovery();
+        CapacitaTE.loginView.showRecovery(linkType);
         return ready;
       }
 

@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Tela de Login (card central, logos CECATE, e-mail + senha, esqueci minha senha)
- * Versão: v.3.8.2
+ * Versão: v.3.8.3
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -45,7 +45,7 @@ window.CapacitaTE = window.CapacitaTE || {};
 
         <form id="auth-recovery-form" class="auth-form" style="display:none;" novalidate>
           <div class="form-group">
-            <label class="form-label" for="auth-new-password">Nova senha (mínimo 8 caracteres)</label>
+            <label class="form-label" for="auth-new-password">Senha (mínimo 8 caracteres)</label>
             <input type="password" id="auth-new-password" class="form-control" autocomplete="new-password" minlength="8" required>
           </div>
           <button type="submit" class="btn btn-primary auth-submit">Salvar nova senha</button>
@@ -112,12 +112,12 @@ window.CapacitaTE = window.CapacitaTE || {};
       setTimeout(() => overlay.querySelector('#auth-email').focus(), 50);
     },
 
-    showRecovery() {
+    showRecovery(type = 'recovery') {
       api.show();
       overlay.querySelector('#auth-login-form').style.display = 'none';
       overlay.querySelector('#auth-recovery-form').style.display = 'block';
       overlay.querySelector('#auth-transition').style.display = 'none';
-      api.setMessage('Defina a sua nova senha.', 'info');
+      api.setMessage(type === 'invite' ? 'Bem-vindo(a) ao CapacitaTE! Crie a sua senha para concluir o cadastro.' : 'Defina a sua nova senha.', 'info');
     },
 
     hide() {
