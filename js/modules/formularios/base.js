@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.1
+ * Versão: v.4.2.2
  */
 
 (function () {
@@ -318,8 +318,24 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
+  // Carregamento em tela: barra animada e texto enquanto algo é gravado (devolve a função que fecha)
+  function showBusy(text) {
+    const node = el('div', { class: 'busy-overlay', role: 'status', 'aria-live': 'polite' }, el('div', { class: 'busy-card glass-card' }, [
+      el('strong', { text }),
+      el('div', { class: 'busy-bar' }, el('span')),
+      el('small', { class: 'admin-muted', text: 'Aguarde, não feche esta janela.' })
+    ]));
+    document.body.appendChild(node);
+    const since = Date.now();
+    return async () => {
+      const wait = Math.max(0, 700 - (Date.now() - since)); // mostra por um tempo mínimo para não piscar
+      if (wait) await new Promise(r => setTimeout(r, wait));
+      node.remove();
+    };
+  }
+
   // Janela com lista de cidades marcáveis (confirmação antes de importar e exclusão de cidades)
-  function pickModal({ title, intro, items, confirmText, danger = false, notes = [], onConfirm }) {
+  function pickModal({ title, intro, items, confirmText, danger = false, notes = [], busyText, onConfirm }) {
     const boxes = items.map(it => el('input', { type: 'checkbox', checked: !it.disabled && it.checked !== false, disabled: !!it.disabled, id: `pk-${it.id}`, 'aria-label': it.label }));
     const all = el('input', { type: 'checkbox', checked: items.every(i => i.disabled || i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
     all.addEventListener('change', () => { const on = all.checked; boxes.forEach(b => { if (!b.disabled) b.checked = on; }); update(); });
@@ -337,7 +353,8 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     confirm.addEventListener('click', async () => {
       const ids = items.filter((_, i) => boxes[i].checked && !boxes[i].disabled).map(i => i.id);
       confirm.disabled = true;
-      try { await onConfirm(ids); close(); } catch (err) { toast(errMsg(err), 'error'); confirm.disabled = false; }
+      const done = showBusy(busyText || 'Salvando...');
+      try { await onConfirm(ids); await done(); close(); } catch (err) { await done(); toast(errMsg(err), 'error'); confirm.disabled = false; }
     });
     overlay.append(el('div', { class: 'pick-card glass-card' }, [
       el('h3', { style: 'margin:0 0 0.3rem;', text: title }),
@@ -389,6 +406,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const file = sheetInput.files[0];
       sheetInput.value = '';
       if (!file) return;
+      const doneReading = showBusy('Lendo a planilha de cidades...');
       try {
         const { sheets, sheetNames } = await window.excelParser.readWorkbook(file);
         const rows = sheets[sheetNames[0]] || [];
@@ -424,6 +442,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
           intro: `Encontramos ${added.length} cidade(s) nova(s) na planilha (linhas sem UF foram buscadas em ${defaultUf || 'qualquer UF'}). Desmarque as que não quer adicionar e confirme.`,
           items: added.map(m => ({ id: String(m.c), label: `${m.n} (${m.u})` })),
           confirmText: 'Adicionar cidades selecionadas',
+          busyText: 'Adicionando cidades e atualizando o formulário...',
           notes,
           onConfirm: async (ids) => {
             const chosen = added.filter(m => ids.includes(String(m.c)));
@@ -436,7 +455,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
             ctx.rerender();
           }
         });
-      } catch (err) { toast(errMsg(err), 'error', 8000); }
+      } catch (err) { toast(errMsg(err), 'error', 8000); } finally { await doneReading(); }
     });
     const downloadModel = () => {
       const uf0 = t.uf || 'GO';
@@ -473,6 +492,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         intro: 'Marque as cidades que saem da lista de convidadas. Elas deixam de aparecer no formulário de inscrição.',
         items: list.map(m => { const id = String(m.ibge || m.name); const sede = sedeIds.has(id); return { id, label: `${m.name} (${m.uf})`, note: sede ? 'município sede: não pode ser excluído' : (counts[m.name] ? `${counts[m.name]} inscrito(s)` : 'sem inscritos'), checked: false, disabled: sede }; }),
         confirmText: 'Excluir cidades selecionadas',
+        busyText: 'Excluindo cidades e atualizando o formulário...',
         danger: true,
         notes: ['As inscrições já recebidas continuam salvas; só a cidade sai da lista de convidadas. Para voltar, adicione a cidade de novo.'],
         onConfirm: async (ids) => {
