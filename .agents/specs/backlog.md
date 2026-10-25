@@ -23,7 +23,7 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 
 **v.4.0.1:** o Painel de vagas (Inscrição) tem "Adicionar cidade convidada" (UF + cidade do catálogo IBGE): grava em `training.municipalities` (Etapa 2 do cadastro) e atualiza as cidades do formulário. Sem teste automatizado na interface (só `node --check`); o usuário deve conferir.
 
-**v.4.0.2:** o e-mail de confirmação chegava com cabeçalhos no corpo (o denomailer quebrava o assunto acentuado longo). A função `enviar-confirmacao` agora usa `npm:nodemailer` e envia versão texto e HTML. **O usuário precisa reimplantar a função** (Edge Functions > enviar-confirmacao > colar o código de `supabase/functions/enviar-confirmacao/index.ts` > Deploy) e testar de novo.
+**v.4.0.2:** o e-mail de confirmação chegava com cabeçalhos no corpo (o denomailer quebrava o assunto acentuado longo). A função `enviar-confirmacao` agora usa `npm:nodemailer` e envia versão texto e HTML. Função reimplantada e **testada pelo usuário em 25/10/2026: o e-mail chega correto (Outlook, tema escuro)**. Resta testar presença e avaliação.
 
 ## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 
