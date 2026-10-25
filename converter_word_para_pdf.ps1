@@ -1,5 +1,5 @@
 # ==============================================================================
-# AutoReport CECATE - Conversor Automático de Relatório Word (.docx) para PDF
+# CapacitaTE - Conversor Automático de Relatório Word (.docx) para PDF
 # Utiliza o motor oficial do Microsoft Word para gerar PDF 100% idêntico
 # ==============================================================================
 
@@ -46,7 +46,7 @@ try {
 
     if ($filesToConvert.Count -eq 0) {
         Write-Host "Nenhum arquivo de relatório Word (.docx) encontrado para converter." -ForegroundColor Yellow
-        Write-Host "Dica: Baixe o arquivo Word pelo AutoReport CECATE ou coloque-o na pasta 'output/' e execute novamente." -ForegroundColor Gray
+        Write-Host "Dica: Baixe o arquivo Word pelo CapacitaTE ou coloque-o na pasta 'output/' e execute novamente." -ForegroundColor Gray
         exit 0
     }
 

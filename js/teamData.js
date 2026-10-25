@@ -1,6 +1,6 @@
 /**
- * AutoReport CECATE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
- * Versão: v.3.7.6
+ * CapacitaTE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
+ * Versão: v.3.8.0
  */
 
 window.OFFICIAL_PRONOUNS = [
@@ -224,7 +224,7 @@ window.DEFAULT_OFFICIAL_TEAM = [
 // Carregar equipe mestra personalizada salva em localStorage ou usar padrão
 window.getMasterTeam = function() {
   try {
-    const saved = localStorage.getItem('autoreport_master_team');
+    const saved = localStorage.getItem('autoreport_master_team'); // chave legada mantida para compatibilidade
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -233,7 +233,7 @@ window.getMasterTeam = function() {
         if (matheus) {
           matheus.title = 'Dr.';
           matheus.fullName = 'Eng. Dr. Matheus Henrique Morato de Moraes';
-          localStorage.setItem('autoreport_master_team', JSON.stringify(parsed));
+          localStorage.setItem('autoreport_master_team', JSON.stringify(parsed)); // chave legada mantida para compatibilidade
         }
         return parsed;
       }
@@ -246,7 +246,7 @@ window.getMasterTeam = function() {
 
 window.saveMasterTeam = function(team) {
   try {
-    localStorage.setItem('autoreport_master_team', JSON.stringify(team));
+    localStorage.setItem('autoreport_master_team', JSON.stringify(team)); // chave legada mantida para compatibilidade
   } catch (e) {
     console.warn('Erro ao salvar equipe mestra:', e);
   }

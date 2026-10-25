@@ -1,9 +1,10 @@
-# Instruções para agentes (Claude Code e outros)
+# CapacitaTE — Instruções para agentes (Claude Code e outros)
 
 Antes de qualquer alteração neste projeto, leia e siga as regras em:
 
 - `.agents/rules/guidelines.md` — regras gerais, **versionamento `v.X.Y.Z`**, persistência, identidade visual e commits.
 - `.agents/rules/AGENTSparaword` — padrões visuais do relatório Word.
+- [`.agents/specs/capacitate-modular.md`](.agents/specs/capacitate-modular.md) — especificação da plataforma modular CapacitaTE (executar fase por fase, seção 14; PDFs de referência em `.agents/specs/referencias/`).
 
 ## Versionamento (resumo obrigatório)
 

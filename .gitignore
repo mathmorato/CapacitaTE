@@ -25,3 +25,7 @@ Desktop.ini
 .env.*
 !.env.example
 js/env.local.js
+
+# Dados de entrada e relatórios gerados: contêm dados pessoais (CPF, e-mail, telefone). Não versionar.
+/input/
+/output/

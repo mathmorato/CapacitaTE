@@ -1,6 +1,6 @@
 /**
- * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.6
+ * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
+ * Versão: v.3.8.0
  */
 
 window.icons = {
@@ -28,7 +28,7 @@ window.icons = {
   folder: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`
 };
 
-class AutoReportApp {
+class CapacitaTEApp {
   constructor() {
     this.currentTraining = null;
     this.currentStep = 1;
@@ -37,19 +37,19 @@ class AutoReportApp {
     this.trainingList = [];
     this.dashboardFilter = 'all';
     this.trainingToDeleteId = null;
-    this.theme = localStorage.getItem('autoreport_theme') || 'dark';
+    this.theme = localStorage.getItem('autoreport_theme') || 'dark'; // chave legada mantida para compatibilidade
     this.metrics = null;
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.6';
+    this.version = 'v.3.8.0';
   }
 
   /**
    * Inicialização da aplicação
    */
   async init() {
-    console.log(`Inicializando AutoReport CECATE ${this.version}...`);
+    console.log(`Inicializando CapacitaTE ${this.version}...`);
 
     // Configurar PDF.js Worker localmente para extração offline de apêndices
     if (window.pdfjsLib) {
@@ -60,7 +60,7 @@ class AutoReportApp {
     const footerVerEl = document.getElementById('app-footer-version');
     if (footerVerEl) footerVerEl.textContent = this.version;
     const sidebarVerEl = document.querySelector('.sidebar-footer div:last-child');
-    if (sidebarVerEl) sidebarVerEl.textContent = this.version;
+    if (sidebarVerEl) sidebarVerEl.textContent = `CapacitaTE · ${this.version}`;
 
     // 1. Inicializar Banco IndexedDB
     try {
@@ -74,10 +74,16 @@ class AutoReportApp {
     // 2. Aplicar Tema
     this.applyTheme(this.theme);
 
+    // 2.1 Login (js/core/auth.js): aguarda o acesso ser liberado antes de montar o menu pelas permissões
+    if (window.CapacitaTE && CapacitaTE.auth) {
+      await CapacitaTE.auth.init();
+    }
+
     // 3. Inicializar Configurações Globais
     this.initGlobalSettings();
 
-    // 4. Vincular Eventos Globais
+    // 4. Gerar o menu lateral a partir do registro de módulos e vincular eventos globais
+    if (window.CapacitaTE && typeof CapacitaTE.renderNav === 'function') CapacitaTE.renderNav();
     this.bindEvents();
     this.initDragAndDropHandlers();
 
@@ -88,14 +94,14 @@ class AutoReportApp {
     history.replaceState(null, '', window.location.pathname);
     this.navigateTo('dashboard', false);
 
-    console.log('AutoReport CECATE pronto!');
+    console.log('CapacitaTE pronto!');
   }
 
   /* ==========================================================================
      Navegação & SPA Router
      ========================================================================== */
   handleRoute() {
-    const hash = window.location.hash.replace('#', '');
+    const hash = window.location.hash.replace(/^#\/?/, '');
     if (!hash || hash === 'dashboard') {
       this.navigateTo('dashboard', false);
     } else if (hash.startsWith('wizard/')) {
@@ -189,7 +195,7 @@ class AutoReportApp {
       this._themeTransitionTimer = setTimeout(() => document.body.classList.remove('theme-transition'), 400);
     }
     this.theme = theme;
-    localStorage.setItem('autoreport_theme', theme);
+    localStorage.setItem('autoreport_theme', theme); // chave legada mantida para compatibilidade
     const themeBtn = document.getElementById('theme-toggle-btn');
 
     const sunIcon = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
@@ -495,12 +501,16 @@ class AutoReportApp {
   }
 
   async createNewTrainingBlank() {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'edit')) {
+      this.showToast('Você não tem permissão para criar capacitações.', 'warning');
+      return;
+    }
     const newId = `cap_${Date.now()}`;
 
-    const defaultOrg = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)';
-    const defaultFunding = localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE';
-    const defaultProject = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL';
-    const defaultProcess = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00';
+    const defaultOrg = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)'; // chave legada mantida para compatibilidade
+    const defaultFunding = localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE'; // chave legada mantida para compatibilidade
+    const defaultProject = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL'; // chave legada mantida para compatibilidade
+    const defaultProcess = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00'; // chave legada mantida para compatibilidade
 
     const newTraining = {
       id: newId,
@@ -1156,6 +1166,11 @@ class AutoReportApp {
   }
 
   async openWizard(trainingId, step = 1) {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'view', trainingId)) {
+      this.showToast('Você não tem permissão para abrir o Relatório.', 'warning');
+      this.navigateTo('dashboard');
+      return;
+    }
     if (!window.db) return;
 
     // Buscar dados completos. Zera a etapa atual para que setWizardStep não grave na nova capacitação
@@ -1660,13 +1675,13 @@ class AutoReportApp {
     this.setVal('wiz-train-expected', t.expectedParticipants || '');
     this.setVal('wiz-train-venue', t.locationVenue || '');
     this.setVal('wiz-train-address', t.locationAddress || '');
-    this.setVal('wiz-train-org', t.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)');
+    this.setVal('wiz-train-org', t.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)'); // chave legada mantida para compatibilidade
 
-    const defaultProj = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL';
-    const defaultProc = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00';
+    const defaultProj = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL'; // chave legada mantida para compatibilidade
+    const defaultProc = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00'; // chave legada mantida para compatibilidade
     this.setVal('wiz-train-project', t.relatedProject || defaultProj);
     this.setVal('wiz-train-process', t.processNumber || defaultProc);
-    this.setVal('wiz-train-funding', t.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE');
+    this.setVal('wiz-train-funding', t.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE'); // chave legada mantida para compatibilidade
     this.setVal('wiz-train-partners', t.partnerOrgs || '');
 
     // Exibir card do arquivo de convocação anexado em Etapa 1 (se existir)
@@ -2339,10 +2354,10 @@ class AutoReportApp {
     t.expectedParticipants = parseInt(this.getVal('wiz-train-expected')) || '';
     t.locationVenue = this.getVal('wiz-train-venue');
     t.locationAddress = this.getVal('wiz-train-address');
-    t.responsibleOrg = this.getVal('wiz-train-org') || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)';
-    t.relatedProject = this.getVal('wiz-train-project') || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL';
-    t.processNumber = this.getVal('wiz-train-process') || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00';
-    t.fundingOrg = this.getVal('wiz-train-funding') || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE';
+    t.responsibleOrg = this.getVal('wiz-train-org') || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)'; // chave legada mantida para compatibilidade
+    t.relatedProject = this.getVal('wiz-train-project') || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL'; // chave legada mantida para compatibilidade
+    t.processNumber = this.getVal('wiz-train-process') || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00'; // chave legada mantida para compatibilidade
+    t.fundingOrg = this.getVal('wiz-train-funding') || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE'; // chave legada mantida para compatibilidade
     t.partnerOrgs = this.getVal('wiz-train-partners');
 
     // Sincronizar dados da Etapa 5 (Tecnologias Educacionais)
@@ -10359,6 +10374,10 @@ class AutoReportApp {
   }
 
   async downloadDocxReport() {
+    if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'generate', this.currentTraining?.id)) {
+      this.showToast('Você não tem permissão para gerar o relatório.', 'warning');
+      return;
+    }
     if (!this.currentTraining) {
       this.showToast('Nenhuma capacitação selecionada para gerar o relatório.', 'warning');
       return;
@@ -11111,6 +11130,10 @@ class AutoReportApp {
   }
 
   async executeDeleteTrainingConfirmed() {
+    if (window.CapacitaTE && CapacitaTE.auth && !CapacitaTE.auth.isAdmin()) {
+      this.showToast('Somente admins podem excluir capacitações.', 'warning');
+      return;
+    }
     if (!this.trainingToDeleteId || !window.db) return;
 
     const idToDelete = this.trainingToDeleteId;
@@ -11392,8 +11415,8 @@ class AutoReportApp {
       return;
     }
     if (!(await this.testCloudConnection(config))) return;
-    localStorage.setItem('autoreport_supabase_url', config.url);
-    localStorage.setItem('autoreport_supabase_key', config.key);
+    localStorage.setItem('autoreport_supabase_url', config.url); // chave legada mantida para compatibilidade
+    localStorage.setItem('autoreport_supabase_key', config.key); // chave legada mantida para compatibilidade
     try {
       await window.db.reconnectSupabase();
       await this.refreshTrainingsList();
@@ -11405,18 +11428,18 @@ class AutoReportApp {
   }
 
   async clearCloudSettings() {
-    localStorage.removeItem('autoreport_supabase_url');
-    localStorage.removeItem('autoreport_supabase_key');
+    localStorage.removeItem('autoreport_supabase_url'); // chave legada mantida para compatibilidade
+    localStorage.removeItem('autoreport_supabase_key'); // chave legada mantida para compatibilidade
     try { await window.db.reconnectSupabase(); } catch (e) { /* sem configuração alternativa: modo local */ }
     this.renderCloudSettings();
     this.showToast('Configuração da nuvem removida deste navegador.', 'info');
   }
 
   initGlobalSettings() {
-    const org = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)';
-    const funding = localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE';
-    const proj = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL';
-    const process = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00';
+    const org = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)'; // chave legada mantida para compatibilidade
+    const funding = localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE'; // chave legada mantida para compatibilidade
+    const proj = localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL'; // chave legada mantida para compatibilidade
+    const process = localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00'; // chave legada mantida para compatibilidade
 
     this.setVal('setting-org-name', org);
     this.setVal('setting-funding-name', funding);
@@ -11482,10 +11505,10 @@ class AutoReportApp {
     const proj = this.getVal('setting-proj-name') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL';
     const process = this.getVal('setting-process-name') || '23070.012345/2026-00';
 
-    localStorage.setItem('autoreport_setting_org', org);
-    localStorage.setItem('autoreport_setting_funding', funding);
-    localStorage.setItem('autoreport_setting_proj', proj);
-    localStorage.setItem('autoreport_setting_process', process);
+    localStorage.setItem('autoreport_setting_org', org); // chave legada mantida para compatibilidade
+    localStorage.setItem('autoreport_setting_funding', funding); // chave legada mantida para compatibilidade
+    localStorage.setItem('autoreport_setting_proj', proj); // chave legada mantida para compatibilidade
+    localStorage.setItem('autoreport_setting_process', process); // chave legada mantida para compatibilidade
 
     if (this.currentTraining) {
       this.currentTraining.responsibleOrg = org;
@@ -11663,13 +11686,18 @@ class AutoReportApp {
       ripple.addEventListener('animationend', () => ripple.remove());
     }, { passive: true });
 
-    // Window popstate / hashchange
-    window.addEventListener('hashchange', () => this.handleRoute());
+    // Window popstate / hashchange: rotas dos módulos primeiro (js/core/router.js), depois as telas do painel
+    if (window.CapacitaTE && CapacitaTE.router) {
+      CapacitaTE.router.setFallback(() => this.handleRoute());
+      CapacitaTE.router.start();
+    } else {
+      window.addEventListener('hashchange', () => this.handleRoute());
+    }
   }
 }
 
 // Inicializar Singleton da Aplicação
-window.app = new AutoReportApp();
+window.app = new CapacitaTEApp();
 document.addEventListener('DOMContentLoaded', () => {
   window.app.init();
 });

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CapacitaTE - Testes do Núcleo</title>
+  <style>
+    :root { color-scheme: dark light; }
+    body { font-family: Inter, system-ui, sans-serif; margin: 2rem; background: #0f172a; color: #e2e8f0; }
+    @media (prefers-color-scheme: light) { body { background: #f8fafc; color: #0f172a; } }
+    .ok { color: #10b981; } .fail { color: #ef4444; font-weight: 700; }
+    li { margin: 0.2rem 0; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>Testes do núcleo (js/core)</h1>
+  <p id="resumo"></p>
+  <ul id="lista"></ul>
+
+  <script src="../js/core/router.js"></script>
+  <script src="../js/core/moduleRegistry.js"></script>
+  <script src="../js/core/permissions.js"></script>
+  <script src="../js/core/cpf.js"></script>
+  <script src="../js/core/formats.js"></script>
+  <script src="testes-core.js"></script>
+  <script>
+    const results = window.CORE_TEST_RESULTS || [];
+    const failed = results.filter(r => !r.ok);
+    document.getElementById('resumo').textContent = `${results.length - failed.length}/${results.length} testes passaram`;
+    document.getElementById('resumo').className = failed.length ? 'fail' : 'ok';
+    const list = document.getElementById('lista');
+    results.forEach(r => {
+      const li = document.createElement('li');
+      li.className = r.ok ? 'ok' : 'fail';
+      li.textContent = r.ok ? `✓ ${r.name}` : `✗ ${r.name}: obtido ${JSON.stringify(r.actual)}, esperado ${JSON.stringify(r.expected)}`;
+      list.appendChild(li);
+    });
+  </script>
+</body>
+</html>

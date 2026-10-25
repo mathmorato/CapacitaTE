@@ -1,69 +1,14 @@
 /**
- * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.6
+ * CapacitaTE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
+ * Versão: v.3.8.0
  */
 
-// Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
-// js/env.local.js (gerado a partir do .env por atualizar-env.bat), o próprio .env (app aberto por um servidor
-// local) e, por último, os valores abaixo. A chave nunca precisa ir para o código publicado.
-const SUPABASE_CONFIG = {
-  url: 'https://dcsrcyemyvufevuskciz.supabase.co',
-  anonKey: 'sb_publishable_81j3KojA3AaV8Hqn24EGmQ_PekAy7hQ'
-};
-
-/**
- * Lê KEY=VALOR de um texto no formato .env (ignora linhas vazias e comentários)
- */
-function parseEnvText(text) {
-  const env = {};
-  String(text || '').split(/\r?\n/).forEach(line => {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
-    if (!m || line.trim().startsWith('#')) return;
-    env[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
-  });
-  return env;
-}
-
-/**
- * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
- */
-const CLOUD_STORAGE_KEYS = { url: 'autoreport_supabase_url', key: 'autoreport_supabase_key' };
-
-function getSavedCloudConfig() {
-  try {
-    const url = localStorage.getItem(CLOUD_STORAGE_KEYS.url);
-    const key = localStorage.getItem(CLOUD_STORAGE_KEYS.key);
-    return url && key ? { SUPABASE_URL: url, SUPABASE_ANON_KEY: key } : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-async function loadSupabaseEnv() {
-  const saved = getSavedCloudConfig();
-  if (saved) {
-    SUPABASE_CONFIG.url = saved.SUPABASE_URL.replace(/\/+$/, '');
-    SUPABASE_CONFIG.anonKey = saved.SUPABASE_ANON_KEY;
-    SUPABASE_CONFIG.source = 'navegador';
-    return;
-  }
-  let env = (typeof window !== 'undefined' && window.APP_ENV) || null;
-  if (!env && typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) {
-    try {
-      const res = await fetch('.env', { cache: 'no-store' });
-      if (res.ok) env = parseEnvText(await res.text());
-    } catch (e) { /* sem .env acessível: mantém a configuração padrão */ }
-  }
-  if (env && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
-    SUPABASE_CONFIG.url = env.SUPABASE_URL.replace(/\/+$/, '');
-    SUPABASE_CONFIG.anonKey = env.SUPABASE_ANON_KEY;
-    SUPABASE_CONFIG.source = '.env';
-  }
-}
+// A configuração da nuvem (SUPABASE_CONFIG, getSavedCloudConfig, loadSupabaseEnv) fica em js/core/config.js
+// e o client único em js/core/supabaseClient.js.
 
 class TrainingDB {
   constructor() {
-    this.dbName = 'AutoReportCECATE_DB';
+    this.dbName = 'AutoReportCECATE_DB'; // chave legada mantida para compatibilidade
     this.dbVersion = 1;
     this.db = null;
     this.isReady = false;
@@ -185,7 +130,7 @@ class TrainingDB {
   initSupabase() {
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       try {
-        this.supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        this.supabase = CapacitaTE.supabaseClient.get();
         this.isCloudConnected = true;
         this.updateCloudIndicator(true);
         console.log('Supabase Cloud conectado com sucesso!');
@@ -206,6 +151,7 @@ class TrainingDB {
    */
   async reconnectSupabase() {
     await loadSupabaseEnv();
+    CapacitaTE.supabaseClient.reset();
     this.supabase = null;
     this.initSupabase();
     return this.supabase ? this.syncNow() : null;
@@ -593,10 +539,10 @@ class TrainingDB {
       workload: data.workload || '',
       targetAudience: data.targetAudience || 'Gestores Municipais e Conselheiros CACS-FUNDEB',
       expectedParticipants: data.expectedParticipants || '',
-      responsibleOrg: data.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)',
-      relatedProject: data.relatedProject || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL',
-      processNumber: data.processNumber || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00',
-      fundingOrg: data.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE',
+      responsibleOrg: data.responsibleOrg || localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)', // chave legada mantida para compatibilidade
+      relatedProject: data.relatedProject || localStorage.getItem('autoreport_setting_proj') || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL', // chave legada mantida para compatibilidade
+      processNumber: data.processNumber || localStorage.getItem('autoreport_setting_process') || '23070.012345/2026-00', // chave legada mantida para compatibilidade
+      fundingOrg: data.fundingOrg || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE', // chave legada mantida para compatibilidade
       partnerOrgs: data.partnerOrgs || '',
       locationVenue: data.locationVenue || '',
       locationAddress: data.locationAddress || '',
@@ -917,11 +863,11 @@ class TrainingDB {
   async seedInitialData() {
     // 1. Remoção (uma única vez) das cópias das Capacitações Nº 6 a 14 que eram embutidas no app (ids cap_historico_N).
     // Executa só uma vez para não apagar registros com esses ids inseridos depois no banco de dados.
-    if (!localStorage.getItem('autoreport_embedded_history_removed')) {
+    if (!localStorage.getItem('autoreport_embedded_history_removed')) { // chave legada mantida para compatibilidade
       for (let n = 6; n <= 14; n++) {
         await this.purgeTrainingLocal(`cap_historico_${n}`);
       }
-      localStorage.setItem('autoreport_embedded_history_removed', '1');
+      localStorage.setItem('autoreport_embedded_history_removed', '1'); // chave legada mantida para compatibilidade
     }
 
     // 2. Limpeza de registros de teste pré-semeados antigos se existirem
