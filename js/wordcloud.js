@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Nuvens de Palavras Qualitativas Artísticas
- * Versão: v.3.7.5
+ * Versão: v.3.7.6
  */
 
 class WordCloudEngine {

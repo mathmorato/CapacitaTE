@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.5
+ * Versão: v.3.7.6
  */
 
 // Configuração da nuvem. Prioridade: endereço e chave salvos neste navegador (tela Configurações),
@@ -366,7 +366,7 @@ class TrainingDB {
       if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         return 'Sem conexão com a internet';
       }
-      return `o servidor da nuvem (${SUPABASE_CONFIG.url}) não respondeu. Verifique se o projeto Supabase está ativo; se ele foi pausado ou excluído, reative-o ou atualize o endereço e a chave em js/db.js`;
+      return `o servidor da nuvem (${SUPABASE_CONFIG.url}) não respondeu. Informe o endereço e a chave do projeto Supabase em Configurações > Conexão com a Nuvem (ou verifique se o projeto está ativo)`;
     }
     if (/JWT|apikey|Invalid API key|401/i.test(msg)) return 'a chave de acesso da nuvem (Supabase) foi recusada';
     if (/row-level security|permission denied|42501/i.test(msg)) return 'a nuvem recusou o acesso (regras de segurança RLS do Supabase)';
