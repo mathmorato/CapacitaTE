@@ -1,22 +1,25 @@
 /**
- * CapacitaTE - Módulo Lista de Presença (sessões com QR próprio, quadro de frequência e registros)
- * Versão: v.3.9.2
+ * CapacitaTE - Módulo Lista de Presença (um formulário para todos os dias; frequência por dia de envio)
+ * Cada envio é registrado no dia em que foi feito (migração 0004d), então o quadro tem uma coluna por dia.
+ * Versão: v.3.9.3
  */
 
 (function () {
   const F = CapacitaTE.formModules;
 
-  // Datas da capacitação (yyyy-mm-dd) → uma sessão por dia
+  // Dias da capacitação (yyyy-mm-dd), do início ao fim
   function trainingDays(t) {
-    const start = t.startDate && /^\d{4}-\d{2}-\d{2}$/.test(t.startDate) ? new Date(`${t.startDate}T12:00:00`) : null;
-    const end = t.endDate && /^\d{4}-\d{2}-\d{2}$/.test(t.endDate) ? new Date(`${t.endDate}T12:00:00`) : start;
-    if (!start) return [];
+    const ok = (d) => d && /^\d{4}-\d{2}-\d{2}$/.test(d);
+    if (!ok(t.startDate)) return [];
+    const end = ok(t.endDate) ? t.endDate : t.startDate;
     const days = [];
-    for (let d = new Date(start), i = 1; d <= end && i <= 10; d.setDate(d.getDate() + 1), i++) {
-      days.push({ key: `dia${i}`, label: CapacitaTE.formats.formatDate(d.toISOString().slice(0, 10)) });
+    for (let d = new Date(`${t.startDate}T12:00:00`), i = 0; d <= new Date(`${end}T12:00:00`) && i < 15; d.setDate(d.getDate() + 1), i++) {
+      days.push(d.toISOString().slice(0, 10));
     }
     return days;
   }
+
+  const dayLabel = (key) => (/^\d{4}-\d{2}-\d{2}$/.test(key) ? CapacitaTE.formats.formatDate(key) : key);
 
   F.register({
     key: 'presenca',
@@ -28,42 +31,20 @@
     async render(body, c) {
       const { el, training } = c;
       const canEdit = c.can('presenca', 'edit', training.id);
-      const sessions = c.forms.slice().sort((a, b) => a.session_key.localeCompare(b.session_key, 'pt-BR', { numeric: true }));
+      const form = c.forms.find(f => f.session_key === 'unico');
+      const legacy = c.forms.filter(f => f.session_key !== 'unico');
 
-      // Criação de sessões
-      const days = trainingDays(training);
-      const missingDays = days.filter(d => !sessions.some(s => s.session_key === d.key));
-      const keyInput = el('input', { class: 'form-control', type: 'text', placeholder: 'dia1-manha', id: 'presenca-new-key' });
-      const labelInput = el('input', { class: 'form-control', type: 'text', placeholder: '23/06/2026 — Manhã', id: 'presenca-new-label' });
-      const createBox = el('div', { class: 'glass-card forms-section' }, [
-        el('h3', { class: 'forms-section-title', text: `Sessões de presença (${sessions.length})` }),
-        el('p', { class: 'admin-muted', text: 'Cada sessão tem o próprio link e QR Code. Recomendado: abrir no horário da sessão e fechar até 2 h depois do fim.' }),
-        canEdit && missingDays.length ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: `Criar ${missingDays.length === days.length ? 'uma sessão por dia' : 'sessões que faltam'} (${missingDays.map(d => d.label).join(', ')})`, onclick: async (e) => {
-          e.currentTarget.disabled = true;
-          try {
-            for (const d of missingDays) await c.createForm('presenca', training, d.key, { label: d.label });
-            c.toast('Sessões criadas em rascunho.', 'success'); c.rerender();
-          } catch (err) { c.toast(c.errMsg(err), 'error'); e.currentTarget.disabled = false; }
-        } }) : null,
-        !days.length ? el('p', { class: 'admin-muted', text: 'Preencha as datas de início e fim da capacitação (Etapa 1 do Relatório) para criar as sessões por dia.' }) : null,
-        canEdit ? el('details', { class: 'forms-config' }, [
-          el('summary', { text: 'Adicionar sessão avulsa (ex.: manhã e tarde)' }),
-          el('div', { class: 'admin-form-grid' }, [
-            el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'presenca-new-key', text: 'Código (sem espaços)' }), keyInput]),
-            el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'presenca-new-label', text: 'Nome exibido' }), labelInput])
-          ]),
-          el('button', { type: 'button', class: 'btn btn-secondary btn-sm', style: 'margin-top:0.75rem;', text: 'Adicionar sessão', onclick: async (e) => {
-            const key = keyInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
-            if (!key || !labelInput.value.trim()) return c.toast('Informe o código e o nome da sessão.', 'warning');
-            if (sessions.some(s => s.session_key === key)) return c.toast('Já existe uma sessão com esse código.', 'warning');
+      if (!form) {
+        body.append(el('div', { class: 'glass-card' }, [
+          el('h3', { style: 'margin:0 0 0.5rem; font-size:1rem;', text: 'Ainda não há formulário de presença para esta capacitação.' }),
+          el('p', { class: 'admin-muted', text: 'É um único link e QR Code para todos os dias. Cada registro fica com o dia em que foi feito, e a pessoa pode registrar presença em cada dia da capacitação.' }),
+          canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Criar formulário de presença', onclick: async (e) => {
             e.currentTarget.disabled = true;
-            try { await c.createForm('presenca', training, key, { label: labelInput.value.trim() }); c.rerender(); }
+            try { await c.createForm('presenca', training, 'unico'); c.toast('Formulário criado em rascunho.', 'success'); c.rerender(); }
             catch (err) { c.toast(c.errMsg(err), 'error'); e.currentTarget.disabled = false; }
-          } })
-        ]) : null
-      ]);
-      body.append(createBox);
-      if (!sessions.length) return;
+          } }) : null
+        ]));
+      }
 
       const [att, reg] = await Promise.all([
         c.client().from('attendance').select('*').eq('training_id', training.id).order('submitted_at'),
@@ -74,15 +55,42 @@
       const attendance = att.data || [];
       const registrations = reg.data || [];
 
-      // Cartões das sessões
-      sessions.forEach(s => {
-        const present = attendance.filter(a => a.session_key === s.session_key).length;
-        const card = c.formCard(s, c);
-        card.insertBefore(el('p', { class: 'forms-counter', text: `${present} presentes / ${registrations.length} inscritos` }), card.children[1]);
-        body.append(card);
-      });
+      // Colunas: dias da capacitação + qualquer outro dia/sessão que tenha registros
+      const days = [...new Set([...trainingDays(training), ...attendance.map(a => a.session_key)])]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
 
-      // Quadro de frequência: inscritos + presentes não inscritos × sessões
+      if (form) {
+        const card = c.formCard(form, c);
+        const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+        const counts = days.map(d => `${dayLabel(d)}: ${attendance.filter(a => a.session_key === d).length}`).join(' · ');
+        card.insertBefore(el('p', { class: 'forms-counter', text: `${attendance.filter(a => a.session_key === today).length} presentes hoje / ${registrations.length} inscritos${counts ? ` · ${counts}` : ''}` }), card.children[1]);
+        body.append(card);
+      }
+
+      // Formulários por dia criados antes da v.3.9.3 (modelo anterior): só listar e permitir excluir
+      if (legacy.length) {
+        body.append(el('details', { class: 'glass-card forms-section forms-config' }, [
+          el('summary', { text: `Formulários por dia do modelo anterior (${legacy.length})` }),
+          el('p', { class: 'admin-muted', text: 'Agora a presença usa um único formulário. Estes formulários por dia continuam funcionando se já foram divulgados; exclua os que não forem usados.' }),
+          ...legacy.map(s => el('div', { class: 'forms-toolbar' }, [
+            el('span', { class: 'forms-section-title', text: `${(s.config && s.config.label) || s.session_key} · ${{ rascunho: 'Rascunho', aberto: 'Aberto', fechado: 'Encerrado' }[s.status]}` }),
+            canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir', onclick: () => window.app.openConfirmModal({
+              title: 'Excluir formulário por dia?', msg: `O link e o QR Code de "${(s.config && s.config.label) || s.session_key}" deixam de funcionar e os registros feitos por ele são removidos.`, btnText: 'Sim, excluir',
+              successTitle: 'Formulário excluído', successMsg: 'A lista será atualizada.',
+              onConfirm: async () => {
+                const { error } = await c.client().from('forms').delete().eq('id', s.id);
+                if (error) return c.toast(c.errMsg(error), 'error');
+                await c.audit('form.delete', 'presenca', training.id, s.id, { session: s.session_key });
+                c.rerender();
+              }
+            }) }) : null
+          ]))
+        ]));
+      }
+
+      if (!days.length && !attendance.length) return;
+
+      // Quadro de frequência: inscritos + presentes não inscritos × dias
       const people = new Map();
       registrations.forEach(r => people.set(r.cpf, { cpf: r.cpf, name: r.full_name, municipality: r.municipality, category: r.category, registered: true }));
       attendance.forEach(a => { if (!people.has(a.cpf)) people.set(a.cpf, { cpf: a.cpf, name: a.full_name, municipality: a.municipality, category: a.category, registered: false }); });
@@ -94,8 +102,8 @@
         boardBox.textContent = '';
         const rows = [...people.values()]
           .map(p => {
-            const marks = sessions.map(s => presentSet.has(`${p.cpf}|${s.session_key}`));
-            return { p, marks, pct: Math.round((marks.filter(Boolean).length / sessions.length) * 100) };
+            const marks = days.map(d => presentSet.has(`${p.cpf}|${d}`));
+            return { p, marks, pct: days.length ? Math.round((marks.filter(Boolean).length / days.length) * 100) : 0 };
           })
           .filter(({ p, pct }) => (filter === 'faltosos' ? pct < 100 && p.registered : filter === 'naoinscritos' ? !p.registered : true))
           .filter(({ p }) => !term || `${p.name} ${p.municipality}`.toLowerCase().includes(term))
@@ -107,7 +115,7 @@
             ...marks.map(m => el('td', { class: `perm-col ${m ? 'forms-present' : 'forms-absent'}`, text: m ? '✓' : '—', 'aria-label': m ? 'presente' : 'ausente' })),
             el('td', { class: 'perm-col', text: `${pct}%` })
           ]));
-        boardBox.append(c.table(['Nome', 'Município', 'Categoria', ...sessions.map(s => (s.config && s.config.label) || s.session_key), '% presença'], rows, 'Ninguém neste filtro.'));
+        boardBox.append(c.table(['Nome', 'Município', 'Categoria', ...days.map(dayLabel), '% presença'], rows, 'Ninguém neste filtro.'));
       };
       const filterSel = el('select', { class: 'form-control forms-filter', 'aria-label': 'Filtro' }, [
         el('option', { value: 'todos', text: 'Todos' }), el('option', { value: 'faltosos', text: 'Somente faltosos' }), el('option', { value: 'naoinscritos', text: 'Somente não inscritos' })
@@ -119,16 +127,16 @@
       ]));
       drawBoard();
 
-      // Registros por sessão (com exclusão)
+      // Registros de presença (com exclusão)
       const recRows = attendance.map(a => el('tr', {}, [
-        el('td', { text: (sessions.find(s => s.session_key === a.session_key) || {}).config?.label || a.session_key }),
+        el('td', { text: dayLabel(a.session_key) }),
         el('td', { text: a.full_name || '—' }),
         el('td', { text: c.maskCpf(a.cpf) }),
         el('td', { text: a.municipality || '—' }),
         el('td', { text: a.was_registered ? 'Sim' : 'Não' }),
         el('td', { text: c.fmtDateTime(a.submitted_at) }),
         el('td', { class: 'perm-col' }, canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir', onclick: () => window.app.openConfirmModal({
-          title: 'Excluir registro de presença?', msg: `${a.full_name || 'Esta pessoa'} deixará de constar como presente nesta sessão.`, btnText: 'Sim, excluir',
+          title: 'Excluir registro de presença?', msg: `${a.full_name || 'Esta pessoa'} deixará de constar como presente em ${dayLabel(a.session_key)}.`, btnText: 'Sim, excluir',
           successTitle: 'Registro excluído', successMsg: 'O quadro será atualizado.',
           onConfirm: async () => {
             const { error } = await c.client().from('attendance').delete().eq('id', a.id);
@@ -140,7 +148,7 @@
       ]));
       body.append(el('details', { class: 'glass-card forms-section forms-config' }, [
         el('summary', { text: `Registros de presença (${attendance.length})` }),
-        c.table(['Sessão', 'Nome', 'CPF', 'Município', 'Inscrito?', 'Registrado em', ''], recRows)
+        c.table(['Dia', 'Nome', 'CPF', 'Município', 'Inscrito?', 'Registrado em', ''], recRows)
       ]));
     }
   });
