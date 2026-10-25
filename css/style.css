@@ -4727,3 +4727,7 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 .reception-url { margin: 0; font-size: clamp(0.8rem, 1.4vw, 1.1rem); opacity: 0.6; word-break: break-all; }
 .eval-bar { height: 0.7rem; min-width: 120px; border-radius: 999px; background: rgba(127, 127, 127, 0.25); overflow: hidden; }
 .eval-bar span { display: block; height: 100%; background: var(--accent-primary, #F6A800); border-radius: 999px; }
+
+.eval-dist-row { display: grid; grid-template-columns: 60px 1fr 32px; align-items: center; gap: 0.6rem; margin-top: 0.4rem; font-size: 0.85rem; }
+.eval-words { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; margin-top: 0.6rem; align-items: baseline; }
+.eval-word { color: var(--accent-gold-text, #b97d00); font-weight: 600; line-height: 1.3; }

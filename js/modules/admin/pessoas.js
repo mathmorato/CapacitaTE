@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Pessoas e Importar base
- * Versão: v.4.1.4
+ * Versão: v.4.1.5
  */
 
 (function () {
@@ -44,6 +44,32 @@
     if (/cacs|fundeb/.test(t)) return 'CACS-FUNDEB';
     return t ? 'Gestão municipal' : '';
   };
+
+
+  // Colunas extras das respostas (carimbo, caso de sucesso e campos da avaliação), reconhecidas pelo início do cabeçalho
+  const RESPONSE_HEADERS = {
+    submitted_at: ['carimbo de data/hora', 'carimbo de data hora'],
+    success_case: ['caso de sucesso', 'case de sucesso'],
+    liked: ['indique dois aspectos que voce mais gostou'],
+    improve: ['indique dois aspectos que poderiam ser melhorados'],
+    institution_type: ['instituicao vinculada'],
+    institution_name: ['mencionar a instituicao'],
+    topics_suggestion: ['sugestao de temas'],
+    heard_from: ['como ficou sabendo'],
+    comments: ['comentarios']
+  };
+  const findCol = (header, starts) => header.map(plain).findIndex(h => starts.some(x => h.startsWith(x)));
+
+  // Carimbo do Google Forms (Date, serial do Excel ou "dd/mm/aaaa hh:mm:ss") -> ISO com fuso de Brasília (-03:00)
+  function stampToIso(v) {
+    if (v instanceof Date && !isNaN(v)) {
+      const p = (n) => String(n).padStart(2, '0');
+      return `${v.getFullYear()}-${p(v.getMonth() + 1)}-${p(v.getDate())}T${p(v.getHours())}:${p(v.getMinutes())}:${p(v.getSeconds())}-03:00`;
+    }
+    const m = String(v || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}T${(m[4] || '12').padStart(2, '0')}:${m[5] || '00'}:${m[6] || '00'}-03:00`;
+    return '';
+  }
 
   // ---------- Pessoas ----------
   CapacitaTE.adminViews.pessoas = async function (body) {
@@ -238,6 +264,67 @@
         el('div', { class: 'forms-toolbar', style: 'margin-top:1rem;' }, [policy, go]),
         rejected.length ? el('p', { class: 'admin-muted', text: 'As linhas rejeitadas (CPF vazio ou inválido, nome vazio) saem numa planilha ao fim da importação.' }) : null
       ]));
+      out.append(responsesCard(good.length));
+    }
+
+    // Importar também como respostas de uma capacitação (traz as capacitações antigas para o banco)
+    function responsesCard(validCount) {
+      const trainings = [...((window.app && window.app.trainingList) || [])].sort((a, b) => (parseInt(b.number) || 0) - (parseInt(a.number) || 0));
+      const trSel = el('select', { class: 'form-control', 'aria-label': 'Capacitação' }, [el('option', { value: '', text: 'Escolha a capacitação...' }),
+        ...trainings.map(t => el('option', { value: t.id, text: `${t.number ? `${t.number}ª` : ''} ${t.polo || ''}${t.uf ? ` (${t.uf})` : ''}`.trim() }))]);
+      const typeSel = el('select', { class: 'form-control', 'aria-label': 'Tipo de planilha' }, [
+        el('option', { value: 'inscricao', text: 'Inscrições' }), el('option', { value: 'presenca', text: 'Lista de presença' }), el('option', { value: 'avaliacao', text: 'Avaliações' })]);
+      const msg = el('p', { class: 'admin-muted', style: 'margin:0.6rem 0 0;' });
+      const go = el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Importar como respostas', disabled: !validCount, onclick: async (e) => {
+        const btn = e.currentTarget;
+        if (!trSel.value) return toast('Escolha a capacitação.', 'warning');
+        btn.disabled = true;
+        msg.textContent = 'Importando...';
+        try {
+          const mod = typeSel.value;
+          const { data: forms, error: fe } = await client().from('forms').select('*').eq('training_id', trSel.value).eq('module_key', mod);
+          if (fe) throw fe;
+          const form = (forms || []).find(f => f.session_key === 'unico') || (forms || [])[0];
+          if (!form) throw new Error('Essa capacitação ainda não tem o formulário deste tipo. Crie-o na página da capacitação e tente de novo.');
+          const items = (form.config && form.config.ratingItems && form.config.ratingItems.length) ? form.config.ratingItems : CapacitaTE.formSchema.DEFAULTS.ratingItems;
+          const ratingCols = state.header.map((h, i) => ({ i, label: (String(h).match(/\[(.+)\]\s*$/) || [])[1] })).filter(c => c.label)
+            .map(c => ({ i: c.i, key: (items.find(it => plain(it.label) === plain(c.label)) || {}).key })).filter(c => c.key);
+          const col = {};
+          Object.entries(RESPONSE_HEADERS).forEach(([k, starts]) => { col[k] = findCol(state.header, starts); });
+          const g = (r, f) => (state.mapping[f] >= 0 ? r[state.mapping[f]] : '');
+          const rows = [];
+          state.rows.forEach(r => {
+            const cpf = String(g(r, 'cpf') || '').replace(/\D/g, '').padStart(11, '0').slice(-11);
+            const name = String(g(r, 'full_name') || '').trim();
+            if (!CapacitaTE.cpf.isValid(cpf) || !name) return;
+            const val = (k) => (col[k] >= 0 && r[col[k]] !== null && r[col[k]] !== undefined ? String(r[col[k]]).trim() : '');
+            const ratings = {};
+            ratingCols.forEach(c => { const n = Number(r[c.i]); if (n >= 1 && n <= 5) ratings[c.key] = n; });
+            const iso = col.submitted_at >= 0 ? stampToIso(r[col.submitted_at]) : '';
+            rows.push({
+              cpf, full_name: name, email: String(g(r, 'email') || '').trim(), birth_date: toIso(g(r, 'birth_date')), phone: String(g(r, 'phone') || ''),
+              municipality: String(g(r, 'municipality') || '').trim(), category: normCategory(g(r, 'category')),
+              role_gestao: String(g(r, 'role_gestao') || '').trim(), role_cacs: String(g(r, 'role_cacs') || '').trim(), success_case: val('success_case'),
+              submitted_at: iso, ratings, liked: val('liked'), improve: val('improve'), institution_type: val('institution_type'),
+              institution_name: val('institution_name'), topics_suggestion: val('topics_suggestion'), heard_from: val('heard_from'), comments: val('comments')
+            });
+          });
+          const total = { gravadas: 0, repetidas: 0, invalidas: 0 };
+          for (let i = 0; i < rows.length; i += 500) {
+            const { data, error } = await client().rpc('admin_import_responses', { p_form: form.id, p_rows: rows.slice(i, i + 500) });
+            if (error) throw error;
+            Object.keys(total).forEach(k => { total[k] += data[k] || 0; });
+          }
+          msg.textContent = `Concluído: ${total.gravadas} gravadas, ${total.repetidas} repetidas (já existiam), ${total.invalidas} inválidas.`;
+          toast(msg.textContent, 'success', 8000);
+        } catch (err) { msg.textContent = errorMessage(err); toast(errorMessage(err), 'error', 8000); }
+        btn.disabled = false;
+      } });
+      return el('div', { class: 'glass-card forms-section', style: 'margin-top:1rem;' }, [
+        el('h3', { class: 'forms-section-title', text: 'Importar também como respostas de uma capacitação (opcional)' }),
+        el('p', { class: 'admin-muted', text: 'Para trazer capacitações antigas para o banco. Use a planilha original do Google Forms: o carimbo de data/hora é mantido. Quem já tem resposta é contado como repetida e não muda. Não envia e-mail. A capacitação precisa ter o formulário do tipo escolhido (crie-o na página da capacitação, mesmo em rascunho).' }),
+        el('div', { class: 'forms-toolbar' }, [trSel, typeSel, go]), msg
+      ]);
     }
 
     body.append(el('div', { class: 'glass-card' }, [

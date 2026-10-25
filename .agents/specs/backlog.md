@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.1.4** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.1.5** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -41,14 +41,16 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 
 **v.4.1.4:** as cidades do formulário se atualizam sozinhas quando a lista da capacitação muda (quem pode editar, ao abrir/atualizar a tela; uma tentativa por lista nova; se falhar, o aviso com o botão continua). Não testada no navegador.
 
+**v.4.1.5:** (a) Admin › Importar base ganhou "Importar também como respostas de uma capacitação" (RPC `admin_import_responses`, migração **0004j**): inscrição, presença (dia pelo carimbo, fuso de Brasília) e avaliação (notas pelas colunas `[item]`), mantendo o carimbo original, sem e-mail, repetidas ignoradas. (b) Prévia da avaliação: distribuição da nota geral e palavras mais citadas. Nada testado no navegador nem na nuvem (a 0004j não foi aplicada).
+
 **Pendências finais (25/10/2026):**
-1. **Usuário, SQL Editor, nesta ordem:** `0004h_lixeira_excluir_definitivo.sql` (botão Excluir permanentemente) e `0004i_pessoas_importacao.sql` (Admin › Pessoas e Importar base). Sem elas esses botões dão erro.
-2. **Usuário, conferir no navegador** (nada disto foi visto numa tela real, só `node --check` e testes de SQL/REST): Relatórios › Relatório final; etapas 2 e 3 da capacitação; Adicionar cidade no painel de vagas; Excluir/Lixeira/Restaurar; Modo recepção; Incluir resposta manualmente; barras da avaliação; Configurações › Checklist; Admin › Pessoas e Importar base.
-3. **Usuário:** testar os e-mails de presença e de avaliação (só o de inscrição foi validado).
-4. **Segurança final:** quando o checklist estiver todo OK, rodar `0005_rls_endurecida.sql` (reverter: bloco no fim do arquivo) e religar o limite de tentativas (`update app_settings set value='true' where key='rate_limit_enabled'`).
-5. **Não feito:** importar respostas históricas das capacitações antigas (seção 7.3, item 7); gráficos mais ricos e nuvem de palavras na prévia da avaliação (continuam só no Relatório); `scripts/testes-formularios` não cobre as páginas públicas no navegador.
-6. **Limpeza:** apagar as pessoas "Teste Automatizado" (SQL na seção 5).
-7. **Permissões:** a conta "Matheus Morato" (perfil Usuário) não vê os formulários: dar permissões em Administração › Permissões.
+1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
+2. **Usuário, conferir no navegador** (tudo o que foi feito desde a v.4.0.3 foi validado só por sintaxe e testes de SQL/REST): Relatórios › Relatório final; etapas 2 e 3; adicionar cidade (manual e por planilha) e atualização automática das cidades do formulário; Excluir/Lixeira/Restaurar; Modo recepção; Incluir manualmente; gráficos da avaliação; checklist; Admin › Pessoas e Importar base (incluindo respostas históricas com a planilha de uma capacitação antiga); sincronização automática; Excluir capacitação só para administrador.
+3. **Usuário:** testar e-mails de presença e avaliação (só o de inscrição foi validado).
+4. **Segurança final:** com o checklist todo OK, `0005_rls_endurecida.sql` (reverter: bloco no fim do arquivo) e religar o limite de tentativas (`update app_settings set value='true' where key='rate_limit_enabled'`).
+5. **Limpeza:** apagar as pessoas "Teste Automatizado" (SQL na seção 5).
+6. **Permissões:** a conta "Matheus Morato" (perfil Usuário) precisa das permissões em Administração › Permissões.
+7. **Não feito:** nuvem de palavras em imagem (a prévia usa lista de palavras com tamanho proporcional; a nuvem completa continua no Relatório); testes automatizados das páginas públicas no navegador.
 
 ## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 
