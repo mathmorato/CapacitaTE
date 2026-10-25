@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.2.7** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.2.8** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -66,6 +66,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.2.6:** Painel de vagas com a coluna "Código INEP" (código do município, igual ao IBGE de 7 dígitos) antes do Município. Interpretação do pedido "código INEP e a cidade": o usuário pode ter querido outra coisa (confirmar).
 
 **v.4.2.7:** células e cabeçalhos do Painel de vagas centralizados (`.table-compact`).
+
+**v.4.2.8:** a barra de carregamento das cidades agora é de 0 a 100% com porcentagem na tela e duração mínima de 1,5 s (sobe até 90% com o tempo e fecha em 100% quando o trabalho termina). O usuário escreveu "0 a 10%"; interpretado como 0 a 100% (confirmar).
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
