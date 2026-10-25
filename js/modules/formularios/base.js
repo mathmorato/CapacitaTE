@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.0.0
+ * Versão: v.4.0.1
  */
 
 (function () {
@@ -318,6 +318,39 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
+  // Adicionar cidade convidada direto no painel de vagas: grava na capacitação (Etapa 2 do cadastro) e no formulário
+  function addMunicipalityBox(ctx, form) {
+    const t = ctx.training;
+    const ufs = [...new Set((window.IBGE_DATA || []).map(m => m.u))].sort();
+    const uf = el('select', { class: 'form-control', 'aria-label': 'UF' }, ufs.map(u => el('option', { value: u, text: u })));
+    uf.value = ufs.includes(t.uf) ? t.uf : (ufs[0] || '');
+    const city = el('select', { class: 'form-control', 'aria-label': 'Cidade' });
+    const fill = () => {
+      const have = new Set((t.municipalities || []).map(m => String(m.ibgeCode || m.ibge || '')));
+      city.textContent = '';
+      city.append(el('option', { value: '', text: 'Escolha a cidade...' }));
+      (window.IBGE_DATA || []).filter(m => m.u === uf.value && !have.has(String(m.c))).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR'))
+        .forEach(m => city.append(el('option', { value: String(m.c), text: m.n })));
+    };
+    uf.addEventListener('change', fill); fill();
+    const btn = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Adicionar cidade', onclick: async () => {
+      const m = (window.IBGE_DATA || []).find(x => String(x.c) === city.value);
+      if (!m) return toast('Escolha a cidade.', 'error');
+      btn.disabled = true;
+      try {
+        if (!t.municipalities) t.municipalities = [];
+        t.municipalities.push({ id: `mun_add_${Date.now()}`, ibgeCode: String(m.c), name: m.n, uf: m.u, distanceKm: 0, isSummoned: true, isSede: false,
+          inscribedCACS: 2, inscribedGestores: 2, inscribedTotal: 4, presentCACS: 0, presentGestores: 0, presentTotal: 0 });
+        await window.db.saveTrainingFull(t, `Cidade adicionada pelo painel de vagas: ${m.n}/${m.u}`);
+        await updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMunicipalities(t) }) }, 'form.config');
+        toast(`${m.n} adicionada. O formulário já mostra a cidade.`, 'success'); ctx.rerender();
+      } catch (err) { toast(errMsg(err), 'error'); btn.disabled = false; }
+    } });
+    return el('div', { class: 'forms-toolbar', style: 'margin-bottom:0.8rem;' }, [
+      el('strong', { text: 'Adicionar cidade convidada' }), uf, city, btn
+    ]);
+  }
+
   // ---------- excluir e lixeira ----------
   // Excluir copia a resposta para public.deleted_responses (0004g) e remove da tabela; restaurar faz o caminho inverso.
   function deleteButton(ctx, tableName, row, what) {
@@ -397,7 +430,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
       const forms = await loadForms(def.key, training.id);
       body.textContent = '';
       const ctxRef = {};
-      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
+      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), addMunicipalityBox: (f) => addMunicipalityBox(ctxRef, f), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
       Object.assign(ctxRef, ctx);
       await def.render(body, ctx);
     } catch (err) {
