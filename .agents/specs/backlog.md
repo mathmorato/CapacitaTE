@@ -4,7 +4,7 @@
 > `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.4** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.5** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -40,7 +40,8 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 | Migração 0004b (Meu perfil, foto, limite de tentativas, textos "Administrador Chefe") | ✅ aplicada (25/10) |
 | Migração 0004c (notas da avaliação com itens padrão) | ✅ aplicada (teste de 25/10 gravou as 7 notas) |
 | Migração 0004d (presença em formulário único; registro por dia do envio) | ✅ aplicada (teste de 25/10: session_key = dia do envio) |
-| Edge Function **`enviar-confirmacao`** (e-mail após inscrição, presença e avaliação) | ⏳ **pendente** — publicar, cadastrar segredos GMAIL_USER/GMAIL_APP_PASSWORD e criar 3 Database Webhooks (INSERT em registrations, attendance, evaluations) |
+| Edge Function **`enviar-confirmacao`** (e-mail após inscrição, presença e avaliação) | ⏳ **pendente** — publicar (Verify JWT desligado) e cadastrar segredos GMAIL_USER/GMAIL_APP_PASSWORD |
+| Migração **0004e** (gatilhos pg_net que chamam a função; substituem os Database Webhooks do painel) | ⏳ **pendente** — o usuário precisa rodar |
 | Migração 0005 (RLS endurecida: tirar acesso anônimo de `trainings`/`master_team`) | ⏳ não escrita (Fase 6) |
 | Edge Function `admin-invite-user` (só ação `invite`) | ✅ publicada pelo painel, "Verify JWT" desligado |
 | SMTP Gmail (smtp.gmail.com:465, user morato@ufg.br, remetente cecate@ufg.br) | ✅ |
@@ -116,7 +117,7 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
   America/Sao_Paulo, migração 0004d); a pessoa registra presença em cada dia e o quadro de frequência tem uma
   coluna por dia. Formulários por dia criados antes ficam listados como "modelo anterior" (só excluir).
 - **E-mail de confirmação (v.3.9.4, pedido do usuário):** Edge Function `enviar-confirmacao` chamada por Database
-  Webhooks; relê o registro no banco pelo id (não confia no corpo recebido), envia pelo SMTP do Gmail (porta 465,
+  Webhooks (trocados na v.3.9.5 por gatilhos pg_net da migração 0004e, URL em `app_settings`); relê o registro no banco pelo id (não confia no corpo recebido), envia pelo SMTP do Gmail (porta 465,
   remetente cecate@ufg.br) e marca `answers.email_sent_at` (envio único). Opção "Enviar e-mail de confirmação" por
   formulário (`config.sendEmail`, ligada por padrão). Auditoria `email.sent` / `email.error`. Limite do Gmail
   ~500/dia (usuário confirmou que não chega perto).
@@ -127,7 +128,7 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
 
 ## 5. Pendências do usuário
 
-1. Configurar o e-mail de confirmação: publicar `enviar-confirmacao` (Verify JWT desligado), segredos `GMAIL_USER` e `GMAIL_APP_PASSWORD`, e 3 webhooks (Database > Webhooks, INSERT em `registrations`, `attendance`, `evaluations`, tipo Supabase Edge Functions → `enviar-confirmacao`).
+1. Configurar o e-mail de confirmação: publicar `enviar-confirmacao` (Verify JWT desligado), segredos `GMAIL_USER` e `GMAIL_APP_PASSWORD`, e rodar `supabase/migrations/0004e_email_gatilhos.sql` (gatilhos no lugar dos webhooks, que no painel novo ficam em Integrations).
    Opcional: colar de novo os modelos de `supabase/templates/` (correção da faixa laranja do topo).
 2. Abrir os formulários (estão em rascunho) quando quiser divulgar os links.
 3. Limpar as pessoas de teste (SQL abaixo).

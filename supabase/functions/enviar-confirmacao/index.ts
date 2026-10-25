@@ -1,6 +1,7 @@
 // CapacitaTE - Edge Function enviar-confirmacao
 // Envia o e-mail de confirmação depois de uma inscrição, presença ou avaliação.
-// É chamada pelos Database Webhooks (INSERT em registrations, attendance e evaluations).
+// É chamada pelos gatilhos do banco (migração 0004e, via pg_net) depois de cada INSERT em registrations,
+// attendance e evaluations, com { table, record: { id } }. Publique com "Verify JWT" desligado.
 //
 // Segurança: a função não confia no conteúdo recebido. Ela usa só a tabela e o id do registro, relê a linha no banco
 // (service_role) e envia para o e-mail gravado nela, uma única vez (marca answers.email_sent_at).
