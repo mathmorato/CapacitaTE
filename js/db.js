@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.2.9.5
+ * Versão: v.3.4.7
  */
 
 const SUPABASE_CONFIG = {
@@ -400,6 +400,11 @@ class TrainingDB {
       baseTemplateId: training.baseTemplateId || null,
       baseTemplateName: training.baseTemplateName || '',
       isCustomized: training.isCustomized === true,
+      customPhotoTitles: training.customPhotoTitles || {},
+      customPhotoSources: training.customPhotoSources || {},
+      customWordCloudTitles: training.customWordCloudTitles || {},
+      customWordCloudSources: training.customWordCloudSources || {},
+      wordCloudFontFamily: training.wordCloudFontFamily || 'Plus Jakarta Sans',
       team: team.sort((a, b) => (a.order || 0) - (b.order || 0)),
       municipalities: municipalities.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       courseModules: courseModules.sort((a, b) => (a.order || 0) - (b.order || 0)),
@@ -448,11 +453,17 @@ class TrainingDB {
         responsible: 'Equipe de Articulação Institucional CECATE-CO',
         notes: ''
       },
+      educationalTech: data.educationalTech || null,
       texts: data.texts || {
         intro: '',
         development: '',
         finalConsiderations: ''
       },
+      customPhotoTitles: data.customPhotoTitles || {},
+      customPhotoSources: data.customPhotoSources || {},
+      customWordCloudTitles: data.customWordCloudTitles || {},
+      customWordCloudSources: data.customWordCloudSources || {},
+      wordCloudFontFamily: data.wordCloudFontFamily || 'Plus Jakarta Sans',
       status: data.status || 'in_progress',
       progressPercent: data.progressPercent || 0,
       createdAt: data.createdAt || now,
@@ -599,10 +610,11 @@ class TrainingDB {
           type: med.type || 'photo',
           blob: med.blob || med.dataUrl || '',
           caption: med.caption || `Figura ${idx + 1}`,
+          title: med.title || '',
           order: med.order !== undefined ? med.order : idx,
           section: med.section || '6. REGISTROS FOTOGRÁFICOS',
           description: med.description || '',
-          source: med.source || 'Arquivo CECATE Centro-Oeste',
+          source: med.source || (data.customPhotoSources && med.slotId && data.customPhotoSources[med.slotId] ? (data.customPhotoSources[med.slotId].toLowerCase().startsWith('fonte:') ? data.customPhotoSources[med.slotId].trim() : `Fonte: ${data.customPhotoSources[med.slotId].trim()}`) : 'Fonte: Elaborada pelos autores.'),
           fileName: med.fileName || `foto_${idx + 1}.jpg`,
           fileSize: med.fileSize || 0,
           fileType: med.fileType || ''
@@ -713,6 +725,7 @@ class TrainingDB {
         responsible: source.contactsData?.responsible || 'Equipe de Articulação Institucional CECATE-CO',
         notes: ''
       },
+      educationalTech: source.educationalTech ? JSON.parse(JSON.stringify(source.educationalTech)) : null,
       texts: opts.copyTexts ? { ...source.texts } : {},
       status: 'in_progress',
       isHistorical: false, // Novo registro em andamento, nunca histórico

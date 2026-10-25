@@ -1,5 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Automação de Escrita e Processamento de Relatórios
+ * Versão: v.3.4.7
  */
 
 class ReportEngine {
@@ -238,6 +239,7 @@ class ReportEngine {
     @media print {
       body { background: white; padding: 0; }
       .document-container { box-shadow: none; border: none; padding: 0; }
+      table, tr, td, th { page-break-inside: avoid !important; break-inside: avoid !important; }
     }
   </style>
 </head>

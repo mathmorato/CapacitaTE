@@ -1,6 +1,6 @@
 /**
- * AutoReport CECATE - Motor de Gráficos e Visualizações Estatísticas
- * Versão: v.2.9.5
+ * AutoReport CECATE - Motor de Geração de Gráficos (Chart.js)
+ * Versão: v.3.4.7
  */
 
 class ChartEngine {
@@ -248,11 +248,7 @@ class ChartEngine {
             }
           },
           title: {
-            display: !!title,
-            text: title,
-            color: isDark ? '#f8fafc' : '#0f172a',
-            font: { family: 'Plus Jakarta Sans', size: 13, weight: '700' },
-            padding: { bottom: 12 }
+            display: false // Desativado no canvas para evitar duplicidade de título com as legendas do relatório e da UI
           },
           tooltip: {
             callbacks: {

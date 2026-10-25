@@ -1,6 +1,6 @@
 /**
- * AutoReport CECATE - Equipe Técnica Oficial CECATE/UFG e FNDE
- * Versão: v.2.9.5
+ * AutoReport CECATE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
+ * Versão: v.3.4.7
  */
 
 window.OFFICIAL_PRONOUNS = [
@@ -90,9 +90,9 @@ window.DEFAULT_OFFICIAL_TEAM = [
     id: 'team_ufg_2',
     institutionGroup: 'UFG',
     pronoun: 'Eng.',
-    title: 'Dr.',
+    title: 'M.Sc.',
     name: 'Matheus Henrique Morato de Moraes',
-    fullName: 'Eng. Dr. Matheus Henrique Morato de Moraes',
+    fullName: 'Eng. M.Sc. Matheus Henrique Morato de Moraes',
     role: 'Equipe Técnica',
     institution: 'UFG',
     type: 'tecnica',

@@ -1,0 +1,35 @@
+# Regras do projeto
+
+## Referência visual obrigatória para documentos Word
+
+Sempre que a tarefa envolver criar, editar, corrigir ou melhorar a aparência de um arquivo `.docx`, use como fonte de verdade visual os relatórios existentes em:
+
+`C:\Antigravity\auto-report-cecate-co\02-Relatórios exemplos`
+
+As mudanças devem preservar e reproduzir, conforme aplicável, os padrões observados nesses relatórios, incluindo:
+
+- identidade visual, cores e hierarquia de títulos;
+- fontes, tamanhos, negritos, alinhamentos e espaçamentos;
+- margens, cabeçalhos, rodapés e numeração de páginas;
+- capas, sumários, tabelas, gráficos, legendas, imagens e quebras de página;
+- proporções, posicionamento, consistência e acabamento geral.
+
+Não invente um estilo visual novo quando houver um padrão equivalente nos relatórios de exemplo. Se os exemplos divergirem, dê preferência ao relatório mais recente ou ao mais próximo do tipo e da estrutura do documento atual. Não altere dados, textos ou cálculos apenas para obter semelhança visual, salvo solicitação explícita.
+
+## Uso econômico de tokens
+
+Para reduzir o uso de tokens sem comprometer a qualidade:
+
+1. Antes de analisar exemplos, inspecione nomes, datas, tamanhos e estrutura dos arquivos e selecione somente os exemplos relevantes.
+2. Comece com um único relatório de exemplo que seja o mais próximo do documento atual. Consulte outros apenas quando faltar um padrão ou houver dúvida real.
+3. Extraia e compare primeiro estilos, propriedades e estrutura do `.docx`; não transcreva nem carregue o conteúdo textual completo quando isso não for necessário.
+4. Renderize somente as páginas afetadas e as páginas de referência equivalentes. Faça uma renderização completa apenas na validação final ou quando mudanças globais exigirem.
+5. Reutilize os padrões visuais já identificados durante a tarefa. Não reabra nem reanalise o mesmo arquivo sem necessidade.
+6. Prefira buscas direcionadas, resumos curtos e resultados filtrados. Evite listar grandes volumes de texto, XML, imagens ou saídas técnicas.
+7. Agrupe alterações relacionadas em uma única rodada e valide em conjunto, reduzindo ciclos repetidos de edição.
+8. Nas respostas ao usuário, informe apenas o resultado, as decisões visuais importantes, os arquivos alterados e eventuais limitações.
+
+## Validação mínima
+
+Toda alteração visual em Word deve ser verificada por renderização antes da entrega. Confira pelo menos as páginas modificadas, além da capa, do sumário e de uma página representativa com tabela, gráfico ou imagem quando esses elementos existirem. Confirme que não há cortes, sobreposições, páginas vazias indevidas, deslocamentos ou quebras de layout.
+
