@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.4.2.9
+ * Versão: v.4.3.0
  */
 
 // A configuração da nuvem (SUPABASE_CONFIG, getSavedCloudConfig, loadSupabaseEnv) fica em js/core/config.js
@@ -202,6 +202,9 @@ class TrainingDB {
    */
   async syncFromCloud() {
     if (!this.supabase) return;
+    // Com a segurança final (0005) a nuvem só responde a quem entrou: antes do login não tenta (evita o falso "offline")
+    const auth = window.CapacitaTE && CapacitaTE.auth;
+    if (auth && auth.mode !== 'authenticated' && auth.mode !== 'transition') return;
     try {
       await this.syncNow({ timeoutMs: 3500 });
     } catch (e) {
@@ -356,8 +359,11 @@ class TrainingDB {
       const { error } = await this.supabase.from('trainings').delete().eq('id', trainingId);
       if (error) throw error;
       console.log(`Capacitação excluída da nuvem: ${trainingId}`);
+      if (window.CapacitaTE && CapacitaTE.audit) await CapacitaTE.audit.log('training.delete', { module: 'relatorio', trainingId });
+      return true;
     } catch (err) {
       console.warn('Erro ao deletar na nuvem:', err);
+      return false; // a cópia da nuvem continua e voltaria na próxima sincronização: quem chamou avisa
     }
   }
 
@@ -453,8 +459,9 @@ class TrainingDB {
     ]);
 
     // Exclusão na nuvem (Supabase)
-    if (syncCloud) {
-      await this.deleteTrainingFromCloud(trainingId);
+    if (syncCloud && this.supabase) {
+      const ok = await this.deleteTrainingFromCloud(trainingId);
+      if (!ok) return 'cloud-failed';
     }
 
     return true;
@@ -874,7 +881,7 @@ class TrainingDB {
     const oldSample16 = await this.get('trainings', 'cap_16cte_pontes_lacerda');
     if (oldSample16 && !oldSample16.userModified) {
       console.log('Removendo registro de teste antigo da Capacitação Nº 16 para inserção limpa do usuário...');
-      await this.deleteTraining('cap_16cte_pontes_lacerda').catch(() => {});
+      await this.deleteTraining('cap_16cte_pontes_lacerda', false).catch(() => {}); // só local: nunca apaga na nuvem
     }
 
     // 3. Limpeza/remoção da Capacitação 15 (Posse) da base protegida no IndexedDB

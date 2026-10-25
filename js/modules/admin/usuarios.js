@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Usuários (convidar, admin, ativo; renomear e excluir só pelo Administrador Chefe)
- * Versão: v.4.2.9
+ * Versão: v.4.3.0
  */
 
 (function () {

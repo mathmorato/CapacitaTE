@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.2.9
+ * Versão: v.4.3.0
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.2.9';
+    this.version = 'v.4.3.0';
   }
 
   /**
@@ -11442,7 +11442,10 @@ class CapacitaTEApp {
 
       // Fase 4: Exclusão completa no banco IndexedDB e na nuvem (Supabase)
       setProgress(95, 'Finalizando exclusão no banco e na nuvem...');
-      await window.db.deleteTraining(idToDelete, true);
+      const delResult = await window.db.deleteTraining(idToDelete, true);
+      if (delResult === 'cloud-failed') {
+        this.showToast('Excluída neste navegador, mas a nuvem recusou a exclusão (sem conexão ou sem permissão). Ela pode voltar na próxima sincronização.', 'warning', 9000);
+      }
 
       // Atualizar lista em memória e re-renderizar a visualização imediatamente
       this.trainingList = (this.trainingList || []).filter(t => t.id !== idToDelete);

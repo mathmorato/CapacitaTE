@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.2.9** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.3.0** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -70,6 +70,13 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.2.8:** a barra de carregamento das cidades agora é de 0 a 100% com porcentagem na tela e duração mínima de 1,5 s (sobe até 90% com o tempo e fecha em 100% quando o trabalho termina). O usuário escreveu "0 a 10%"; interpretado como 0 a 100% (confirmar).
 
 **v.4.2.9:** Painel de vagas com a coluna "Distância da sede" (km em linha reta, via `convocacaoParser.calculateDistanceToPolo`; "Sede" para o polo). Cidades adicionadas pelo painel (avulsa e planilha) já gravam `distanceKm` calculado (antes ficava 0). Não testado no navegador.
+
+**v.4.3.0 (revisão geral, 25/10/2026):** varredura no navegador automático (conta robô) de Dashboard, Capacitações, Relatórios (3 abas), Configurações, Administração (5 abas), etapas 1-3 da 16ª e assistente (etapas 1, 3, 7, 8, 11, 12): sem erros de JavaScript. Achados e correções:
+- A 0005 já está aplicada no banco (anon recebe 401). Antes do login o app tentava sincronizar, recebia 401 e mostrava "Modo Local (Offline)": `db.syncFromCloud` agora só roda com login (ou no modo de transição).
+- **A 17ª CTE (`cap_1792950620999`) não existe mais na nuvem**: entre 21:13 e 21:17 de 25/10 ela foi excluída pelo botão Excluir da lista (único caminho que apaga na nuvem); a exclusão apagou em cascata os formulários e as respostas. Se ainda existir no navegador do usuário, a sincronização a reenviaria, mas os formulários/respostas não voltam.
+- Exclusão de capacitação: o aviso dizia "banco de dados local"; agora diz que apaga também na nuvem com formulários e respostas (sem Lixeira). A exclusão passa a ser registrada na auditoria (`training.delete`) e, se a nuvem recusar, o usuário é avisado (antes o erro era engolido e a capacitação voltava na sincronização).
+- Limpeza antiga `cap_16cte_pontes_lacerda` no início agora é só local.
+- Observação: usuário não administrador só vê as capacitações em que tem permissão (0005); capacitações locais fora dessa permissão contam como "falha" ao sincronizar.
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
