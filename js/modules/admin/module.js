@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Administração (usuários, permissões e auditoria; só para admins)
- * Versão: v.4.0.4
+ * Versão: v.4.0.5
  */
 
 (function () {
@@ -68,6 +68,8 @@
   const TABS = [
     { key: 'usuarios', title: 'Usuários' },
     { key: 'permissoes', title: 'Permissões' },
+    { key: 'pessoas', title: 'Pessoas' },
+    { key: 'importar', title: 'Importar base' },
     { key: 'auditoria', title: 'Auditoria' }
   ];
 
@@ -95,7 +97,7 @@
 
     body.appendChild(el('p', { class: 'admin-muted', text: 'Carregando...' }));
     try {
-      const views = { usuarios: CapacitaTE.adminViews.usuarios, permissoes: CapacitaTE.adminViews.permissoes, auditoria: CapacitaTE.adminViews.auditoria };
+      const views = { usuarios: CapacitaTE.adminViews.usuarios, permissoes: CapacitaTE.adminViews.permissoes, auditoria: CapacitaTE.adminViews.auditoria, pessoas: CapacitaTE.adminViews.pessoas, importar: CapacitaTE.adminViews.importar };
       await views[tab](body);
     } catch (err) {
       body.textContent = '';

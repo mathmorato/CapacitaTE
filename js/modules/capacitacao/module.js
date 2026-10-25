@@ -2,9 +2,9 @@
  * CapacitaTE - Página da Capacitação: as três etapas do trabalho em um só lugar
  *   1. Cadastro e inscrição (dados da capacitação + formulário de inscrição com QR Code)
  *   2. Presença e avaliação (sessões de presença e avaliação com QR Code; exportação em Excel)
- *   3. Relatório final (assistente de 12 etapas que já existia)
+ *   3. Avaliação (o Relatório final fica em Relatórios › Relatório final)
  * Rota: #capacitacao/<id>[/<etapa>]
- * Versão: v.4.0.4
+ * Versão: v.4.0.5
  */
 
 (function () {
@@ -13,8 +13,8 @@
 
   const STAGES = [
     { n: 1, title: 'Cadastro e inscrição', hint: 'Dados da capacitação e formulário de inscrição' },
-    { n: 2, title: 'Presença e avaliação', hint: 'Listas de presença por sessão e avaliação' },
-    { n: 3, title: 'Relatório final', hint: 'Assistente do relatório em Word' }
+    { n: 2, title: 'Presença', hint: 'Link e QR Code de presença, frequência e exportação' },
+    { n: 3, title: 'Avaliação', hint: 'Link e QR Code da avaliação, resultados e exportação' }
   ];
 
   function summaryCard(training) {
@@ -73,8 +73,8 @@
     F.toast(`Planilha exportada (${aoa.length - 1} respostas).`, 'success');
   }
 
-  function exportCard(training) {
-    const items = [['inscricao', 'Inscrições'], ['presenca', 'Lista de presença'], ['avaliacao', 'Avaliação']];
+  function exportCard(training, only) {
+    const items = [['inscricao', 'Inscrições'], ['presenca', 'Lista de presença'], ['avaliacao', 'Avaliação']].filter(([m]) => !only || only.includes(m));
     return el('div', { class: 'glass-card forms-section' }, [
       el('h3', { class: 'forms-section-title', text: 'Exportar em Excel' }),
       el('p', { class: 'admin-muted', text: 'Planilhas no mesmo formato do Google Forms (mesmas abas, colunas e textos), prontas para o Relatório final ou para enviar ao FNDE.' }),
@@ -91,21 +91,6 @@
           }
         });
       }))
-    ]);
-  }
-
-  function reportCard(training) {
-    const pct = Number(training.progressPercent) || 0;
-    const canView = CapacitaTE.can('relatorio', 'view', training.id);
-    return el('div', { class: 'glass-card forms-section' }, [
-      el('h3', { class: 'forms-section-title', text: 'Relatório final' }),
-      el('p', { class: 'admin-muted', text: 'O assistente de 12 etapas monta o relatório em Word a partir dos dados da capacitação, das inscrições, da presença e da avaliação.' }),
-      el('div', { class: 'cap-progress', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) }, el('div', { style: `width:${pct}%` })),
-      el('p', { class: 'admin-muted', text: `Progresso do relatório: ${pct}%` }),
-      canView ? el('div', { class: 'admin-actions' }, [
-        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Abrir assistente do relatório', onclick: () => window.app.openWizard(training.id, 1) }),
-        el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Ir para a geração (etapa 12)', onclick: () => window.app.openWizard(training.id, 12) })
-      ]) : el('p', { class: 'admin-muted', text: 'Você não tem permissão para o Relatório.' })
     ]);
   }
 
@@ -150,18 +135,16 @@
     if (current === 1) {
       body.append(summaryCard(training));
       const box = el('div');
-      body.append(el('h3', { class: 'cap-subtitle', text: 'Formulário de inscrição' }), box);
+      body.append(el('h3', { class: 'cap-subtitle', text: 'Formulário de inscrição' }), box, exportCard(training, ['inscricao']));
       if (loggedIn) await F.renderEmbedded('inscricao', box, id); else needLogin();
     } else if (current === 2) {
       const pres = el('div');
-      const aval = el('div');
-      body.append(el('h3', { class: 'cap-subtitle', text: 'Lista de presença' }), pres, el('h3', { class: 'cap-subtitle', text: 'Avaliação' }), aval, exportCard(training));
-      if (loggedIn) {
-        await F.renderEmbedded('presenca', pres, id);
-        await F.renderEmbedded('avaliacao', aval, id);
-      } else needLogin();
+      body.append(el('h3', { class: 'cap-subtitle', text: 'Formulário de presença' }), pres, exportCard(training, ['presenca']));
+      if (loggedIn) await F.renderEmbedded('presenca', pres, id); else needLogin();
     } else {
-      body.append(reportCard(training));
+      const aval = el('div');
+      body.append(el('h3', { class: 'cap-subtitle', text: 'Formulário de avaliação' }), aval, exportCard(training, ['avaliacao']));
+      if (loggedIn) await F.renderEmbedded('avaliacao', aval, id); else needLogin();
     }
   }
 

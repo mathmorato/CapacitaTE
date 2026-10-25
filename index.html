@@ -75,7 +75,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          CapacitaTE · v.4.0.4
+          CapacitaTE · v.4.0.5
         </div>
       </div>
     </aside>
@@ -1701,6 +1701,17 @@
         </section>
 
         <!-- ==========================================
+             SEÇÃO: RELATÓRIO FINAL (aba de Relatórios; lista as capacitações e abre o assistente em Word)
+             ========================================== -->
+        <section id="view-report-final" class="view-section">
+          <div class="view-header" style="margin-bottom:1.5rem;">
+            <h2 style="margin:0;">Relatório final</h2>
+            <p style="color:var(--text-secondary); margin:0.25rem 0 0;">Escolha a capacitação para montar o relatório em Word com os dados do cadastro, da presença e da avaliação.</p>
+          </div>
+          <div class="glass-card" id="report-final-container"></div>
+        </section>
+
+        <!-- ==========================================
              SEÇÃO: GERENCIAMENTO DE EQUIPE TÉCNICA (GLOBAL)
              ========================================== -->
         <section id="view-team" class="view-section">
@@ -2023,7 +2034,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.0.4 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.4.0.5 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -2033,7 +2044,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.4.0.4</span>
+          <span class="footer-version-tag" id="app-footer-version">v.4.0.5</span>
         </div>
       </footer>
     </div>
@@ -3251,6 +3262,7 @@
   <script src="js/modules/admin/usuarios.js"></script>
   <script src="js/modules/admin/permissoes.js"></script>
   <script src="js/modules/admin/auditoria.js"></script>
+  <script src="js/modules/admin/pessoas.js"></script>
   <script src="js/modules/formularios/base.js"></script>
   <script src="js/modules/inscricao/module.js"></script>
   <script src="js/modules/presenca/module.js"></script>

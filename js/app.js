@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.4.0.4
+ * Versão: v.4.0.5
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.4.0.4';
+    this.version = 'v.4.0.5';
   }
 
   /**
@@ -125,7 +125,7 @@ class CapacitaTEApp {
       } else {
         this.navigateTo('dashboard', false);
       }
-    } else if (['trainings', 'municipalities', 'team', 'course-structure', 'settings'].includes(hash)) {
+    } else if (['trainings', 'municipalities', 'team', 'course-structure', 'report-final', 'settings'].includes(hash)) {
       this.navigateTo(hash, false);
     } else {
       this.navigateTo('dashboard', false);
@@ -180,6 +180,8 @@ class CapacitaTEApp {
       this.renderTrainingsList();
     } else if (viewId === 'municipalities') {
       this.renderMunicipalitiesBank();
+    } else if (viewId === 'report-final') {
+      this.renderReportFinal();
     } else if (viewId === 'team') {
       this.renderMasterTeamManagement();
     } else if (viewId === 'course-structure') {
@@ -11394,6 +11396,57 @@ class CapacitaTEApp {
   /* ==========================================================================
      TELA COMPLETA: BANCO DE CAPACITAÇÕES
      ========================================================================== */
+  /**
+   * Relatórios › Relatório final: lista as capacitações com o progresso e abre o assistente em Word
+   */
+  async renderReportFinal() {
+    await this.refreshTrainingsList();
+    const box = document.getElementById('report-final-container');
+    if (!box) return;
+    box.textContent = '';
+    const list = [...this.trainingList].sort((a, b) => (parseInt(b.number) || 0) - (parseInt(a.number) || 0));
+    if (!list.length) {
+      const p = document.createElement('p');
+      p.className = 'admin-muted';
+      p.textContent = 'Nenhuma capacitação cadastrada.';
+      box.appendChild(p);
+      return;
+    }
+    const canView = (t) => !window.CapacitaTE || !CapacitaTE.can || CapacitaTE.can('relatorio', 'view', t.id);
+    const table = document.createElement('table');
+    table.className = 'data-table admin-table';
+    const head = document.createElement('tr');
+    ['Capacitação', 'Datas', 'Progresso', ''].forEach(h => { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); });
+    const thead = document.createElement('thead');
+    thead.appendChild(head);
+    const tbody = document.createElement('tbody');
+    list.forEach(t => {
+      const tr = document.createElement('tr');
+      const title = `${t.number ? `${t.number}ª CTE` : 'CTE'} – ${t.polo || ''}${t.uf ? ` (${t.uf})` : ''}`;
+      [title, t.datesFormatted || '—', `${Number(t.progressPercent) || 0}%`].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+      const act = document.createElement('td');
+      if (canView(t)) {
+        [['Abrir assistente', 1, 'btn-primary'], ['Gerar (etapa 12)', 12, 'btn-secondary']].forEach(([label, step, cls]) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = `btn ${cls} btn-sm`;
+          b.style.marginRight = '0.4rem';
+          b.textContent = label;
+          b.addEventListener('click', () => this.openWizard(t.id, step));
+          act.appendChild(b);
+        });
+      } else act.textContent = 'Sem permissão';
+      tr.appendChild(act);
+      tbody.appendChild(tr);
+    });
+    table.append(thead, tbody);
+    const wrap = document.createElement('div');
+    wrap.className = 'data-table-container';
+    wrap.style.overflowX = 'auto';
+    wrap.appendChild(table);
+    box.appendChild(wrap);
+  }
+
   async renderTrainingsList() {
     await this.refreshTrainingsList();
     const container = document.getElementById('all-trainings-list-container');

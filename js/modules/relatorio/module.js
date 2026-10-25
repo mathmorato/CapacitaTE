@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Relatório (adaptador fino do assistente de 12 etapas existente em js/app.js)
- * Versão: v.4.0.4
+ * Versão: v.4.0.5
  */
 
 (function () {
@@ -15,7 +15,7 @@
    * Abas de Relatórios no topo das telas Equipe Técnica e Estrutura do Curso
    */
   function addReportTabs() {
-    const tabs = [{ view: 'team', label: 'Equipe Técnica' }, { view: 'course-structure', label: 'Estrutura do Curso' }];
+    const tabs = [{ view: 'report-final', label: 'Relatório final' }, { view: 'team', label: 'Equipe Técnica' }, { view: 'course-structure', label: 'Estrutura do Curso' }];
     tabs.forEach(({ view }) => {
       const section = document.getElementById(`view-${view}`);
       if (!section || section.querySelector(':scope > .reports-tabs')) return;
@@ -54,7 +54,7 @@
       },
       {
         // Equipe Técnica e Estrutura do Curso ficam como abas dentro de Relatórios
-        view: 'team', views: ['team', 'course-structure'], title: 'Relatórios', order: 30,
+        view: 'report-final', views: ['report-final', 'team', 'course-structure'], title: 'Relatórios', order: 30,
         icon: `<svg ${ICON_ATTRS}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`
       }
     ],

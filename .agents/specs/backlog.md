@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.0.4** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.0.5** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -28,6 +28,17 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.0.3 (Fase 5, parte 1):** Relatório etapas 7 e 8 com "Usar dados do CapacitaTE" (`app.importFromCapacitaTE`, `xlsxExport.fetchRows`; mesmas linhas da exportação entregues ao mesmo parser; `training.sources.*` = capacitate|arquivo). Etapa 11 mostra a fonte e 4 conferências cruzadas (`crossCheckIssues`). Testado: ida e volta exportação→parser em node e a lógica das conferências; botões não testados no navegador.
 
 **v.4.0.4:** Configurações › Conexão com a Nuvem não exige mais que cada pessoa informe endereço e chave: o site já usa o projeto padrão (`js/core/config.js`) e o card mostra "Conectado automaticamente"; os campos ficaram em "Avançado" (instalações próprias).
+
+**v.4.0.5:** (a) Reorganização pedida pelo usuário: o **Relatório final** saiu da página da capacitação e virou aba de **Relatórios** (nova tela `view-report-final`, `app.renderReportFinal`); a página `#capacitacao/<id>` tem 3 etapas: 1 Cadastro e inscrição, 2 Presença, 3 Avaliação (cada uma com o seu formulário e a sua exportação). (b) Admin ganhou as abas **Pessoas** (busca, edição, histórico) e **Importar base** (mapeamento de colunas, pré-visualização, política de conflito, lotes de 500, planilha de rejeitadas). (c) Criadas, **sem aplicar**: `0004h_lixeira_excluir_definitivo.sql` (precisa ser rodada: botão Excluir permanentemente), `0004i_pessoas_importacao.sql` (precisa ser rodada: Pessoas e Importar), `0005_rls_endurecida.sql` (só depois do checklist em `publicacao-e-seguranca.md`). Nada disso foi testado no navegador nem contra a nuvem (as funções SQL novas dependem de o usuário aplicar as migrações).
+
+**Pendências (25/10/2026):**
+1. Usuário: rodar 0004h e 0004i no SQL Editor; depois testar Excluir permanentemente, Admin › Pessoas e Importar base.
+2. Usuário: conferir no navegador a nova organização (Relatórios › Relatório final; etapas 2 e 3 da capacitação) e o botão Adicionar cidade no painel de vagas.
+3. Usuário: testar e-mail de presença e de avaliação (só o de inscrição foi validado).
+4. 0005 (RLS endurecida): aplicar só depois do checklist; depois religar o limite de tentativas.
+5. Importar respostas históricas (seção 7.3 item 7) e checklist de segurança dentro de Configurações: não feitos.
+6. Menores: inclusão manual de respostas (`staff_submit` já existe no SQL, falta a tela), modo recepção (QR no telão), gráficos e nuvem de palavras na prévia da avaliação, `scripts/testes-formularios.html`.
+7. Limpar as pessoas "Teste Automatizado" (SQL na seção 5).
 
 ## 0.1 Retomada anterior (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
 
