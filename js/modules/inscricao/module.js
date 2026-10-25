@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.3.9.3
+ * Versão: v.3.9.4
  */
 
 (function () {
@@ -81,6 +81,7 @@
             el('td', {}, [
               r.answers && r.answers.waitlist ? el('span', { class: 'admin-chip', text: 'lista de espera' }) : null,
               r.answers && r.answers.manual ? el('span', { class: 'admin-chip', text: 'manual' }) : null,
+              r.answers && r.answers.email_sent_at ? el('span', { class: 'admin-chip', title: `E-mail de confirmação enviado em ${c.fmtDateTime(r.answers.email_sent_at)}`, text: 'e-mail enviado' }) : null,
               r.status === 'cancelada' ? el('span', { class: 'admin-chip', text: 'cancelada' }) : null
             ]),
             el('td', { class: 'perm-col' }, canEdit ? el('button', {

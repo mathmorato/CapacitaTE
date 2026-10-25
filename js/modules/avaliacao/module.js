@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Avaliação (formulário, taxa de resposta, médias por item e respostas)
- * Versão: v.3.9.3
+ * Versão: v.3.9.4
  */
 
 (function () {
