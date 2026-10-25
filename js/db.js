@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.1.0
+ * Versão: v.3.4.14
  */
 
 const SUPABASE_CONFIG = {
@@ -196,7 +196,6 @@ class TrainingDB {
       this.updateCloudIndicator(true);
 
       if (cloudTrainings && cloudTrainings.length > 0) {
-        const cloudIds = new Set(cloudTrainings.map(r => r.id));
 
         // 1. Atualizar ou inserir registros vindos da nuvem
         for (const row of cloudTrainings) {
@@ -205,20 +204,23 @@ class TrainingDB {
             const cloudDate = new Date(row.updated_at || row.created_at || 0).getTime();
             const localDate = new Date(local?.updatedAt || local?.createdAt || 0).getTime();
 
-            if (!local || cloudDate >= localDate) {
+            if (!local || cloudDate > localDate) {
               await this.saveTrainingFull(row.data, 'Sincronização da Nuvem (Supabase)', false);
             }
           }
         }
 
-        // 2. Limpar do IndexedDB local capacitações que foram deletadas da nuvem
-        const allLocal = await this.getAll('trainings');
-        for (const loc of allLocal) {
-          if (loc.isHistorical || (parseInt(loc.number) >= 6 && parseInt(loc.number) <= 14)) continue;
-          if (!cloudIds.has(loc.id)) {
-            console.log(`Capacitação ${loc.id} foi excluída na nuvem. Limpando do banco local...`);
-            await this.deleteTraining(loc.id, false);
-          }
+      }
+
+      // 2. Capacitações que existem só neste computador (criadas offline ou cujo envio falhou) são enviadas
+      // para a nuvem; nunca são apagadas automaticamente
+      const cloudIds = new Set((cloudTrainings || []).map(r => r.id));
+      const allLocal = await this.getAll('trainings');
+      for (const loc of allLocal) {
+        if (loc.isHistorical || (parseInt(loc.number) >= 6 && parseInt(loc.number) <= 14)) continue;
+        if (!cloudIds.has(loc.id)) {
+          const full = await this.getTrainingFull(loc.id);
+          if (full) await this.uploadTrainingToCloud(full);
         }
       }
 
@@ -245,7 +247,7 @@ class TrainingDB {
   async uploadTrainingToCloud(fullData) {
     if (!this.supabase || !fullData || !fullData.id) return;
     try {
-      await this.supabase.from('trainings').upsert({
+      const { error } = await this.supabase.from('trainings').upsert({
         id: fullData.id,
         number: (fullData.number !== undefined && fullData.number !== null && fullData.number !== '') ? parseInt(fullData.number) : null,
         polo: fullData.polo || '',
@@ -253,12 +255,15 @@ class TrainingDB {
         status: fullData.status || 'in_progress',
         is_historical: !!fullData.isHistorical,
         data: fullData,
-        updated_at: new Date().toISOString()
+        // Mesma data do registro local, para que a sincronização não considere a nuvem mais nova sem motivo
+        updated_at: fullData.updatedAt || new Date().toISOString()
       });
+      if (error) throw error;
       this.updateCloudIndicator(true);
       console.log(`Capacitação sincronizada na nuvem: ${fullData.polo || fullData.id}`);
     } catch (err) {
       console.warn('Erro ao subir dados para a nuvem:', err);
+      this.updateCloudIndicator(false);
     }
   }
 
@@ -268,7 +273,8 @@ class TrainingDB {
   async deleteTrainingFromCloud(trainingId) {
     if (!this.supabase || !trainingId) return;
     try {
-      await this.supabase.from('trainings').delete().eq('id', trainingId);
+      const { error } = await this.supabase.from('trainings').delete().eq('id', trainingId);
+      if (error) throw error;
       console.log(`Capacitação excluída da nuvem: ${trainingId}`);
     } catch (err) {
       console.warn('Erro ao deletar na nuvem:', err);
@@ -400,6 +406,11 @@ class TrainingDB {
       baseTemplateId: training.baseTemplateId || null,
       baseTemplateName: training.baseTemplateName || '',
       isCustomized: training.isCustomized === true,
+      customPhotoTitles: training.customPhotoTitles || {},
+      customPhotoSources: training.customPhotoSources || {},
+      customWordCloudTitles: training.customWordCloudTitles || {},
+      customWordCloudSources: training.customWordCloudSources || {},
+      wordCloudFontFamily: training.wordCloudFontFamily || 'Plus Jakarta Sans',
       team: team.sort((a, b) => (a.order || 0) - (b.order || 0)),
       municipalities: municipalities.sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       courseModules: courseModules.sort((a, b) => (a.order || 0) - (b.order || 0)),
@@ -411,11 +422,31 @@ class TrainingDB {
     };
   }
 
-  async saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true) {
-    const trainingId = data.id || `cap_${Date.now()}`;
+  /**
+   * Salva a capacitação completa. Salvamentos da mesma capacitação são enfileirados: o salvamento apaga e
+   * regrava os registros filhos (equipe, participantes, avaliações, mídias), e duas execuções simultâneas
+   * (autosave + salvamento manual ou sincronização) poderiam duplicar ou perder registros.
+   */
+  saveTrainingFull(data, changeSummary = 'Atualização geral dos dados', syncCloud = true) {
+    if (!data.id) data.id = `cap_${Date.now()}`;
+    if (!this._saveQueues) this._saveQueues = new Map();
+    const previous = this._saveQueues.get(data.id) || Promise.resolve();
+    const run = previous.catch(() => {}).then(() => this._saveTrainingFullNow(data, changeSummary, syncCloud));
+    this._saveQueues.set(data.id, run);
+    run.finally(() => {
+      if (this._saveQueues.get(data.id) === run) this._saveQueues.delete(data.id);
+    }).catch(() => {});
+    return run;
+  }
+
+  async _saveTrainingFullNow(data, changeSummary, syncCloud) {
+    const trainingId = data.id;
     const now = new Date().toISOString();
 
+    // Campos adicionais (ex.: evaluationComments, customWordCloudFont) são preservados; os filhos ficam em stores próprios
+    const { team: _t, municipalities: _m, courseModules: _cm, courseMoments: _cmo, attendance: _a, evaluations: _e, media: _me, auditLog: _al, ...extraFields } = data;
     const trainingRecord = {
+      ...extraFields,
       id: trainingId,
       number: (data.number !== undefined && data.number !== null) ? data.number : '',
       title: data.title || 'CAPACITAÇÃO EM TRANSPORTE ESCOLAR',
@@ -448,11 +479,17 @@ class TrainingDB {
         responsible: 'Equipe de Articulação Institucional CECATE-CO',
         notes: ''
       },
+      educationalTech: data.educationalTech || null,
       texts: data.texts || {
         intro: '',
         development: '',
         finalConsiderations: ''
       },
+      customPhotoTitles: data.customPhotoTitles || {},
+      customPhotoSources: data.customPhotoSources || {},
+      customWordCloudTitles: data.customWordCloudTitles || {},
+      customWordCloudSources: data.customWordCloudSources || {},
+      wordCloudFontFamily: data.wordCloudFontFamily || 'Plus Jakarta Sans',
       status: data.status || 'in_progress',
       progressPercent: data.progressPercent || 0,
       createdAt: data.createdAt || now,
@@ -467,6 +504,7 @@ class TrainingDB {
       await this.clearStoreByIndex('team', 'trainingId', trainingId);
       for (const [idx, member] of data.team.entries()) {
         await this.put('team', {
+          ...member,
           id: member.id || `team_${trainingId}_${idx}_${Date.now()}`,
           trainingId,
           name: member.name,
@@ -489,6 +527,7 @@ class TrainingDB {
           uf: m.uf || data.uf,
           distanceKm: parseFloat(m.distanceKm) || 0,
           isSummoned: m.isSummoned !== false,
+          isSede: m.isSede === true,
           inscribedCACS: parseInt(m.inscribedCACS) || 0,
           inscribedGestores: parseInt(m.inscribedGestores) || 0,
           inscribedTotal: parseInt(m.inscribedTotal) || ((parseInt(m.inscribedCACS) || 0) + (parseInt(m.inscribedGestores) || 0)),
@@ -578,7 +617,7 @@ class TrainingDB {
           municipality: ev.municipality || '',
           ibgeCode: ev.ibgeCode || '',
           representation: ev.representation || 'Gestão municipal',
-          ratings: ev.ratings || [5, 5, 5, 5, 5, 5, 5],
+          ratings: Array.isArray(ev.ratings) ? ev.ratings : [],
           likedAspects: ev.likedAspects || '',
           improveAspects: ev.improveAspects || '',
           institution: ev.institution || '',
@@ -593,16 +632,18 @@ class TrainingDB {
       await this.clearStoreByIndex('media', 'trainingId', trainingId);
       for (const [idx, med] of data.media.entries()) {
         await this.put('media', {
+          ...med, // preserva pageImages (apêndices), customSource, movedByUser etc.
           id: med.id || `med_${trainingId}_${idx}`,
           trainingId,
           slotId: med.slotId || '',
           type: med.type || 'photo',
           blob: med.blob || med.dataUrl || '',
           caption: med.caption || `Figura ${idx + 1}`,
-          order: med.order !== undefined ? med.order : idx,
+          title: med.title || '',
+          order: idx, // a ordem do array é a ordem vigente (fotos complementares podem ser reordenadas)
           section: med.section || '6. REGISTROS FOTOGRÁFICOS',
           description: med.description || '',
-          source: med.source || 'Arquivo CECATE Centro-Oeste',
+          source: med.source || (data.customPhotoSources && med.slotId && data.customPhotoSources[med.slotId] ? (data.customPhotoSources[med.slotId].toLowerCase().startsWith('fonte:') ? data.customPhotoSources[med.slotId].trim() : `Fonte: ${data.customPhotoSources[med.slotId].trim()}`) : 'Fonte: Elaborada pelos autores.'),
           fileName: med.fileName || `foto_${idx + 1}.jpg`,
           fileSize: med.fileSize || 0,
           fileType: med.fileType || ''
@@ -713,6 +754,7 @@ class TrainingDB {
         responsible: source.contactsData?.responsible || 'Equipe de Articulação Institucional CECATE-CO',
         notes: ''
       },
+      educationalTech: source.educationalTech ? JSON.parse(JSON.stringify(source.educationalTech)) : null,
       texts: opts.copyTexts ? { ...source.texts } : {},
       status: 'in_progress',
       isHistorical: false, // Novo registro em andamento, nunca histórico

@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.1.0
+ * Versão: v.3.4.14
  */
 
 window.icons = {
@@ -17,7 +17,7 @@ window.icons = {
   logout: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 5 12 10 7"></polyline><line x1="15" y1="12" x2="5" y2="12"></line></svg>`,
   filter: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>`,
   stepForward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-left:5px;"><line x1="5" y1="12" x2="15" y2="12"></line><polyline points="10 7 15 12 10 17"></polyline><line x1="19" y1="5" x2="19" y2="19"></line></svg>`,
-  stepBackward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-2px; margin-right:5px;"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>`,
+  stepBackward: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:5px;"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>`,
   sede: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 10v2"></path><path d="M15 10v2"></path><path d="M9 14v2"></path><path d="M15 14v2"></path></svg>`,
   rename: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><rect x="2" y="5.5" width="16" height="12" rx="2.5"></rect><circle cx="6.5" cy="13" r="1.8"></circle><path d="M8.3 11.2v3.6"></path><path d="M10.3 9.2v5.6"></path><circle cx="12.3" cy="13" r="1.8"></circle><line x1="18" y1="2.5" x2="18" y2="21.5"></line><path d="M16 2.5h4"></path><path d="M16 21.5h4"></path></svg>`,
   pin: `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
@@ -32,7 +32,7 @@ class AutoReportApp {
   constructor() {
     this.currentTraining = null;
     this.currentStep = 1;
-    this.totalSteps = 11;
+    this.totalSteps = 12;
     this.activeView = 'dashboard';
     this.trainingList = [];
     this.dashboardFilter = 'all';
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.1.0';
+    this.version = 'v.3.4.14';
   }
 
   /**
@@ -103,6 +103,8 @@ class AutoReportApp {
       const trainingId = parts[1];
       const step = parseInt(parts[2]) || 1;
       if (this.currentTraining && this.currentTraining.id === trainingId) {
+        // Hash alterado pelo próprio setWizardStep: a etapa já está exibida, não renderiza de novo
+        if (this.activeView === 'wizard' && step === this.currentStep) return;
         this.navigateTo('wizard', false);
         this.setWizardStep(step);
       } else {
@@ -189,8 +191,8 @@ class AutoReportApp {
       if (themeBtn) themeBtn.innerHTML = `${moonIcon} Modo Escuro`;
     }
 
-    // Atualizar gráficos se estiver na etapa de gráficos
-    if (this.currentStep === 7 || this.currentStep === 10) {
+    // Atualizar gráficos se estiver na etapa de avaliação ou relatório final
+    if (this.currentStep === 8 || this.currentStep === 11 || this.currentStep === 12) {
       this.renderEvaluationCharts();
       this.renderWordClouds();
     }
@@ -303,7 +305,7 @@ class AutoReportApp {
                 <div>
                   <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.2rem;">
                     <h4 style="font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:0;">
-                      Capacitação Nº ${t.number} - ${t.polo || 'Polo Regional'} (${t.uf || 'MT'})
+                      Capacitação Nº ${t.number} - ${this.escapeHtml(t.polo || 'Polo Regional')} (${t.uf || 'MT'})
                     </h4>
                     ${statusBadge}
                   </div>
@@ -311,7 +313,7 @@ class AutoReportApp {
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${t.datesFormatted || t.startDate || 'Data a definir'}</span>
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${t.locationVenue || 'Auditório Local'}</span>
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${t.workload || '16h'}</span>
-                    ${t.dataSourceMap?.documentOrigin ? `<span title="${t.dataSourceMap.documentOrigin}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Fonte: ${t.dataSourceMap.documentOrigin.split('/').pop()}</span>` : ''}
+                    ${t.dataSourceMap?.documentOrigin ? `<span title="${this.escapeHtml(t.dataSourceMap.documentOrigin)}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Fonte: ${this.escapeHtml(t.dataSourceMap.documentOrigin.split('/').pop())}</span>` : ''}
                   </div>
                 </div>
               </div>
@@ -362,7 +364,7 @@ class AutoReportApp {
     const sorted = [...this.trainingList].sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     select.innerHTML = sorted.map(t => {
       const isHist = t.status === 'historico' || t.isHistorical;
-      return `<option value="${t.id}" ${t.id === defaultSourceId ? 'selected' : ''}>Capacitação Nº ${t.number} - ${t.polo || 'Polo Regional'} (${t.uf || 'MT'}) ${isHist ? ' [HISTÓRICO]' : ''}</option>`;
+      return `<option value="${t.id}" ${t.id === defaultSourceId ? 'selected' : ''}>Capacitação Nº ${t.number} - ${this.escapeHtml(t.polo || 'Polo Regional')} (${t.uf || 'MT'}) ${isHist ? ' [HISTÓRICO]' : ''}</option>`;
     }).join('');
 
     modal.style.display = 'block';
@@ -460,7 +462,7 @@ class AutoReportApp {
       progressPercent: 0,
       team: (window.getMasterTeam ? window.getMasterTeam() : (window.DEFAULT_OFFICIAL_TEAM || [])).map(m => ({ ...m })),
       municipalities: [],
-      courseModules: window.courseStructureHelper ? window.courseStructureHelper.getMasterCopy() : (window.DEFAULT_COURSE_STRUCTURE || []),
+      courseModules: window.courseStructureHelper ? window.courseStructureHelper.getMasterCopy() : JSON.parse(JSON.stringify(window.DEFAULT_COURSE_STRUCTURE || [])), // cópia: editar não altera o modelo global
       courseMoments: [],
       attendance: [],
       evaluations: [],
@@ -658,7 +660,7 @@ class AutoReportApp {
             <span class="font-mono" style="font-weight:700; color:var(--accent-blue-text); font-size:0.92rem;">${r.ibgeCode}</span>
           </td>
           <td>
-            <strong style="color:var(--text-primary); font-size:0.92rem;">${r.name}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(r.name)}</strong>
             ${r.isSede ? '<span class="nav-badge badge-amber" style="font-size:0.7rem; padding:0.1rem 0.4rem; margin-left:0.4rem; font-weight:700;">Sede</span>' : ''}
             ${r.diffText ? `<div style="font-size:0.75rem; color:var(--accent-amber-text); margin-top:2px;">↳ ${r.diffText}</div>` : ''}
           </td>
@@ -948,7 +950,7 @@ class AutoReportApp {
             <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:0.4rem 0.6rem; font-size:0.78rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.25rem;">
               <span style="font-weight:700; color:var(--text-primary); display:inline-flex; align-items:center;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                ${m.name} (${m.uf || poloUf})
+                ${this.escapeHtml(m.name)} (${m.uf || poloUf})
               </span>
               <span style="font-family:monospace; color:var(--accent-secondary); font-size:0.72rem;">IBGE: ${m.code || 'N/A'}</span>
               <div style="display:flex; align-items:center; gap:0.2rem;">
@@ -1052,7 +1054,7 @@ class AutoReportApp {
       }
 
       // Sincronizar Municípios Convocados com distâncias calculadas pelo polo
-      if (data.allMunicipalities.length > 0) {
+      if (data.allMunicipalities?.length > 0) {
         const poloName = data.polo || training.polo || '';
         const poloUf = data.uf || training.uf || 'MT';
 
@@ -1092,7 +1094,9 @@ class AutoReportApp {
   async openWizard(trainingId, step = 1) {
     if (!window.db) return;
 
-    // Buscar dados completos
+    // Buscar dados completos. Zera a etapa atual para que setWizardStep não grave na nova capacitação
+    // os campos do formulário ainda preenchidos com a capacitação anterior
+    this.currentStep = 0;
     this.currentTraining = await window.db.getTrainingFull(trainingId);
     if (!this.currentTraining) {
       this.showToast('Capacitação não encontrada.', 'error');
@@ -1231,7 +1235,7 @@ class AutoReportApp {
       }
     }
 
-    if (stepNumber === 5) {
+    if (stepNumber === 6) {
       const contactDateVal = this.getVal('wiz-contact-start-date');
       if (contactDateVal && !this.validateContactStartDate(contactDateVal, true)) {
         const cInput = document.getElementById('wiz-contact-start-date');
@@ -1244,13 +1248,20 @@ class AutoReportApp {
   }
 
   setWizardStep(stepNumber) {
-    const targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
+    let targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
 
-    // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual
-    if (targetStep > this.currentStep) {
+    // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual e as intermediárias
+    if (this.currentStep < 1) {
+      // Capacitação recém-aberta: o formulário ainda não foi preenchido com os dados dela, nada a salvar/validar
+    } else if (targetStep > this.currentStep) {
       this.saveCurrentStepData();
-      if (!this.validateCurrentStep(this.currentStep)) {
-        return; // Impede avançar se não preencheu todos os itens!
+      for (let s = this.currentStep; s < targetStep; s++) {
+        if (!this.validateCurrentStep(s)) {
+          if (s === this.currentStep) return; // Impede avançar se não preencheu todos os itens!
+          // Etapa intermediária pendente (ex.: clique direto numa aba adiante): leva o usuário até ela
+          targetStep = s;
+          break;
+        }
       }
     } else if (targetStep < this.currentStep) {
       // Salvar progresso ao retornar para etapas anteriores
@@ -1263,9 +1274,8 @@ class AutoReportApp {
     // Atualizar abas do Stepper
     document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
       const s = idx + 1;
-      tab.classList.remove('active');
-      if (s === this.currentStep) tab.classList.add('active');
-      if (s < this.currentStep) tab.classList.add('completed');
+      tab.classList.toggle('active', s === this.currentStep);
+      tab.classList.toggle('completed', s < this.currentStep);
     });
 
     // Alternar painéis
@@ -1282,19 +1292,20 @@ class AutoReportApp {
     // Ações ao entrar em etapas específicas
     if (this.currentStep === 3) this.renderMunicipalitiesStep();
     if (this.currentStep === 4) this.renderCourseStructureStep();
-    if (this.currentStep === 5) this.renderContactsStep();
-    if (this.currentStep === 6) this.renderAttendanceStep();
-    if (this.currentStep === 7) {
+    if (this.currentStep === 5) this.renderEducationalTechStep();
+    if (this.currentStep === 6) this.renderContactsStep();
+    if (this.currentStep === 7) this.renderAttendanceStep();
+    if (this.currentStep === 8) {
       this.renderEvaluationStep();
       setTimeout(() => {
         this.renderEvaluationCharts();
         this.renderWordClouds();
       }, 100);
     }
-    if (this.currentStep === 8) this.renderPhotosStep();
-    if (this.currentStep === 9) this.renderAppendicesStep();
-    if (this.currentStep === 10) this.renderConferenceStep();
-    if (this.currentStep === 11) this.renderReportPreviewStep();
+    if (this.currentStep === 9) this.renderPhotosStep();
+    if (this.currentStep === 10) this.renderAppendicesStep();
+    if (this.currentStep === 11) this.renderConferenceStep();
+    if (this.currentStep === 12) this.renderReportPreviewStep();
 
     // Sempre rolar para o topo absoluto da página ao alternar etapas
     this.scrollToTop();
@@ -1363,9 +1374,9 @@ class AutoReportApp {
     const titleEl = document.getElementById('wizard-header-title');
     if (titleEl) {
       if (t.isHistorical) {
-        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:#f59e0b;">${t.polo || 'Polo'} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
+        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:#f59e0b;">${this.escapeHtml(t.polo || 'Polo')} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
       } else {
-        const poloText = t.polo ? `${t.polo} (${t.uf || 'UF'})` : 'Nova Capacitação em Branco';
+        const poloText = t.polo ? `${this.escapeHtml(t.polo)} (${t.uf || 'UF'})` : 'Nova Capacitação em Branco';
         titleEl.innerHTML = `Capacitação Nº ${t.number || 16} • <span style="color:var(--accent-secondary);">${poloText}</span>`;
       }
     }
@@ -1376,14 +1387,15 @@ class AutoReportApp {
     if (t.team && t.team.length > 0) completedSteps++;
     if (t.municipalities && t.municipalities.length > 0) completedSteps++;
     if (t.courseModules && t.courseModules.length > 0) completedSteps++;
+    if (t.educationalTech && (t.educationalTech.figures?.length > 0 || t.educationalTech.text)) completedSteps++;
     if (t.contactsData?.startDate || t.contactsData?.methods) completedSteps++;
     if (t.attendance && t.attendance.length > 0) completedSteps++;
     if (t.evaluations && t.evaluations.length > 0) completedSteps++;
     if (t.media && t.media.filter(m => m.type === 'photo').length > 0) completedSteps++;
     if (t.media && t.media.filter(m => m.type !== 'photo').length > 0) completedSteps++;
-    if (completedSteps >= 8) completedSteps += 2; // Conferência e Geração
+    if (completedSteps >= 9) completedSteps += 2; // Conferência e Geração
 
-    const percent = Math.min(100, Math.round((completedSteps / 11) * 100));
+    const percent = Math.min(100, Math.round((completedSteps / 12) * 100));
     t.progressPercent = percent;
 
     const barEl = document.getElementById('wizard-header-progressbar');
@@ -1391,7 +1403,7 @@ class AutoReportApp {
 
     const statusTextEl = document.getElementById('wizard-header-progress-text');
     if (statusTextEl) {
-      statusTextEl.textContent = `${percent}% Concluído (${completedSteps} de 11 Etapas)`;
+      statusTextEl.textContent = `${percent}% Concluído (${completedSteps} de 12 Etapas)`;
     }
   }
 
@@ -1459,11 +1471,522 @@ class AutoReportApp {
     // Etapa 2: Equipe
     this.renderTeamList();
 
-    // Etapa 5: Contatos
+    // Etapa 5: Tecnologias Educacionais
+    this.renderEducationalTechStep();
+
+    // Etapa 6: Contatos
     this.renderContactsStep();
 
-    // Etapa 6: Inscrições & Presença
+    // Etapa 7: Inscrições & Presença
     this.renderAttendanceStep();
+  }
+
+  /* ==========================================================================
+     ETAPA 5: TECNOLOGIAS EDUCACIONAIS (KAHOOT & PLICKERS)
+     ========================================================================== */
+  getDefaultEducationalTechData() {
+    return {
+      text: 'Durante o transcorrer dos módulos teóricos e práticos, foram incorporadas dinâmicas interativas mediante o uso de tecnologias educacionais e plataformas de aprendizagem baseada em jogos, com a finalidade de acompanhar o nível de assimilação dos conteúdos e potencializar o engajamento coletivo. Foram empregados os aplicativos Kahoot e Plickers: o Kahoot permitiu a participação em tempo real por meio dos smartphones dos cursistas em questionários dinâmicos; já o Plickers viabilizou a coleta imediata de respostas mediante a leitura óptica de cartões com QR Code (alternativas A, B, C e D) realizada exclusivamente pelo celular do instrutor, contornando eventuais oscilações de sinal de internet e garantindo dinamismo à atividade.',
+      figures: [
+        {
+          id: 'fig_1',
+          tool: 'kahoot',
+          title: 'Kahoot (Questionário Interativo em Tempo Real)',
+          caption: 'Figura 1: Avaliação via ferramenta kahoot.',
+          source: 'Fonte: Elaborada pelos autores.',
+          image: window.educationalTechAssets?.kahoot || ''
+        },
+        {
+          id: 'fig_2',
+          tool: 'plickers',
+          title: 'Plickers (Cartões de Leitura Óptica QR Code)',
+          caption: 'Figura 2: Avaliação via ferramenta Plickers.',
+          source: 'Fonte: Elaborada pelos autores.',
+          image: window.educationalTechAssets?.plickers || ''
+        }
+      ],
+      extraFigures: []
+    };
+  }
+
+  ensureEducationalTechInitialized() {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.educationalTech) {
+      this.currentTraining.educationalTech = this.getDefaultEducationalTechData();
+    }
+    const et = this.currentTraining.educationalTech;
+    if (!Array.isArray(et.figures) || et.figures.length === 0) {
+      const def = this.getDefaultEducationalTechData();
+      et.figures = def.figures;
+    }
+    const f1 = et.figures.find(f => f.id === 'fig_1');
+    if (!f1) {
+      et.figures.unshift({
+        id: 'fig_1',
+        tool: 'kahoot',
+        title: 'Kahoot (Questionário Interativo em Tempo Real)',
+        caption: 'Figura 1: Avaliação via ferramenta kahoot.',
+        source: 'Fonte: Elaborada pelos autores.',
+        image: window.educationalTechAssets?.kahoot || ''
+      });
+    } else if (!f1.image && !f1.removed && window.educationalTechAssets?.kahoot) {
+      f1.image = window.educationalTechAssets.kahoot;
+    }
+
+    const f2 = et.figures.find(f => f.id === 'fig_2');
+    if (!f2) {
+      et.figures.push({
+        id: 'fig_2',
+        tool: 'plickers',
+        title: 'Plickers (Cartões de Leitura Óptica QR Code)',
+        caption: 'Figura 2: Avaliação via ferramenta Plickers.',
+        source: 'Fonte: Elaborada pelos autores.',
+        image: window.educationalTechAssets?.plickers || ''
+      });
+    } else if (!f2.image && !f2.removed && window.educationalTechAssets?.plickers) {
+      f2.image = window.educationalTechAssets.plickers;
+    }
+
+    if (!Array.isArray(et.extraFigures)) {
+      et.extraFigures = [];
+    }
+  }
+
+  /**
+   * Atualiza o número das legendas das figuras de Tecnologias Educacionais conforme a numeração vigente do relatório
+   * (as figuras são renumeradas quando alguma é removida ou adicionada)
+   */
+  syncEduTechCaptionNumbers() {
+    const gen = window.reportDocxGenerator;
+    const et = this.currentTraining?.educationalTech;
+    if (!gen || typeof gen.getFigureNumbering !== 'function' || !et) return;
+
+    const { numbers } = gen.getFigureNumbering(this.currentTraining);
+    (et.figures || []).forEach(fig => {
+      if (numbers[fig.id] && fig.caption) fig.caption = gen.applyFigureNumber(fig.caption, numbers[fig.id]);
+    });
+    (et.extraFigures || []).forEach(ef => {
+      const num = numbers[`edu_${ef.id}`];
+      if (num && ef.caption) ef.caption = gen.applyFigureNumber(ef.caption, num);
+    });
+  }
+
+  renderEducationalTechStep() {
+    if (!this.currentTraining) return;
+    this.ensureEducationalTechInitialized();
+    this.syncEduTechCaptionNumbers();
+
+    const et = this.currentTraining.educationalTech;
+
+    // 1. Preencher textarea do texto de contextualização
+    const textEl = document.getElementById('wiz-edutech-text');
+    if (textEl) {
+      textEl.value = et.text || this.getDefaultEducationalTechData().text;
+    }
+
+    // 2. Renderizar os cards de Figura 1 e 2 no grid
+    const gridEl = document.getElementById('wizard-edutech-figures-grid');
+    if (gridEl) {
+      gridEl.innerHTML = et.figures.map(fig => this.renderEduTechFigureCardHtml(fig)).join('');
+    }
+
+    // 3. Renderizar cards de figuras extras
+    const extraGridEl = document.getElementById('wizard-edutech-extra-grid');
+    if (extraGridEl) {
+      extraGridEl.innerHTML = (et.extraFigures || []).map((fig, idx) => this.renderExtraEduTechFigureCardHtml(fig, idx)).join('');
+    }
+
+    // 4. Renderizar a pré-visualização ao vivo
+    this.renderEduTechLivePreview();
+  }
+
+  renderEduTechFigureCardHtml(fig) {
+    const hasImage = !!fig.image;
+    const isKahoot = fig.id === 'fig_1';
+    const toolBadge = isKahoot ? 'badge-blue' : 'badge-green';
+    const toolName = isKahoot ? 'Kahoot' : 'Plickers';
+
+    return `
+      <div class="glass-card" style="padding:1.25rem; display:flex; flex-direction:column; gap:0.9rem; border:1px solid var(--border-color); background:var(--bg-card); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.5rem;">
+          <div>
+            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.25rem;">
+              <span class="nav-badge ${toolBadge}" style="font-weight:700; font-size:0.75rem;">${toolName}</span>
+              <strong style="font-size:0.92rem; color:var(--text-primary);">${this.escapeHtml(fig.title)}</strong>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">
+              ${isKahoot ? 'Questionários dinâmicos com smartphones dos participantes.' : 'Leitura óptica de cartões com QR Code.'}
+            </div>
+          </div>
+        </div>
+
+        <div style="position:relative; min-height:180px; background:var(--bg-input); border:2px dashed ${hasImage ? 'var(--border-color)' : 'rgba(59,130,246,0.4)'}; border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0.75rem; overflow:hidden;">
+          ${hasImage ? `
+            <div style="width:100%; text-align:center;">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:100%; max-height:160px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color); box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            </div>
+            <div style="display:flex; gap:0.4rem; margin-top:0.6rem; flex-wrap:wrap; justify-content:center;">
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer; font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Trocar Imagem
+                <input type="file" accept="image/*" style="display:none;" onchange="app.handleEduTechSingleUpload('${fig.id}', this)">
+              </label>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="app.useDefaultEduTechImage('${fig.id}')" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.3rem;" title="Usar imagem oficial de referência">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                Restaurar Imagem Padrão
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="app.removeEduTechImage('${fig.id}')" style="font-size:0.75rem; padding:0.25rem 0.55rem; color:var(--accent-rose, #ef4444); display:inline-flex; align-items:center; gap:0.3rem;" title="Remover esta figura do relatório (as demais figuras são renumeradas)">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Remover
+              </button>
+            </div>
+          ` : `
+            <div style="text-align:center; padding:1rem;">
+              <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted); margin-bottom:0.5rem;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${fig.removed ? 'Figura removida do relatório' : 'Nenhuma imagem anexada'}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem;">${fig.removed ? 'As demais figuras foram renumeradas. Anexe uma imagem para incluí-la novamente.' : 'Clique para selecionar ou use a imagem oficial de exemplo'}</div>
+              <div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+                <label class="btn btn-primary btn-sm" style="cursor:pointer; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  Selecionar Imagem
+                  <input type="file" accept="image/*" style="display:none;" onchange="app.handleEduTechSingleUpload('${fig.id}', this)">
+                </label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="app.useDefaultEduTechImage('${fig.id}')" style="font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  Usar Imagem Oficial de Exemplo
+                </button>
+              </div>
+            </div>
+          `}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:0.78rem; font-weight:700;">
+              Nome / Título da Legenda (Exibido ACIMA da figura):
+            </label>
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.caption || '')}" placeholder="Ex: Figura 1: Avaliação via ferramenta kahoot." oninput="app.updateEduTechCaption('${fig.id}', this.value)">
+          </div>
+
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:0.78rem; font-weight:700;">
+              Fonte da Imagem (Exibido ABAIXO da figura):
+            </label>
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}" placeholder="Ex: Fonte: Elaborada pelos autores." oninput="app.updateEduTechSource('${fig.id}', this.value)">
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderExtraEduTechFigureCardHtml(fig, idx) {
+    const hasImage = !!fig.image;
+    return `
+      <div class="glass-card" style="padding:1.25rem; display:flex; flex-direction:column; gap:0.9rem; border:1px solid var(--border-color); background:var(--bg-card); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:0.92rem; color:var(--text-primary); display:flex; align-items:center; gap:0.4rem;">
+            <span class="nav-badge badge-blue">Figura Extra ${idx + 1}</span>
+            <span>${this.escapeHtml(fig.title || 'Ferramenta Adicional')}</span>
+          </strong>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="app.removeExtraEduTechFigure('${fig.id}')" style="color:var(--accent-rose, #ef4444); padding:0.2rem 0.5rem; font-size:0.75rem;" title="Excluir esta figura">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            Excluir
+          </button>
+        </div>
+
+        <div style="position:relative; min-height:160px; background:var(--bg-input); border:2px dashed var(--border-color); border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0.75rem; overflow:hidden;">
+          ${hasImage ? `
+            <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:100%; max-height:150px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer; font-size:0.75rem; margin-top:0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Trocar Imagem
+              <input type="file" accept="image/*" style="display:none;" onchange="app.handleExtraEduTechUpload('${fig.id}', this)">
+            </label>
+          ` : `
+            <label class="btn btn-primary btn-sm" style="cursor:pointer; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Anexar Imagem
+              <input type="file" accept="image/*" style="display:none;" onchange="app.handleExtraEduTechUpload('${fig.id}', this)">
+            </label>
+          `}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:0.78rem;">Nome da Ferramenta:</label>
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.title || '')}" placeholder="Ex: Mentimeter, Padlet..." oninput="app.updateExtraEduTechTitle('${fig.id}', this.value)">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:0.78rem;">Legenda (Acima da Imagem):</label>
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.caption || '')}" placeholder="Ex: Figura: Avaliação via ferramenta..." oninput="app.updateExtraEduTechCaption('${fig.id}', this.value)">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:0.78rem;">Fonte (Abaixo da Imagem):</label>
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}" oninput="app.updateExtraEduTechSource('${fig.id}', this.value)">
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  renderEduTechLivePreview() {
+    const previewEl = document.getElementById('edutech-report-live-preview');
+    if (!previewEl || !this.currentTraining) return;
+
+    this.ensureEducationalTechInitialized();
+    const et = this.currentTraining.educationalTech;
+    const text = et.text || this.getDefaultEducationalTechData().text;
+
+    let figuresHtml = '';
+    (et.figures || []).forEach(fig => {
+      if (fig.image) {
+        figuresHtml += `
+          <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
+            <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
+              ${this.escapeHtml(fig.caption || 'Figura. Avaliação via ferramenta pedagógica.')}
+            </p>
+            <div style="text-align:center;">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            </div>
+            <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
+              ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
+            </p>
+          </div>
+        `;
+      }
+    });
+
+    (et.extraFigures || []).forEach(fig => {
+      if (fig.image) {
+        figuresHtml += `
+          <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
+            <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
+              ${this.escapeHtml(fig.caption || 'Figura. Atividade com tecnologia educacional.')}
+            </p>
+            <div style="text-align:center;">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            </div>
+            <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
+              ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
+            </p>
+          </div>
+        `;
+      }
+    });
+
+    if (!figuresHtml) {
+      figuresHtml = `
+        <div style="padding:1.5rem; text-align:center; color:var(--text-muted); font-style:italic; border:1px dashed var(--border-color); border-radius:var(--radius-sm); margin:1rem 0;">
+          Nenhuma imagem vinculada no momento. Anexe uma imagem ou clique em "Preencher com Imagens de Exemplo".
+        </div>
+      `;
+    }
+
+    previewEl.innerHTML = `
+      <div style="font-family:'Times New Roman', Times, serif; color:var(--text-primary); font-size:12pt; line-height:1.5;">
+        <p style="text-align:justify; margin-bottom:1rem; text-indent:1.25cm;">
+          ${text}
+        </p>
+        ${figuresHtml}
+      </div>
+    `;
+  }
+
+  onEduTechTextInput() {
+    const textEl = document.getElementById('wiz-edutech-text');
+    if (!textEl || !this.currentTraining) return;
+    this.ensureEducationalTechInitialized();
+    this.currentTraining.educationalTech.text = textEl.value;
+    this.renderEduTechLivePreview();
+    this.saveCurrentStepData();
+  }
+
+  restoreDefaultEduTechText() {
+    const textEl = document.getElementById('wiz-edutech-text');
+    const def = this.getDefaultEducationalTechData().text;
+    if (textEl) textEl.value = def;
+    if (this.currentTraining) {
+      this.ensureEducationalTechInitialized();
+      this.currentTraining.educationalTech.text = def;
+    }
+    this.renderEduTechLivePreview();
+    this.saveCurrentStepData();
+    this.showToast('Texto padrão das tecnologias educacionais restaurado com sucesso!', 'success');
+  }
+
+  async handleEduTechSingleUpload(figId, inputEl) {
+    if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+    const file = inputEl.files[0];
+
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      inputEl.value = '';
+    }
+
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (fig) {
+      fig.image = dataUrl;
+      fig.removed = false;
+      this.renderEducationalTechStep();
+      this.saveCurrentStepData();
+      this.showToast(`Imagem da ${fig.caption ? fig.caption.split(':')[0] : 'figura'} atualizada com sucesso!`, 'success');
+    }
+  }
+
+  useDefaultEduTechImage(figId) {
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (!fig) return;
+
+    if (figId === 'fig_1' && window.educationalTechAssets?.kahoot) {
+      fig.image = window.educationalTechAssets.kahoot;
+    } else if (figId === 'fig_2' && window.educationalTechAssets?.plickers) {
+      fig.image = window.educationalTechAssets.plickers;
+    }
+    fig.removed = false;
+    this.renderEducationalTechStep();
+    this.saveCurrentStepData();
+    this.showToast(`Imagem oficial de exemplo carregada para ${fig.caption ? fig.caption.split(':')[0] : 'a figura'}!`, 'success');
+  }
+
+  preloadAllDefaultEduTechExamples() {
+    this.ensureEducationalTechInitialized();
+    const et = this.currentTraining.educationalTech;
+    const f1 = et.figures.find(f => f.id === 'fig_1');
+    const f2 = et.figures.find(f => f.id === 'fig_2');
+
+    if (f1 && window.educationalTechAssets?.kahoot) {
+      f1.image = window.educationalTechAssets.kahoot;
+      f1.removed = false;
+    }
+    if (f2 && window.educationalTechAssets?.plickers) {
+      f2.image = window.educationalTechAssets.plickers;
+      f2.removed = false;
+    }
+    this.renderEducationalTechStep();
+    this.saveCurrentStepData();
+    this.showToast('Imagens oficiais de referência carregadas com sucesso para Kahoot e Plickers!', 'success');
+  }
+
+  removeEduTechImage(figId) {
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (fig) {
+      fig.image = '';
+      fig.removed = true;
+      this.renderEducationalTechStep();
+      this.saveCurrentStepData();
+      this.showToast('Figura removida do relatório. As demais figuras foram renumeradas.', 'info');
+    }
+  }
+
+  updateEduTechCaption(figId, val) {
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (fig) {
+      fig.caption = val;
+      this.renderEduTechLivePreview();
+      this.saveCurrentStepData();
+    }
+  }
+
+  updateEduTechSource(figId, val) {
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (fig) {
+      fig.source = val;
+      this.renderEduTechLivePreview();
+      this.saveCurrentStepData();
+    }
+  }
+
+  addExtraEduTechFigure() {
+    this.ensureEducationalTechInitialized();
+    const et = this.currentTraining.educationalTech;
+    const count = (et.extraFigures || []).length;
+    // Número provisório: a legenda é renumerada automaticamente quando a imagem for anexada
+    const nextNum = window.reportDocxGenerator?.getFigureNumbering
+      ? window.reportDocxGenerator.getFigureNumbering(this.currentTraining).nextEduNumber
+      : count + 3;
+    const newFig = {
+      id: `extra_edutech_${Date.now()}`,
+      title: `Ferramenta Educacional ${count + 1}`,
+      caption: `Figura ${nextNum}: Atividade pedagógica via tecnologia educacional.`,
+      source: 'Fonte: Elaborada pelos autores.',
+      image: ''
+    };
+    et.extraFigures.push(newFig);
+    this.renderEducationalTechStep();
+    this.saveCurrentStepData();
+    this.showToast('Novo espaço para figura/ferramenta adicionado!', 'success');
+  }
+
+  removeExtraEduTechFigure(extraId) {
+    this.ensureEducationalTechInitialized();
+    const et = this.currentTraining.educationalTech;
+    et.extraFigures = (et.extraFigures || []).filter(f => f.id !== extraId);
+    this.renderEducationalTechStep();
+    this.saveCurrentStepData();
+    this.showToast('Figura extra removida.', 'info');
+  }
+
+  updateExtraEduTechTitle(extraId, val) {
+    this.ensureEducationalTechInitialized();
+    const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
+    if (fig) {
+      fig.title = val;
+      this.saveCurrentStepData();
+    }
+  }
+
+  updateExtraEduTechCaption(extraId, val) {
+    this.ensureEducationalTechInitialized();
+    const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
+    if (fig) {
+      fig.caption = val;
+      this.renderEduTechLivePreview();
+      this.saveCurrentStepData();
+    }
+  }
+
+  updateExtraEduTechSource(extraId, val) {
+    this.ensureEducationalTechInitialized();
+    const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
+    if (fig) {
+      fig.source = val;
+      this.renderEduTechLivePreview();
+      this.saveCurrentStepData();
+    }
+  }
+
+  async handleExtraEduTechUpload(extraId, inputEl) {
+    if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+    const file = inputEl.files[0];
+
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      inputEl.value = '';
+    }
+
+    this.ensureEducationalTechInitialized();
+    const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
+    if (fig) {
+      fig.image = dataUrl;
+      this.renderEducationalTechStep();
+      this.saveCurrentStepData();
+      this.showToast('Imagem anexada com sucesso!', 'success');
+    }
   }
 
   renderContactsStep() {
@@ -1599,7 +2122,16 @@ class AutoReportApp {
     t.fundingOrg = this.getVal('wiz-train-funding') || localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE';
     t.partnerOrgs = this.getVal('wiz-train-partners');
 
-    // Sincronizar dados da Etapa 5
+    // Sincronizar dados da Etapa 5 (Tecnologias Educacionais)
+    if (!t.educationalTech) {
+      t.educationalTech = this.getDefaultEducationalTechData();
+    }
+    const eduTextEl = document.getElementById('wiz-edutech-text');
+    if (eduTextEl) {
+      t.educationalTech.text = eduTextEl.value;
+    }
+
+    // Sincronizar dados da Etapa 6 (Contatos)
     const checkedBoxes = document.querySelectorAll('.contact-method-checkbox:checked');
     const selectedChannels = Array.from(checkedBoxes).map(cb => cb.value);
     t.contactsData = {
@@ -2669,15 +3201,15 @@ class AutoReportApp {
 
               return `
                 <tr>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.pronoun || '-'}</span></td>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.title || '-'}</span></td>
-                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${item.name || ''}</strong></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.pronoun || '-')}</span></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.title || '-')}</span></td>
+                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${this.escapeHtml(item.name || '')}</strong></td>
                   <td style="text-align:center;">
                     <span class="nav-badge ${isUfg ? 'badge-amber' : 'badge-blue'}">
                       ${item.institution || 'UFG'}
                     </span>
                   </td>
-                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${item.role || 'Equipe Técnica'}</span></td>
+                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${this.escapeHtml(item.role || 'Equipe Técnica')}</span></td>
                 </tr>
               `;
             }).join('')}
@@ -2777,15 +3309,15 @@ class AutoReportApp {
 
               return `
                 <tr>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.pronoun || '-'}</span></td>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.title || '-'}</span></td>
-                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${item.name || ''}</strong></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.pronoun || '-')}</span></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.title || '-')}</span></td>
+                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${this.escapeHtml(item.name || '')}</strong></td>
                   <td style="text-align:center;">
                     <span class="nav-badge ${isUfg ? 'badge-amber' : 'badge-blue'}">
                       ${item.institution || 'UFG'}
                     </span>
                   </td>
-                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${item.role || 'Equipe Técnica'}</span></td>
+                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${this.escapeHtml(item.role || 'Equipe Técnica')}</span></td>
                   <td style="text-align:center; white-space:nowrap;">
                     <div style="display:inline-flex; gap:0.4rem; justify-content:center; align-items:center;">
                       <button type="button" class="btn btn-secondary btn-sm btn-action-edit" onclick="app.openTeamMemberEditor('master', ${idx})" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center;" title="Editar este integrante">${window.icons.edit} Editar</button>
@@ -3177,7 +3709,7 @@ class AutoReportApp {
 
     const calcDesc = document.getElementById('wiz-participants-calc-desc');
     if (calcDesc) {
-      calcDesc.innerHTML = `Calculado automaticamente: <strong>4 participantes × ${muns.length} municípios</strong> (incluindo o município sede/polo <em>${poloName}</em>) = <strong>${autoExpected} participantes previstos</strong>.`;
+      calcDesc.innerHTML = `Calculado automaticamente: <strong>4 participantes × ${muns.length} municípios</strong> (incluindo o município sede/polo <em>${this.escapeHtml(poloName)}</em>) = <strong>${autoExpected} participantes previstos</strong>.`;
     }
 
     const bulkContainer = document.getElementById('mun-bulk-actions-container');
@@ -3236,7 +3768,7 @@ class AutoReportApp {
             <span class="font-mono" style="font-weight:700; color:var(--accent-blue-text); font-size:0.92rem;">${m.ibgeCode || '-'}</span>
           </td>
           <td style="text-align:left;">
-            <strong style="color:var(--text-primary); font-size:0.92rem;">${m.name || ''}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(m.name || '')}</strong>
           </td>
           <td style="text-align:center;">
             <span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; padding:0.15rem 0.5rem;">${m.uf || poloUf}</span>
@@ -3290,11 +3822,11 @@ class AutoReportApp {
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; flex-wrap:wrap; gap:0.5rem;">
-        <button class="btn btn-secondary btn-sm" onclick="app.recalculateAllDistancesToPolo()" title="Recalcular distância de todos os municípios em relação ao Polo Capacitador (${poloName})" style="display:inline-flex; align-items:center; gap:0.35rem;">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Recalcular Distâncias pelo Polo (${poloName})
+        <button class="btn btn-secondary btn-sm" onclick="app.recalculateAllDistancesToPolo()" title="Recalcular distância de todos os municípios em relação ao Polo Capacitador (${this.escapeHtml(poloName)})" style="display:inline-flex; align-items:center; gap:0.35rem;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Recalcular Distâncias pelo Polo (${this.escapeHtml(poloName)})
         </button>
         <div style="font-size:0.82rem; color:var(--text-secondary);">
-          Total de <strong>${muns.length}</strong> município(s) cadastrado(s) na Tabela 1 (incluindo o Polo <em>${poloName}</em>).
+          Total de <strong>${muns.length}</strong> município(s) cadastrado(s) na Tabela 1 (incluindo o Polo <em>${this.escapeHtml(poloName)}</em>).
         </div>
       </div>
     `;
@@ -3416,13 +3948,19 @@ class AutoReportApp {
 
     const muns = this.currentTraining.municipalities;
 
+    // Verificar se já existe (na edição, desconsidera o próprio município editado). O código IBGE só é
+    // comparado quando é válido; vazio ou "0000000" não identifica o município
+    const validIbge = (code) => Boolean(code) && String(code).trim() !== '' && !/^0+$/.test(String(code).trim());
+    const alreadyExists = muns.some((m, idx) => idx !== editIndex && (
+      (validIbge(ibgeCode) && validIbge(m.ibgeCode) && String(m.ibgeCode) === String(ibgeCode)) ||
+      ((m.name || '').toLowerCase() === cityName.toLowerCase() && m.uf === uf)
+    ));
+    if (alreadyExists) {
+      this.showToast(`O município ${cityName} (${uf}) já está cadastrado na Tabela 1.`, 'warning');
+      return;
+    }
+
     if (editIndex === -1) {
-      // Verificar se já existe
-      const alreadyExists = muns.some(m => String(m.ibgeCode) === String(ibgeCode) || (m.name.toLowerCase() === cityName.toLowerCase() && m.uf === uf));
-      if (alreadyExists) {
-        this.showToast(`O município ${cityName} (${uf}) já está cadastrado na Tabela 1.`, 'warning');
-        return;
-      }
 
       muns.push({
         id: `mun_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
@@ -4206,7 +4744,7 @@ class AutoReportApp {
     if (!this.currentTraining || !this.currentTraining.courseModules) return;
     this.isCourseEditorOpen = true;
     const mod = this.currentTraining.courseModules[modIdx];
-    const modName = mod ? `Módulo ${mod.number || modIdx + 1}` : 'este módulo';
+    const modName = mod ? `Módulo ${mod.moduleNumber || mod.number || modIdx + 1}` : 'este módulo';
 
     this.openConfirmModal({
       title: 'Remover Módulo',
@@ -4413,7 +4951,7 @@ class AutoReportApp {
     } else {
       select.disabled = false;
       select.innerHTML = otherTrainings.map(t => `
-        <option value="${t.id}">${t.title || 'Capacitação sem título'} (${t.polo || 'Sem polo'}, ${t.year || '2026'})</option>
+        <option value="${t.id}">${this.escapeHtml(t.title || 'Capacitação sem título')} (${this.escapeHtml(t.polo || 'Sem polo')}, ${t.year || '2026'})</option>
       `).join('');
 
       this.onCopyCourseSourceChange(otherTrainings[0].id);
@@ -4557,7 +5095,7 @@ class AutoReportApp {
           </td>
           <td style="text-align:left; vertical-align:middle;">
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-              <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">${t.name || 'Sem nome'}</span>
+              <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(t.name || 'Sem nome')}</span>
               ${!isProtected ? `
                 <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); app.openRenameCourseTemplateModal('${t.id}')" style="padding:0.18rem 0.45rem; font-weight:600; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.2rem;" title="Renomear nome e descrição desta estrutura">
                   <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.5" width="16" height="12" rx="2.5"></rect><circle cx="6.5" cy="13" r="1.8"></circle><path d="M8.3 11.2v3.6"></path><path d="M10.3 9.2v5.6"></path><circle cx="12.3" cy="13" r="1.8"></circle><line x1="18" y1="2.5" x2="18" y2="21.5"></line><path d="M16 2.5h4"></path><path d="M16 21.5h4"></path></svg> Renomear
@@ -4844,10 +5382,10 @@ class AutoReportApp {
         <input type="radio" name="select-training-template-radio" value="${t.id}" ${t.isDefault || idx === 0 ? 'checked' : ''} style="margin-top:0.25rem;">
         <div style="flex:1;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
-            <strong style="color:var(--text-primary); font-size:0.92rem; display:inline-flex; align-items:center;">${t.isProtected ? window.icons.lock : ''}${t.name}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem; display:inline-flex; align-items:center;">${t.isProtected ? window.icons.lock : ''}${this.escapeHtml(t.name)}</strong>
             ${t.isDefault ? '<span class="nav-badge badge-emerald font-bold" style="font-size:0.72rem;">Modelo Padrão Ativo</span>' : ''}
           </div>
-          <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.35;">${t.description || 'Estrutura com ' + (t.modules || []).length + ' módulos'}</div>
+          <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.35;">${this.escapeHtml(t.description || 'Estrutura com ' + (t.modules || []).length + ' módulos')}</div>
         </div>
       </label>
     `).join('');
@@ -4911,7 +5449,7 @@ class AutoReportApp {
     const bannerEl = document.getElementById('active-template-protection-banner');
 
     if (titleEl && activeTpl) {
-      titleEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> <span>Estrutura Selecionada: ${activeTpl.name}</span> ${activeTpl.isProtected ? '<span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Modelo Padrão Protegido</span>' : ''}`;
+      titleEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> <span>Estrutura Selecionada: ${this.escapeHtml(activeTpl.name)}</span> ${activeTpl.isProtected ? '<span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Modelo Padrão Protegido</span>' : ''}`;
     }
     if (descEl && activeTpl) {
       descEl.textContent = activeTpl.description || 'Estrutura de curso cadastrada no sistema';
@@ -5165,7 +5703,7 @@ class AutoReportApp {
 
     let masterMods = window.courseStructureHelper.normalize(activeTpl.modules || []);
     const mod = masterMods[modIdx];
-    const modName = mod ? `Módulo ${mod.number || modIdx + 1}` : 'este módulo';
+    const modName = mod ? `Módulo ${mod.moduleNumber || mod.number || modIdx + 1}` : 'este módulo';
 
     this.openConfirmModal({
       title: 'Remover Módulo da Matriz',
@@ -5726,7 +6264,7 @@ class AutoReportApp {
     // Purga proativa de entradas de municípios inválidos/declarações
     this.currentTraining.municipalities = this.currentTraining.municipalities.filter(m => {
       const n = (m.name || '').toLowerCase();
-      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && m.name.length <= 45;
+      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && n.length <= 45;
     });
 
     const regList = this.currentTraining.registrations || [];
@@ -5907,7 +6445,7 @@ class AutoReportApp {
     // Filtro final garantido de purga de municípios com rótulo inválido
     this.currentTraining.municipalities = this.currentTraining.municipalities.filter(m => {
       const n = (m.name || '').toLowerCase();
-      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && m.name.length <= 45;
+      return !n.includes('declaro') && !n.includes('veracidade') && !n.includes('confirmo') && !n.includes('prestadas') && !n.includes('formulario') && !n.includes('termo') && n.length <= 45;
     });
   }
 
@@ -6155,10 +6693,15 @@ class AutoReportApp {
     }
     if (!participant) return;
     
-    // RESTRIÇÃO: Permitir atualização apenas se não for participante conciliado na inscrição ("Apenas Presente")
+    // RESTRIÇÃO: participante conciliado (na presença E na inscrição) não é editável; "Apenas Presente" e
+    // "Apenas Inscrito" podem ser completados manualmente
     const cleanCpf = participant.cpf ? participant.cpf.replace(/\D/g, '') : '';
-    const hasRegMatch = cleanCpf && cleanCpf.length === 11 && (this.currentTraining.registrations || []).some(r => r.cpf && r.cpf.replace(/\D/g, '') === cleanCpf);
-    if (hasRegMatch) return;
+    // A busca é sempre na OUTRA planilha: procurar na própria lista encontraria o próprio participante e
+    // bloquearia sempre os "Apenas Inscrito"
+    const isFromAttendance = (this.currentTraining.attendance || []).includes(participant);
+    const otherList = isFromAttendance ? (this.currentTraining.registrations || []) : (this.currentTraining.attendance || []);
+    const isReconciled = cleanCpf && cleanCpf.length === 11 && otherList.some(r => r.cpf && r.cpf.replace(/\D/g, '') === cleanCpf);
+    if (isReconciled) return;
 
     if (field === 'municipality') {
       participant.municipality = val;
@@ -6221,6 +6764,7 @@ class AutoReportApp {
   renderAttendanceStep() {
     const statusBanner = document.getElementById('wizard-attendance-status-banner');
     const attContainer = document.getElementById('wizard-attendance-table-container');
+    const table3Container = document.getElementById('wizard-table3-preview');
     const table4Container = document.getElementById('wizard-table4-preview');
     if (!this.currentTraining) return;
 
@@ -6366,7 +6910,7 @@ class AutoReportApp {
             <div style="background:rgba(245, 158, 11, 0.05); border:1px solid var(--accent-amber-border); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
               <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:0.15rem;">Cruzamento Presença</div>
               <div style="font-size:1.15rem; font-weight:800; color:var(--text-primary);">${ipCount} <span style="font-size:0.75rem; font-weight:600; color:var(--accent-emerald-text);">(${ipPercent}%)</span></div>
-              <div style="font-size:0.72rem; color:var(--text-muted);">${apCount} apenas presentes</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">${apCount} presentes sem inscrição</div>
             </div>
 
             <div style="background:rgba(99, 102, 241, 0.05); border:1px solid rgba(99, 102, 241, 0.25); border-radius:var(--radius-sm); padding:0.6rem 0.85rem;">
@@ -6404,23 +6948,23 @@ class AutoReportApp {
       const isUnmappedVinculo = !p.representation;
       const isRowIncomplete = isUnmappedMun || isUnmappedVinculo;
 
-      // Status simplificado com siglas AP, AI, IP mantendo as cores
-      let statusBadge = `<span class="nav-badge badge-emerald" style="font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Inscrito e Presente"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>IP</span>`;
+      // Status unificado e descritivo com cores e ícones de linha
+      let statusBadge = `<span class="nav-badge badge-emerald" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Inscrito e Presente: realizou inscrição e compareceu ao evento (presença confirmada)"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Inscrito e Presente</span>`;
       if (p.status === 'Apenas Inscrito') {
-        statusBadge = `<span class="nav-badge badge-blue" style="font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Apenas Inscrito"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle></svg>AI</span>`;
+        statusBadge = `<span class="nav-badge badge-blue" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Apenas inscrito: realizou inscrição, porém não compareceu ao evento (ausente)"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Apenas inscrito</span>`;
       } else if (p.status === 'Apenas Presente') {
-        statusBadge = `<span class="nav-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--accent-amber-text); font-size:0.75rem; font-weight:800; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.25rem;" title="Apenas Presente"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle></svg>AP</span>`;
+        statusBadge = `<span class="nav-badge badge-amber" style="font-size:0.76rem; font-weight:700; padding:0.2rem 0.6rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;" title="Presente sem estar inscrito: compareceu ao evento, mas não realizou inscrição prévia"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Presente sem estar inscrito</span>`;
       }
 
       // Município: só pede para selecionar se não foi localizado na planilha
       const munTd = isUnmappedMun ? `
         <select class="participant-table-select unmapped" style="min-width:150px;" onchange="app.updateParticipantField('${p.id}', 'municipality', this.value)">
           <option value="">-- Selecionar Município --</option>
-          ${invitedMunOptions.map(m => `<option value="${m}">${m}</option>`).join('')}
+          ${invitedMunOptions.map(m => `<option value="${this.escapeHtml(m)}">${this.escapeHtml(m)}</option>`).join('')}
         </select>
       ` : `
         <div style="display:inline-flex; align-items:center; gap:0.35rem;">
-          <span style="font-weight:600; color:var(--text-primary);">${p.municipality}</span>
+          <span style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(p.municipality)}</span>
           ${p.isManualMunicipality ? `<button type="button" class="btn btn-sm btn-ghost text-muted" onclick="app.clearManualParticipantField('${p.id}', 'municipality')" title="Alterar município selecionado manualmente" style="padding:0 0.2rem; font-size:0.7rem; line-height:1;">${window.icons.edit}</button>` : ''}
         </div>
       `;
@@ -6435,7 +6979,7 @@ class AutoReportApp {
       ` : `
         <div style="display:inline-flex; align-items:center; gap:0.35rem;">
           <span class="nav-badge ${p.representation === 'CACS-FUNDEB' ? 'badge-emerald' : 'badge-blue'}" style="font-size:0.78rem; font-weight:600; white-space:nowrap;">
-            ${p.representation}
+            ${this.escapeHtml(p.representation)}
           </span>
           ${p.isManualRepresentation ? `<button type="button" class="btn btn-sm btn-ghost text-muted" onclick="app.clearManualParticipantField('${p.id}', 'representation')" title="Alterar vínculo selecionado manualmente" style="padding:0 0.2rem; font-size:0.7rem; line-height:1;">${window.icons.edit}</button>` : ''}
         </div>
@@ -6446,9 +6990,9 @@ class AutoReportApp {
 
       return `
         <tr style="${isRowIncomplete ? 'background: rgba(245, 158, 11, 0.05);' : ''}">
-          <td style="vertical-align:middle;"><strong>${p.name || 'Não informado'}</strong></td>
+          <td style="vertical-align:middle;"><strong>${this.escapeHtml(p.name || 'Não informado')}</strong></td>
           <td style="font-family:monospace; vertical-align:middle; white-space:nowrap;">
-            ${p.cpf || '-'}
+            ${this.escapeHtml(p.cpf || '-')}
             ${showCpfCheck ? '<span class="nav-badge badge-emerald" style="font-size:0.7rem; margin-left:0.35rem; padding:0.15rem 0.3rem; display:inline-flex; align-items:center;" title="CPF validado com município e vínculo confirmados"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </td>
           <td style="vertical-align:middle; text-align:center;">${statusBadge}</td>
@@ -6468,19 +7012,31 @@ class AutoReportApp {
             <span style="font-size:0.85rem; color:var(--text-secondary);">
               Exibindo <strong>${consolidatedList.length}</strong> participantes (Inscritos: <strong>${regList.length}</strong> | Presentes: <strong>${attList.length}</strong>):
             </span>
-            <div style="display:flex; align-items:center; gap:0.85rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(148, 163, 184, 0.08); padding:0.35rem 0.75rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
-              <span style="font-weight:700; color:var(--text-primary);">Legenda:</span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge" style="background:rgba(245, 158, 11, 0.2); color:var(--accent-amber-text); font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">AP</span>
-                <span>Apenas presente inscrito</span>
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap; font-size:0.8rem; background:rgba(148, 163, 184, 0.08); padding:0.4rem 0.85rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+              <span style="font-weight:700; color:var(--text-primary); display:inline-flex; align-items:center; gap:0.35rem;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Legenda:
               </span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge badge-blue" style="font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">AI</span>
-                <span>Apenas inscrito</span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Inscrito e Presente: participante realizou a inscrição e compareceu ao evento (presença confirmada)">
+                <span class="nav-badge badge-emerald" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  Inscrito e Presente
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${ipCount})</span>
               </span>
-              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);">
-                <span class="nav-badge badge-emerald" style="font-size:0.72rem; font-weight:800; padding:0.1rem 0.4rem;">IP</span>
-                <span>Inscrito e Presente</span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Presente sem estar inscrito: compareceu presencialmente ao evento sem inscrição prévia">
+                <span class="nav-badge badge-amber" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  Presente sem estar inscrito
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${apCount})</span>
+              </span>
+              <span style="display:inline-flex; align-items:center; gap:0.35rem; color:var(--text-secondary);" title="Apenas inscrito: realizou inscrição, porém não compareceu ao evento (ausente)">
+                <span class="nav-badge badge-blue" style="font-size:0.74rem; font-weight:700; padding:0.15rem 0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  Apenas inscrito
+                </span>
+                <span style="font-size:0.76rem; color:var(--text-muted);">(${aiCount})</span>
               </span>
             </div>
           </div>
@@ -6500,7 +7056,7 @@ class AutoReportApp {
                       <span class="sort-icon-badge">${this.getAttendanceSortIcon('cpf')}</span>
                     </div>
                   </th>
-                  <th class="th-sortable" onclick="app.sortAttendanceTable('status')" style="cursor:pointer; user-select:none; width:95px; text-align:center;" title="Clique para classificar por Status">
+                  <th class="th-sortable" onclick="app.sortAttendanceTable('status')" style="cursor:pointer; user-select:none; min-width:190px; text-align:center;" title="Clique para classificar por Status">
                     <div style="display:inline-flex; align-items:center; justify-content:center; gap:0.45rem;">
                       <span>Status</span>
                       <span class="sort-icon-badge">${this.getAttendanceSortIcon('status')}</span>
@@ -6529,6 +7085,11 @@ class AutoReportApp {
       }
     }
 
+    // Renderizar Tabela 3 (Inscritos por Município)
+    if (table3Container && window.statsEngine) {
+      table3Container.innerHTML = window.statsEngine.generateTable3Html(this.currentTraining.municipalities || []);
+    }
+
     // Renderizar Tabela 4 (Participação por Município - Presentes / Convocados)
     if (table4Container && window.statsEngine) {
       table4Container.innerHTML = window.statsEngine.generateTable4Html(this.currentTraining.municipalities || []);
@@ -6553,10 +7114,13 @@ class AutoReportApp {
         return;
       }
 
+      // Comentários padrão das figuras foram gerados com os dados antigos: descarta para regenerar
+      this.resetDefaultFigureComments();
       this.currentTraining.evaluations = parsed;
       this.renderEvaluationStep();
       this.renderEvaluationCharts();
       this.renderWordClouds();
+      this.renderFigureComments();
       this.saveCurrentStepData();
       this.showToast(`${parsed.length} avaliações processadas com sucesso!`, 'success');
     } catch (err) {
@@ -6570,10 +7134,10 @@ class AutoReportApp {
 
     this.openConfirmModal({
       title: 'Remover Planilha de Avaliação',
-      msg: 'Tem certeza que deseja remover a Planilha de Avaliação e limpar todos os dados de gráficos, médias e nuvens de palavras?',
+      msg: 'Tem certeza que deseja remover a Planilha de Avaliação e limpar todos os dados de gráficos, distribuições de respostas e nuvens de palavras?',
       btnText: 'Sim, Remover',
       successTitle: 'Avaliações Removidas!',
-      successMsg: 'A planilha de avaliações e todos os gráficos e médias foram excluídos com sucesso.',
+      successMsg: 'A planilha de avaliações e todos os gráficos e nuvens de palavras foram excluídos com sucesso.',
       onConfirm: () => this.executeClearEvaluationData()
     });
   }
@@ -6581,6 +7145,7 @@ class AutoReportApp {
   executeClearEvaluationData() {
     if (!this.currentTraining) return;
 
+    this.resetDefaultFigureComments();
     this.currentTraining.evaluations = [];
     const inputEval = document.getElementById('file-input-evaluation');
     if (inputEval) inputEval.value = '';
@@ -6594,6 +7159,7 @@ class AutoReportApp {
     this.renderEvaluationStep();
     this.renderEvaluationCharts();
     this.renderWordClouds();
+    this.renderFigureComments();
     this.saveCurrentStepData();
     this.showToast('Planilha de avaliações limpa com sucesso!', 'success');
   }
@@ -6619,7 +7185,10 @@ class AutoReportApp {
     if (countEl) countEl.textContent = `${evals.length} Avaliações Registradas`;
 
     const meanEl = document.getElementById('wiz-eval-overall-mean');
-    if (meanEl) meanEl.textContent = `${stats.overallMean} / 5.0`;
+    if (meanEl) {
+      const highPct = stats.highRatingPercent ? `${stats.highRatingPercent}%`.replace('.', ',') : (evals.length > 0 ? 'Predomínio 4 e 5' : '0,0% Conceitos 4 e 5');
+      meanEl.textContent = highPct.includes('Conceitos') ? highPct : `${highPct} Conceitos 4 e 5`;
+    }
 
     const statusBanner = document.getElementById('wizard-evaluation-status-banner');
     if (statusBanner) {
@@ -6645,6 +7214,208 @@ class AutoReportApp {
         `;
       }
     }
+
+    this.renderFigureComments();
+    this.renderWordCloudControls();
+  }
+
+  /**
+   * Renderiza os campos de comentários e sugestões padrão da Etapa 8 para as Figuras 3 a 8,
+   * integrando modelos analíticos de conteúdo (Bardin), síntese oficial FNDE e indicadores descritivos.
+   */
+  renderFigureComments() {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationComments) {
+      this.currentTraining.evaluationComments = {};
+    }
+    if (!this.currentTraining.evaluationCommentTemplates) {
+      this.currentTraining.evaluationCommentTemplates = {};
+    }
+
+    const figKeys = ['fig3', 'fig4', 'fig5', 'fig6', 'fig7', 'fig8'];
+    figKeys.forEach(key => {
+      const textarea = document.getElementById(`eval-comment-${key}`);
+      const badge = document.getElementById(`eval-comment-${key}-badge`);
+      const templateSelect = document.getElementById(`eval-comment-${key}-template`);
+      if (!textarea) return;
+
+      const activeTemplateId = this.currentTraining.evaluationCommentTemplates[key] || 'categorial';
+      if (templateSelect) {
+        templateSelect.value = activeTemplateId;
+      }
+
+      const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(key, this.currentTraining) : {};
+      const currentTemplateObj = allTemplates[activeTemplateId] || allTemplates.categorial || { name: 'Análise de Conteúdo', badge: 'Análise de Conteúdo', text: '' };
+      const expectedDefaultText = currentTemplateObj.text || '';
+
+      const savedComment = this.currentTraining.evaluationComments[key];
+
+      if (this.isFigureCommentCustom(key, allTemplates)) {
+        // Usuário digitou um texto manual customizado
+        textarea.value = savedComment;
+        if (badge) {
+          badge.textContent = 'Comentário Personalizado';
+          badge.style.background = 'rgba(245, 158, 11, 0.15)';
+          badge.style.color = 'var(--accent-amber-text)';
+        }
+      } else {
+        // Preencher com a sugestão analítica padrão do modelo ativo
+        textarea.value = expectedDefaultText;
+        this.currentTraining.evaluationComments[key] = expectedDefaultText;
+        if (badge) {
+          badge.textContent = `Sugestão Padrão: ${currentTemplateObj.badge || currentTemplateObj.name}`;
+          badge.style.background = 'rgba(59, 130, 246, 0.15)';
+          badge.style.color = 'var(--accent-blue-text)';
+        }
+      }
+    });
+  }
+
+  /**
+   * Indica se o comentário da figura foi escrito pelo usuário (true) ou é uma sugestão padrão gerada
+   * a partir dos dados (false), que deve ser regenerada quando as avaliações mudam.
+   */
+  isFigureCommentCustom(key, allTemplates = null) {
+    const t = this.currentTraining;
+    if (!t) return false;
+    const saved = t.evaluationComments ? t.evaluationComments[key] : undefined;
+    if (saved === undefined || saved === null || String(saved).trim() === '') return false;
+    if (t.evaluationCommentCustom && typeof t.evaluationCommentCustom[key] === 'boolean') {
+      return t.evaluationCommentCustom[key];
+    }
+    // Dados de versões anteriores (sem a marcação): texto do bug antigo de notas "0" ou igual a um modelo = padrão
+    if (saved.includes('"0", "1"')) return false;
+    const templates = allTemplates || (window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(key, t) : {});
+    return !Object.values(templates).some(tp => tp && tp.text && tp.text.trim() === String(saved).trim());
+  }
+
+  setFigureCommentCustom(key, isCustom) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationCommentCustom) this.currentTraining.evaluationCommentCustom = {};
+    this.currentTraining.evaluationCommentCustom[key] = isCustom;
+  }
+
+  /**
+   * Descarta os comentários padrão (não personalizados) das Figuras 3 a 8 para que sejam regenerados com os dados atuais
+   */
+  resetDefaultFigureComments() {
+    const t = this.currentTraining;
+    if (!t || !t.evaluationComments) return;
+    ['fig3', 'fig4', 'fig5', 'fig6', 'fig7', 'fig8'].forEach(key => {
+      if (!this.isFigureCommentCustom(key)) delete t.evaluationComments[key];
+    });
+  }
+
+  /**
+   * Altera o modelo de análise padrão de uma figura da Etapa 8 (Análise de Conteúdo, Síntese Oficial ou Descritiva)
+   */
+  changeFigureCommentTemplate(figKey, templateId) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationCommentTemplates) {
+      this.currentTraining.evaluationCommentTemplates = {};
+    }
+    if (!this.currentTraining.evaluationComments) {
+      this.currentTraining.evaluationComments = {};
+    }
+
+    this.currentTraining.evaluationCommentTemplates[figKey] = templateId;
+    this.setFigureCommentCustom(figKey, false);
+
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const selectedTemplate = allTemplates[templateId] || allTemplates.categorial;
+    const newText = selectedTemplate ? selectedTemplate.text : '';
+
+    this.currentTraining.evaluationComments[figKey] = newText;
+
+    const textarea = document.getElementById(`eval-comment-${figKey}`);
+    if (textarea) {
+      textarea.value = newText;
+    }
+
+    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
+    if (badge && selectedTemplate) {
+      badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
+      badge.style.background = 'rgba(59, 130, 246, 0.15)';
+      badge.style.color = 'var(--accent-blue-text)';
+    }
+
+    this.saveCurrentStepData();
+    if (selectedTemplate) {
+      this.showToast(`Modelo analítico aplicado: ${selectedTemplate.name}`, 'info');
+    }
+  }
+
+  /**
+   * Atualiza o comentário de uma figura da Etapa 8 quando editado livremente pelo usuário
+   */
+  handleFigureCommentChange(figKey, value) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationComments) {
+      this.currentTraining.evaluationComments = {};
+    }
+    this.currentTraining.evaluationComments[figKey] = value;
+
+    const activeTemplateId = (this.currentTraining.evaluationCommentTemplates && this.currentTraining.evaluationCommentTemplates[figKey]) || 'categorial';
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const currentTemplateObj = allTemplates[activeTemplateId] || allTemplates.categorial;
+    const defaultComment = currentTemplateObj ? currentTemplateObj.text : '';
+
+    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
+    this.setFigureCommentCustom(figKey, value.trim() !== '' && value.trim() !== defaultComment.trim());
+
+    if (badge) {
+      if (value.trim() === defaultComment.trim()) {
+        badge.textContent = `Sugestão Padrão: ${currentTemplateObj?.badge || 'Análise de Conteúdo'}`;
+        badge.style.background = 'rgba(59, 130, 246, 0.15)';
+        badge.style.color = 'var(--accent-blue-text)';
+      } else {
+        badge.textContent = 'Comentário Personalizado';
+        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+        badge.style.color = 'var(--accent-amber-text)';
+      }
+    }
+
+    if (this._commentDebounceTimer) {
+      clearTimeout(this._commentDebounceTimer);
+    }
+    this._commentDebounceTimer = setTimeout(() => {
+      this.saveCurrentStepData();
+    }, 400);
+  }
+
+  /**
+   * Restaura o comentário de uma figura para o modelo analítico atualmente selecionado
+   */
+  restoreFigureComment(figKey) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationComments) {
+      this.currentTraining.evaluationComments = {};
+    }
+
+    const templateSelect = document.getElementById(`eval-comment-${figKey}-template`);
+    const activeTemplateId = templateSelect ? templateSelect.value : ((this.currentTraining.evaluationCommentTemplates && this.currentTraining.evaluationCommentTemplates[figKey]) || 'categorial');
+
+    const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
+    const selectedTemplate = allTemplates[activeTemplateId] || allTemplates.categorial;
+    const defaultComment = selectedTemplate ? selectedTemplate.text : '';
+
+    this.currentTraining.evaluationComments[figKey] = defaultComment;
+    this.setFigureCommentCustom(figKey, false);
+
+    const textarea = document.getElementById(`eval-comment-${figKey}`);
+    if (textarea) {
+      textarea.value = defaultComment;
+    }
+
+    const badge = document.getElementById(`eval-comment-${figKey}-badge`);
+    if (badge && selectedTemplate) {
+      badge.textContent = `Sugestão Padrão: ${selectedTemplate.badge || selectedTemplate.name}`;
+      badge.style.background = 'rgba(59, 130, 246, 0.15)';
+      badge.style.color = 'var(--accent-blue-text)';
+    }
+
+    this.saveCurrentStepData();
+    this.showToast(`Comentário restaurado para o padrão (${selectedTemplate ? selectedTemplate.name : 'Análise de Conteúdo'})!`, 'info');
   }
 
   renderEvaluationCharts() {
@@ -6710,25 +7481,254 @@ class AutoReportApp {
           ctx8.restore();
         }
       }
+      this.renderWordCloudControls();
       return;
     }
 
     const likedTexts = evals.map(e => e.likedAspects).filter(Boolean);
     const improveTexts = evals.map(e => e.improveAspects).filter(Boolean);
 
+    const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
+
     // Nuvem de Aspectos Positivos (Figura 7)
     const likedWords = window.wordCloudEngine.processTextList(likedTexts);
     const canvas7 = document.getElementById('wordcloud-fig7-canvas');
     if (canvas7) {
-      window.wordCloudEngine.renderToCanvas(canvas7, likedWords, { palette: 'positive', isDark, width: 550, height: 320 });
+      window.wordCloudEngine.renderToCanvas(canvas7, likedWords, { palette: 'positive', isDark, width: 650, height: 340, maxWords: 45, fontFamily: cloudFont });
     }
 
     // Nuvem de Aspectos a Melhorar (Figura 8)
     const improveWords = window.wordCloudEngine.processTextList(improveTexts);
     const canvas8 = document.getElementById('wordcloud-fig8-canvas');
     if (canvas8) {
-      window.wordCloudEngine.renderToCanvas(canvas8, improveWords, { palette: 'improve', isDark, width: 550, height: 320 });
+      window.wordCloudEngine.renderToCanvas(canvas8, improveWords, { palette: 'improve', isDark, width: 650, height: 340, maxWords: 45, fontFamily: cloudFont });
     }
+
+    this.renderWordCloudControls();
+  }
+
+  /**
+   * Renderiza os controles de tipografia, títulos e fontes das Figuras 7 e 8 (Nuvens de Palavras)
+   * mantendo a integridade do padrão institucional ABNT e suporte a personalização com restauração rápida.
+   */
+  renderWordCloudControls() {
+    if (!this.currentTraining) return;
+    const t = this.currentTraining;
+
+    // 1. Tipografia selecionada
+    const fontSelect = document.getElementById('wordcloud-font-select');
+    if (fontSelect) {
+      fontSelect.value = t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+    }
+
+    // 2. Figura 7 - Título
+    const fig7DefaultTitle = 'Aspectos que gostaram da capacitação.';
+    const fig7SavedTitle = (t.customWordCloudTitles && t.customWordCloudTitles.fig7) ? t.customWordCloudTitles.fig7.trim() : '';
+    const fig7CleanTitle = this.cleanFigureTitle(7, fig7SavedTitle || fig7DefaultTitle, fig7DefaultTitle);
+    const fig7IsCustomTitle = Boolean(fig7SavedTitle && fig7CleanTitle !== fig7DefaultTitle);
+    const fig7InputTitle = document.getElementById('wordcloud-title-fig7');
+    if (fig7InputTitle) fig7InputTitle.value = fig7CleanTitle;
+    const fig7TitleBadge = document.getElementById('wordcloud-fig7-title-badge');
+    if (fig7TitleBadge) {
+      fig7TitleBadge.textContent = fig7IsCustomTitle ? 'Personalizado' : 'Padrão Oficial';
+      fig7TitleBadge.className = fig7IsCustomTitle ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig7TitleRestoreBtn = document.getElementById('wordcloud-fig7-title-restore-btn');
+    if (fig7TitleRestoreBtn) {
+      fig7TitleRestoreBtn.style.display = fig7IsCustomTitle ? 'inline-flex' : 'none';
+    }
+    const fig7TitlePreview = document.getElementById('wordcloud-fig7-title-preview');
+    if (fig7TitlePreview) {
+      fig7TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(7, fig7CleanTitle))}</strong>`;
+    }
+
+    // 3. Figura 7 - Fonte
+    const fig7DefaultSource = 'Elaborada pelos autores.';
+    const fig7SavedSource = (t.customWordCloudSources && t.customWordCloudSources.fig7) ? t.customWordCloudSources.fig7.trim() : '';
+    const fig7CleanSource = this.cleanFigureSource(fig7SavedSource || fig7DefaultSource, fig7DefaultSource);
+    const fig7IsCustomSource = Boolean(fig7SavedSource && fig7CleanSource !== fig7DefaultSource);
+    const fig7InputSource = document.getElementById('wordcloud-source-fig7');
+    if (fig7InputSource) fig7InputSource.value = fig7CleanSource;
+    const fig7SourceBadge = document.getElementById('wordcloud-fig7-source-badge');
+    if (fig7SourceBadge) {
+      fig7SourceBadge.textContent = fig7IsCustomSource ? 'Personalizada' : 'Padrão Oficial';
+      fig7SourceBadge.className = fig7IsCustomSource ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig7SourceRestoreBtn = document.getElementById('wordcloud-fig7-source-restore-btn');
+    if (fig7SourceRestoreBtn) {
+      fig7SourceRestoreBtn.style.display = fig7IsCustomSource ? 'inline-flex' : 'none';
+    }
+    const fig7SourcePreview = document.getElementById('wordcloud-fig7-source-preview');
+    if (fig7SourcePreview) {
+      fig7SourcePreview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(fig7CleanSource))}</em>`;
+    }
+
+    // 4. Figura 8 - Título
+    const fig8DefaultTitle = 'Aspectos que devem melhorar da capacitação.';
+    const fig8SavedTitle = (t.customWordCloudTitles && t.customWordCloudTitles.fig8) ? t.customWordCloudTitles.fig8.trim() : '';
+    const fig8CleanTitle = this.cleanFigureTitle(8, fig8SavedTitle || fig8DefaultTitle, fig8DefaultTitle);
+    const fig8IsCustomTitle = Boolean(fig8SavedTitle && fig8CleanTitle !== fig8DefaultTitle);
+    const fig8InputTitle = document.getElementById('wordcloud-title-fig8');
+    if (fig8InputTitle) fig8InputTitle.value = fig8CleanTitle;
+    const fig8TitleBadge = document.getElementById('wordcloud-fig8-title-badge');
+    if (fig8TitleBadge) {
+      fig8TitleBadge.textContent = fig8IsCustomTitle ? 'Personalizado' : 'Padrão Oficial';
+      fig8TitleBadge.className = fig8IsCustomTitle ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig8TitleRestoreBtn = document.getElementById('wordcloud-fig8-title-restore-btn');
+    if (fig8TitleRestoreBtn) {
+      fig8TitleRestoreBtn.style.display = fig8IsCustomTitle ? 'inline-flex' : 'none';
+    }
+    const fig8TitlePreview = document.getElementById('wordcloud-fig8-title-preview');
+    if (fig8TitlePreview) {
+      fig8TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(8, fig8CleanTitle))}</strong>`;
+    }
+
+    // 5. Figura 8 - Fonte
+    const fig8DefaultSource = 'Elaborada pelos autores.';
+    const fig8SavedSource = (t.customWordCloudSources && t.customWordCloudSources.fig8) ? t.customWordCloudSources.fig8.trim() : '';
+    const fig8CleanSource = this.cleanFigureSource(fig8SavedSource || fig8DefaultSource, fig8DefaultSource);
+    const fig8IsCustomSource = Boolean(fig8SavedSource && fig8CleanSource !== fig8DefaultSource);
+    const fig8InputSource = document.getElementById('wordcloud-source-fig8');
+    if (fig8InputSource) fig8InputSource.value = fig8CleanSource;
+    const fig8SourceBadge = document.getElementById('wordcloud-fig8-source-badge');
+    if (fig8SourceBadge) {
+      fig8SourceBadge.textContent = fig8IsCustomSource ? 'Personalizada' : 'Padrão Oficial';
+      fig8SourceBadge.className = fig8IsCustomSource ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const fig8SourceRestoreBtn = document.getElementById('wordcloud-fig8-source-restore-btn');
+    if (fig8SourceRestoreBtn) {
+      fig8SourceRestoreBtn.style.display = fig8IsCustomSource ? 'inline-flex' : 'none';
+    }
+    const fig8SourcePreview = document.getElementById('wordcloud-fig8-source-preview');
+    if (fig8SourcePreview) {
+      fig8SourcePreview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(fig8CleanSource))}</em>`;
+    }
+  }
+
+  handleWordCloudFontChange(fontName) {
+    if (!this.currentTraining) return;
+    const selected = fontName || 'Plus Jakarta Sans';
+    this.currentTraining.customWordCloudFont = selected;
+    this.currentTraining.wordCloudFontFamily = selected;
+    this.renderWordClouds();
+    this.saveCurrentStepData();
+  }
+
+  restoreWordCloudFont() {
+    if (!this.currentTraining) return;
+    this.currentTraining.customWordCloudFont = 'Plus Jakarta Sans';
+    this.currentTraining.wordCloudFontFamily = 'Plus Jakarta Sans';
+    const fontSelect = document.getElementById('wordcloud-font-select');
+    if (fontSelect) fontSelect.value = 'Plus Jakarta Sans';
+    this.renderWordClouds();
+    this.saveCurrentStepData();
+  }
+
+  handleWordCloudTitleInput(figKey, value) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudTitles) {
+      this.currentTraining.customWordCloudTitles = {};
+    }
+    const figNum = figKey === 'fig7' ? 7 : 8;
+    const defaultTitle = figKey === 'fig7' ? 'Aspectos que gostaram da capacitação.' : 'Aspectos que devem melhorar da capacitação.';
+    const clean = this.cleanFigureTitle(figNum, value, defaultTitle);
+    this.currentTraining.customWordCloudTitles[figKey] = clean;
+
+    const isCustom = clean !== defaultTitle;
+    const badge = document.getElementById(`wordcloud-${figKey}-title-badge`);
+    if (badge) {
+      badge.textContent = isCustom ? 'Personalizado' : 'Padrão Oficial';
+      badge.className = isCustom ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-title-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = isCustom ? 'inline-flex' : 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
+    if (preview) {
+      preview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(figNum, clean))}</strong>`;
+    }
+    this.saveCurrentStepData();
+  }
+
+  restoreWordCloudTitle(figKey) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudTitles) {
+      this.currentTraining.customWordCloudTitles = {};
+    }
+    const figNum = figKey === 'fig7' ? 7 : 8;
+    const defaultTitle = figKey === 'fig7' ? 'Aspectos que gostaram da capacitação.' : 'Aspectos que devem melhorar da capacitação.';
+    this.currentTraining.customWordCloudTitles[figKey] = defaultTitle;
+
+    const input = document.getElementById(`wordcloud-title-${figKey}`);
+    if (input) input.value = defaultTitle;
+    const badge = document.getElementById(`wordcloud-${figKey}-title-badge`);
+    if (badge) {
+      badge.textContent = 'Padrão Oficial';
+      badge.className = 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-title-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
+    if (preview) {
+      preview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(figNum, defaultTitle))}</strong>`;
+    }
+    this.saveCurrentStepData();
+  }
+
+  handleWordCloudSourceInput(figKey, value) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudSources) {
+      this.currentTraining.customWordCloudSources = {};
+    }
+    const defaultSource = 'Elaborada pelos autores.';
+    const clean = this.cleanFigureSource(value, defaultSource);
+    this.currentTraining.customWordCloudSources[figKey] = clean;
+
+    const isCustom = clean !== defaultSource;
+    const badge = document.getElementById(`wordcloud-${figKey}-source-badge`);
+    if (badge) {
+      badge.textContent = isCustom ? 'Personalizada' : 'Padrão Oficial';
+      badge.className = isCustom ? 'badge-title-status custom' : 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-source-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = isCustom ? 'inline-flex' : 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
+    if (preview) {
+      preview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(clean))}</em>`;
+    }
+    this.saveCurrentStepData();
+  }
+
+  restoreWordCloudSource(figKey) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customWordCloudSources) {
+      this.currentTraining.customWordCloudSources = {};
+    }
+    const defaultSource = 'Elaborada pelos autores.';
+    this.currentTraining.customWordCloudSources[figKey] = defaultSource;
+
+    const input = document.getElementById(`wordcloud-source-${figKey}`);
+    if (input) input.value = defaultSource;
+    const badge = document.getElementById(`wordcloud-${figKey}-source-badge`);
+    if (badge) {
+      badge.textContent = 'Padrão Oficial';
+      badge.className = 'badge-title-status';
+    }
+    const restoreBtn = document.getElementById(`wordcloud-${figKey}-source-restore-btn`);
+    if (restoreBtn) {
+      restoreBtn.style.display = 'none';
+    }
+    const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
+    if (preview) {
+      preview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(defaultSource))}</em>`;
+    }
+    this.saveCurrentStepData();
   }
 
   /* ==========================================================================
@@ -6757,6 +7757,12 @@ class AutoReportApp {
       event.currentTarget.classList.remove('dragover');
     }
 
+    // Foto arrastada de outro cartão para este slot vazio: move a foto (não é envio de arquivo)
+    if (slotId && this.draggedPhotoSlotId) {
+      this.handlePhotoDropCard(slotId, event);
+      return;
+    }
+
     const files = event.dataTransfer?.files;
     if (!files || files.length === 0 || !this.currentTraining) return;
 
@@ -6766,16 +7772,49 @@ class AutoReportApp {
     if (slotId) {
       // Slot específico
       const file = imageFiles[0];
-      const dataUrl = await this.fileToDataUrl(file);
-      if (!this.currentTraining.media) this.currentTraining.media = [];
+      let dataUrl;
+      try {
+        dataUrl = await this.fileToReportImageDataUrl(file);
+      } catch (err) {
+        this.notifyImageReadError(file, err);
+        return;
+      }
+      const slots = this.getStandardPhotoSlots();
+      const slot = slots.find(s => s.slotId === slotId);
+      let captionToUse = defaultCaption;
+      let titleToUse = defaultCaption;
+      let sourceToUse = 'Fonte: Elaborada pelos autores.';
+      let customSourceToKeep;
 
-      this.currentTraining.media = this.currentTraining.media.filter(m => m.slotId !== slotId && m.id !== slotId);
-      this.currentTraining.media.push({
+      if (slot) {
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        captionToUse = slotInfo.caption;
+        titleToUse = slotInfo.title;
+        sourceToUse = slotInfo.sourceFormatted;
+      } else {
+        // Foto complementar (fora dos slots padrão) substituída: mantém título, legenda e fonte já definidos
+        const previous = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === slotId || m.id === slotId));
+        if (previous) {
+          captionToUse = previous.caption || captionToUse;
+          titleToUse = previous.title || titleToUse;
+          sourceToUse = previous.source || sourceToUse;
+          if (previous.customSource) customSourceToKeep = previous.customSource;
+        }
+      }
+
+      // Substitui na mesma posição para não alterar a ordem (e a numeração) das fotos complementares
+      const media = this.currentTraining.media;
+      const replaceIdx = media.findIndex(m => m.slotId === slotId || m.id === slotId);
+      this.currentTraining.media = media.filter(m => m.slotId !== slotId && m.id !== slotId);
+      this.currentTraining.media.splice(replaceIdx >= 0 ? replaceIdx : this.currentTraining.media.length, 0, {
         id: `photo_${Date.now()}_${slotId}`,
         slotId: slotId,
         type: 'photo',
         blob: dataUrl,
-        caption: defaultCaption,
+        caption: captionToUse,
+        title: titleToUse,
+        source: sourceToUse,
+        ...(customSourceToKeep ? { customSource: customSourceToKeep } : {}),
         fileName: file.name
       });
       this.renderPhotosStep();
@@ -6819,22 +7858,60 @@ class AutoReportApp {
       event.currentTarget.style.borderColor = '';
     }
 
+    // Arquivo arrastado do computador sobre um cartão já preenchido: substitui a foto desse cartão
+    const droppedFiles = event.dataTransfer?.files;
+    if (!this.draggedPhotoSlotId && droppedFiles && droppedFiles.length > 0) {
+      this.handlePhotoDrop(targetSlotId, '', event);
+      return;
+    }
+
     const sourceSlotId = this.draggedPhotoSlotId || event.dataTransfer.getData('text/plain');
+    this.draggedPhotoSlotId = null;
     if (!sourceSlotId || sourceSlotId === targetSlotId) return;
 
     if (!this.currentTraining || !this.currentTraining.media) return;
 
-    const sourcePhoto = this.currentTraining.media.find(m => m.slotId === sourceSlotId || m.id === sourceSlotId);
-    const targetPhoto = this.currentTraining.media.find(m => m.slotId === targetSlotId || m.id === targetSlotId);
+    const sourcePhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === sourceSlotId || m.id === sourceSlotId));
+    const targetPhoto = this.currentTraining.media.find(m => m.type === 'photo' && (m.slotId === targetSlotId || m.id === targetSlotId));
+
+    const standardSlots = this.getStandardPhotoSlots();
+    const isStandardSlot = (id) => standardSlots.some(s => s.slotId === id);
+
+    // Duas fotos complementares: a ordem vem da posição no array de mídia, então troca as posições
+    // (gravar o id de uma foto no slotId da outra faria "Remover" apagar as duas)
+    if (sourcePhoto && targetPhoto && !isStandardSlot(sourcePhoto.slotId) && !isStandardSlot(targetPhoto.slotId)) {
+      const media = this.currentTraining.media;
+      const i = media.indexOf(sourcePhoto);
+      const j = media.indexOf(targetPhoto);
+      [media[i], media[j]] = [media[j], media[i]];
+      this.renderPhotosStep();
+      this.saveCurrentStepData();
+      this.showToast('Posição das figuras reordenada!', 'success');
+      return;
+    }
 
     if (sourcePhoto) {
       sourcePhoto.slotId = targetSlotId;
+      sourcePhoto.movedByUser = true;
     }
     if (targetPhoto) {
       targetPhoto.slotId = sourceSlotId;
+      targetPhoto.movedByUser = true;
     }
 
-    this.draggedPhotoSlotId = null;
+    // O título padrão pertence ao slot (momento do relatório), não à foto: ao mover uma foto para um slot
+    // padrão, ela assume o título do slot (ou o título personalizado salvo para esse slot)
+    [sourcePhoto, targetPhoto].forEach(photo => {
+      const slot = photo && standardSlots.find(s => s.slotId === photo.slotId);
+      if (slot) {
+        photo.caption = slot.defaultCaption;
+        photo.title = slot.defaultTitle;
+        // Com a legenda padrão aplicada, getPhotoSlotInfo considera apenas o título personalizado do slot
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        photo.caption = slotInfo.caption;
+        photo.title = slotInfo.title;
+      }
+    });
     this.renderPhotosStep();
     this.saveCurrentStepData();
     this.showToast('Posição das figuras reordenada!', 'success');
@@ -6855,25 +7932,413 @@ class AutoReportApp {
     return 2;
   }
 
+  /**
+   * Número da primeira fotografia no relatório (Figura 9 no modelo oficial; muda quando
+   * figuras de Tecnologias Educacionais são removidas ou adicionadas)
+   */
+  getPhotoFigureStart() {
+    const gen = window.reportDocxGenerator;
+    if (gen && typeof gen.getFigureNumbering === 'function' && this.currentTraining) {
+      return gen.getFigureNumbering(this.currentTraining).photoStart;
+    }
+    return 9;
+  }
+
   getStandardPhotoSlots() {
     const daysCount = this.getTrainingDaysCount();
 
-    const slots = [
-      { slotId: 'fig_9', defaultTitle: 'Acomodação dos participantes.', defaultCaption: 'Figura 9. Acomodação dos participantes.' },
-      { slotId: 'fig_10', defaultTitle: 'Apresentação inicial do curso.', defaultCaption: 'Figura 10. Apresentação inicial do curso.' },
-      { slotId: 'fig_11', defaultTitle: 'Apresentação dos módulos teóricos.', defaultCaption: 'Figura 11. Apresentação dos módulos teóricos.' }
+    // slotId é o identificador fixo do slot; figNum é o número exibido, calculado pela numeração vigente
+    const baseSlots = [
+      { slotId: 'fig_9', defaultTitle: 'Acomodação dos participantes.' },
+      { slotId: 'fig_10', defaultTitle: 'Apresentação inicial do curso.' },
+      { slotId: 'fig_11', defaultTitle: 'Apresentação dos módulos teóricos.' }
     ];
 
     for (let day = 1; day <= daysCount; day++) {
-      const figNum = 11 + day;
-      slots.push({
-        slotId: `fig_${figNum}_day_${day}`,
-        defaultTitle: `Final da capacitação do ${day}º dia.`,
-        defaultCaption: `Figura ${figNum}. Final da capacitação do ${day}º dia.`
+      baseSlots.push({
+        slotId: `fig_${11 + day}_day_${day}`,
+        defaultTitle: `Final da capacitação do ${day}º dia.`
       });
     }
 
+    // Mesma regra do relatório Word: só slots com foto consomem número; um slot vazio exibe o número
+    // que a foto receberá ao ser anexada
+    const photos = (this.currentTraining?.media || []).filter(m => m.type === 'photo' && m.blob);
+    const used = new Set();
+    let next = this.getPhotoFigureStart();
+    const slots = baseSlots.map(slot => {
+      let photo = photos.find(p => p.slotId === slot.slotId);
+      if (!photo && slot.slotId.includes('_day_')) {
+        const dayPart = slot.slotId.split('_day_')[1];
+        photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+      }
+      const filled = Boolean(photo && !used.has(photo));
+      if (filled) used.add(photo);
+      const figNum = filled ? next++ : next;
+      return { ...slot, figNum, defaultCaption: `Figura ${figNum}. ${slot.defaultTitle}` };
+    });
+    this.extraPhotoFigureStart = next;
     return slots;
+  }
+
+  /**
+   * Número da primeira foto complementar (logo após as fotos dos slots padrão efetivamente preenchidos)
+   */
+  getExtraPhotoFigureStart() {
+    this.getStandardPhotoSlots();
+    return this.extraPhotoFigureStart;
+  }
+
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Remove prefixos redundantes de figuras digitados pelo usuário (ex: 'Figura 9. ', 'Figura 9: ')
+   * mantendo apenas o texto descritivo puro do título.
+   */
+  cleanFigureTitle(figNum, rawTitle, defaultTitle = '') {
+    if (!rawTitle || typeof rawTitle !== 'string') {
+      rawTitle = defaultTitle || '';
+    }
+    let clean = rawTitle.trim();
+    if (figNum) {
+      const regex = new RegExp(`^figura\\s*${figNum}\\s*[\\.:\\-–—]?\\s*`, 'i');
+      clean = clean.replace(regex, '').trim();
+    }
+    clean = clean.replace(/^figura\s*\d+\s*[\.:\-–—]?\s*/i, '').trim();
+    if (!clean && defaultTitle) {
+      if (figNum) {
+        clean = defaultTitle.replace(new RegExp(`^figura\\s*${figNum}\\s*[\\.:\\-–—]?\\s*`, 'i'), '').trim();
+      } else {
+        clean = defaultTitle.trim();
+      }
+    }
+    return clean;
+  }
+
+  /**
+   * Formata a legenda oficial completa da figura com base no número e no título informado,
+   * assegurando a norma institucional: 'Figura {figNum}. {Título}.'
+   */
+  formatFigureCaption(figNum, rawTitle, defaultTitle = '') {
+    const clean = this.cleanFigureTitle(figNum, rawTitle, defaultTitle);
+    let titleWithDot = clean.trim();
+    if (titleWithDot && !/[.!?]$/.test(titleWithDot)) {
+      titleWithDot += '.';
+    }
+    return `Figura ${figNum}. ${titleWithDot}`;
+  }
+
+  /**
+   * Remove prefixos redundantes de fonte digitados pelo usuário (ex: 'Fonte: ', 'Fonte. ')
+   * mantendo apenas o texto descritivo da fonte (padrão oficial: 'Elaborada pelos autores.').
+   */
+  cleanFigureSource(rawSource, defaultSource = 'Elaborada pelos autores.') {
+    if (!rawSource || typeof rawSource !== 'string') {
+      rawSource = defaultSource || 'Elaborada pelos autores.';
+    }
+    let clean = rawSource.trim();
+    clean = clean.replace(/^fonte\s*[\.:\-–—]?\s*/i, '').trim();
+    if (!clean && defaultSource) {
+      clean = defaultSource.replace(/^fonte\s*[\.:\-–—]?\s*/i, '').trim();
+    }
+    return clean;
+  }
+
+  /**
+   * Formata a citação oficial de fonte da figura segundo a norma ABNT/institucional: 'Fonte: {Texto}.'
+   */
+  formatFigureSource(cleanSource, defaultSource = 'Elaborada pelos autores.') {
+    const clean = this.cleanFigureSource(cleanSource, defaultSource);
+    let sourceWithDot = clean.trim();
+    if (sourceWithDot && !/[.!?]$/.test(sourceWithDot)) {
+      sourceWithDot += '.';
+    }
+    return `Fonte: ${sourceWithDot}`;
+  }
+
+  /**
+   * Retorna os dados vigentes (título, legenda e fonte) de um slot de foto, considerando se há personalização
+   */
+  getPhotoSlotInfo(slot) {
+    if (!this.currentTraining) {
+      return { 
+        title: slot.defaultTitle, 
+        caption: slot.defaultCaption, 
+        isCustom: false, 
+        photo: null,
+        sourceClean: 'Elaborada pelos autores.',
+        sourceFormatted: 'Fonte: Elaborada pelos autores.',
+        isCustomSource: false
+      };
+    }
+    const customTitles = this.currentTraining.customPhotoTitles || {};
+    const customSources = this.currentTraining.customPhotoSources || {};
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slot.slotId);
+    if (!photo && slot.slotId.includes('_day_')) {
+      const dayPart = slot.slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (!photo) {
+      // Compatibilidade com fotos antigas sem slot: nunca reaproveitar uma foto que já pertence a outro slot
+      photo = photos.find(p => !p.slotId && p.caption && p.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
+    }
+
+    const defaultPureTitle = this.cleanFigureTitle(slot.figNum, slot.defaultTitle);
+    let savedCustom = customTitles[slot.slotId];
+    if (!savedCustom && photo && photo.caption && photo.caption !== slot.defaultCaption) {
+      savedCustom = this.cleanFigureTitle(slot.figNum, photo.caption, defaultPureTitle);
+      // Título padrão de dia herdado de outro slot (não digitado pelo usuário) acompanha o slot, não a foto
+      if (/^final da capacitação do \d+º dia\.?$/i.test(savedCustom)) {
+        savedCustom = null;
+      }
+    }
+
+    const isCustom = Boolean(savedCustom && savedCustom.trim() !== defaultPureTitle);
+    const title = isCustom ? savedCustom.trim() : defaultPureTitle;
+    const caption = this.formatFigureCaption(slot.figNum, title, defaultPureTitle);
+
+    // Fonte da figura (mantém padrão oficial institucional)
+    const defaultPureSource = 'Elaborada pelos autores.';
+    let savedCustomSource = customSources[slot.slotId];
+    if (!savedCustomSource && photo && photo.source && photo.source !== 'Fonte: Elaborada pelos autores.') {
+      savedCustomSource = this.cleanFigureSource(photo.source, defaultPureSource);
+    }
+
+    const isCustomSource = Boolean(savedCustomSource && savedCustomSource.trim() !== defaultPureSource);
+    const sourceClean = isCustomSource ? savedCustomSource.trim() : defaultPureSource;
+    const sourceFormatted = this.formatFigureSource(sourceClean, defaultPureSource);
+
+    return { title, caption, isCustom, photo, sourceClean, sourceFormatted, isCustomSource };
+  }
+
+  handlePhotoTitleInput(slotId, figNum, newTitle) {
+    const cleanTitle = this.cleanFigureTitle(figNum, newTitle);
+    const fullCaption = this.formatFigureCaption(figNum, cleanTitle);
+
+    // Atualiza cabeçalho do card
+    const headerTitleEl = document.getElementById(`photo-header-title-${slotId}`);
+    if (headerTitleEl) {
+      headerTitleEl.textContent = fullCaption;
+    }
+
+    // Atualiza preview de legenda
+    const previewEl = document.getElementById(`photo-caption-preview-${slotId}`);
+    if (previewEl) {
+      previewEl.textContent = fullCaption;
+    }
+  }
+
+  updatePhotoTitle(slotId, figNum, newTitle) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customPhotoTitles) this.currentTraining.customPhotoTitles = {};
+
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    const defaultTitle = slot ? slot.defaultTitle : '';
+
+    const cleanTitle = this.cleanFigureTitle(figNum, newTitle, defaultTitle);
+    const fullCaption = this.formatFigureCaption(figNum, cleanTitle, defaultTitle);
+
+    this.currentTraining.customPhotoTitles[slotId] = cleanTitle;
+
+    // Se já houver foto anexada neste slot, sincroniza nela
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (photo) {
+      photo.caption = fullCaption;
+      photo.title = cleanTitle;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Título da Figura ${figNum} atualizado no padrão oficial!`, 'success');
+  }
+
+  restorePhotoTitle(slotId) {
+    if (!this.currentTraining) return;
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+
+    if (this.currentTraining.customPhotoTitles) {
+      delete this.currentTraining.customPhotoTitles[slotId];
+    }
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+
+    if (photo && slot) {
+      photo.caption = slot.defaultCaption;
+      photo.title = slot.defaultTitle;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Título restaurado para o padrão oficial!', 'info');
+  }
+
+  handlePhotoSourceInput(slotId, newSource) {
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    // Atualiza preview de fonte
+    const previewEl = document.getElementById(`photo-source-preview-${slotId}`);
+    if (previewEl) {
+      previewEl.textContent = fullSource;
+    }
+  }
+
+  updatePhotoSource(slotId, figNum, newSource) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.customPhotoSources) this.currentTraining.customPhotoSources = {};
+
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    this.currentTraining.customPhotoSources[slotId] = cleanSource;
+
+    // Se já houver foto anexada neste slot, sincroniza nela
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+    if (photo) {
+      photo.source = fullSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte da Figura ${figNum} atualizada no padrão oficial!`, 'success');
+  }
+
+  restorePhotoSource(slotId) {
+    if (!this.currentTraining) return;
+    if (this.currentTraining.customPhotoSources) {
+      delete this.currentTraining.customPhotoSources[slotId];
+    }
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    let photo = photos.find(p => p.slotId === slotId || p.id === slotId);
+    if (!photo && slotId && slotId.includes('_day_')) {
+      const dayPart = slotId.split('_day_')[1];
+      photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+    }
+
+    if (photo) {
+      photo.source = 'Fonte: Elaborada pelos autores.';
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Fonte restaurada para o padrão oficial!', 'info');
+  }
+
+  handleExtraPhotoSourceInput(photoId, newSource) {
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    const previewEl = document.getElementById(`photo-source-preview-${photoId}`);
+    if (previewEl) {
+      previewEl.textContent = fullSource;
+    }
+  }
+
+  updateExtraPhotoSource(photoId, extraFigNum, newSource) {
+    if (!this.currentTraining) return;
+    const cleanSource = this.cleanFigureSource(newSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    const photo = photos.find(p => p.id === photoId);
+    if (photo) {
+      photo.source = fullSource;
+      photo.customSource = cleanSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte da Figura ${extraFigNum} atualizada no padrão oficial!`, 'success');
+  }
+
+  restoreExtraPhotoSource(photoId) {
+    if (!this.currentTraining) return;
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    const photo = photos.find(p => p.id === photoId);
+    if (photo) {
+      photo.source = 'Fonte: Elaborada pelos autores.';
+      delete photo.customSource;
+    }
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast('Fonte restaurada para o padrão oficial!', 'info');
+  }
+
+  openBatchSourceModal() {
+    const overlay = document.getElementById('app-batch-source-modal-overlay');
+    const input = document.getElementById('batch-source-modal-input');
+    if (input) {
+      input.value = 'Elaborada pelos autores.';
+    }
+    if (overlay) {
+      overlay.style.display = 'flex';
+      setTimeout(() => { if (input) input.focus(); }, 100);
+    }
+  }
+
+  closeBatchSourceModal() {
+    const overlay = document.getElementById('app-batch-source-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  applyBatchSourceModalAction() {
+    const input = document.getElementById('batch-source-modal-input');
+    const val = input ? input.value : 'Elaborada pelos autores.';
+    this.applySourceToAllPhotos(val);
+    this.closeBatchSourceModal();
+  }
+
+  applySourceToAllPhotos(rawSource) {
+    if (!this.currentTraining) return;
+    const cleanSource = this.cleanFigureSource(rawSource);
+    const fullSource = this.formatFigureSource(cleanSource);
+
+    if (!this.currentTraining.customPhotoSources) this.currentTraining.customPhotoSources = {};
+
+    const slots = this.getStandardPhotoSlots();
+    slots.forEach(slot => {
+      this.currentTraining.customPhotoSources[slot.slotId] = cleanSource;
+    });
+
+    const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+    photos.forEach(photo => {
+      photo.source = fullSource;
+      if (photo.slotId && !slots.some(s => s.slotId === photo.slotId)) {
+        photo.customSource = cleanSource;
+      }
+    });
+
+    this.renderPhotosStep();
+    this.saveCurrentStepData();
+    this.showToast(`Fonte aplicada a todas as fotografias (${fullSource})!`, 'success');
   }
 
   async handleSinglePhotoUpload(slotId, defaultCaption, event) {
@@ -6882,7 +8347,29 @@ class AutoReportApp {
 
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
-    const dataUrl = await this.fileToDataUrl(file);
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      if (event.target && 'value' in event.target) event.target.value = '';
+    }
+
+    // Recupera título, legenda e fonte vigentes (considerando personalização prévia do usuário)
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    let captionToUse = defaultCaption;
+    let titleToUse = defaultCaption;
+    let sourceToUse = 'Fonte: Elaborada pelos autores.';
+
+    if (slot) {
+      const slotInfo = this.getPhotoSlotInfo(slot);
+      captionToUse = slotInfo.caption;
+      titleToUse = slotInfo.title;
+      sourceToUse = slotInfo.sourceFormatted;
+    }
 
     // Remover se já existia foto neste slot
     this.currentTraining.media = this.currentTraining.media.filter(m => m.slotId !== slotId && m.id !== slotId);
@@ -6892,7 +8379,9 @@ class AutoReportApp {
       slotId: slotId,
       type: 'photo',
       blob: dataUrl,
-      caption: defaultCaption,
+      caption: captionToUse,
+      title: titleToUse,
+      source: sourceToUse,
       fileName: file.name
     });
 
@@ -6908,15 +8397,41 @@ class AutoReportApp {
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
     const slots = this.getStandardPhotoSlots();
+    const isPhotoInSlots = (m) => m.type === 'photo' && slots.some(s => s.slotId === m.slotId);
+    let addedCount = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const dataUrl = await this.fileToDataUrl(file);
+      let dataUrl;
+      try {
+        dataUrl = await this.fileToReportImageDataUrl(file);
+      } catch (err) {
+        this.notifyImageReadError(file, err);
+        continue;
+      }
 
       // Encontrar slot sem foto
       const emptySlot = slots.find(s => !this.currentTraining.media.some(m => m.slotId === s.slotId));
-      const targetSlotId = emptySlot ? emptySlot.slotId : `fig_extra_${Date.now()}_${i}`;
-      const targetCaption = emptySlot ? emptySlot.defaultCaption : `Figura Extra ${i + 1}. Registro da capacitação.`;
+      let targetSlotId;
+      let targetCaption;
+      let targetTitle;
+      let targetSource;
+
+      if (emptySlot) {
+        targetSlotId = emptySlot.slotId;
+        const slotInfo = this.getPhotoSlotInfo(emptySlot);
+        targetCaption = slotInfo.caption;
+        targetTitle = slotInfo.title;
+        targetSource = slotInfo.sourceFormatted;
+      } else {
+        // Próximo número após os slots padrão e as fotos extras já existentes
+        const existingExtras = this.currentTraining.media.filter(m => m.type === 'photo' && !isPhotoInSlots(m)).length;
+        const extraFigNum = this.getExtraPhotoFigureStart() + existingExtras;
+        targetSlotId = `fig_extra_${Date.now()}_${i}`;
+        targetCaption = `Figura ${extraFigNum}. Registro complementar da capacitação.`;
+        targetTitle = `Registro complementar da capacitação.`;
+        targetSource = `Fonte: Elaborada pelos autores.`;
+      }
 
       this.currentTraining.media.push({
         id: `photo_${Date.now()}_${i}`,
@@ -6924,20 +8439,29 @@ class AutoReportApp {
         type: 'photo',
         blob: dataUrl,
         caption: targetCaption,
+        title: targetTitle,
+        source: targetSource,
         fileName: file.name
       });
+      addedCount++;
     }
+
+    if (event.target && 'value' in event.target) event.target.value = '';
 
     this.renderPhotosStep();
     this.saveCurrentStepData();
-    this.showToast(`${files.length} fotos adicionadas à galeria!`, 'success');
+    if (addedCount > 0) {
+      this.showToast(`${addedCount} ${addedCount === 1 ? 'foto adicionada' : 'fotos adicionadas'} à galeria!`, 'success');
+    }
   }
 
   confirmRemovePhoto(slotId) {
+    if (!this.currentTraining) return;
     const photo = (this.currentTraining.media || []).find(m => m.slotId === slotId || m.id === slotId);
     const slots = this.getStandardPhotoSlots();
     const slot = slots.find(s => s.slotId === slotId);
-    const captionText = photo?.caption || slot?.defaultCaption || 'Fotografia';
+    const slotInfo = slot ? this.getPhotoSlotInfo(slot) : null;
+    const captionText = photo?.caption || slotInfo?.caption || slot?.defaultCaption || 'Fotografia';
 
     this.openConfirmModal({
       title: 'Remover Fotografia',
@@ -6961,11 +8485,10 @@ class AutoReportApp {
 
   updatePhotoCaption(slotId, newCaption) {
     if (!this.currentTraining) return;
-    const photo = (this.currentTraining.media || []).find(m => m.slotId === slotId || m.id === slotId);
-    if (photo) {
-      photo.caption = newCaption;
-      this.saveCurrentStepData();
-    }
+    const slots = this.getStandardPhotoSlots();
+    const slot = slots.find(s => s.slotId === slotId);
+    const figNum = slot ? slot.figNum : 9;
+    this.updatePhotoTitle(slotId, figNum, newCaption);
   }
 
   renderPhotosStep() {
@@ -6975,35 +8498,28 @@ class AutoReportApp {
     const slots = this.getStandardPhotoSlots();
     const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
 
+    // Correção de dados de versões anteriores: foto enviada para um dia (id termina com o slot de origem)
+    // que foi deslocada para o slot de outro dia volta ao slot de origem, se ele estiver vazio
+    const daySlotIds = slots.map(s => s.slotId).filter(id => id.includes('_day_'));
+    photos.forEach(p => {
+      const originSlot = daySlotIds.find(id => p.id && p.id.endsWith(`_${id}`));
+      if (originSlot && !p.movedByUser && p.slotId && p.slotId !== originSlot && daySlotIds.includes(p.slotId) &&
+          !photos.some(o => o.slotId === originSlot)) {
+        p.slotId = originSlot;
+      }
+    });
+
     let html = '';
 
     slots.forEach(slot => {
-      let photo = photos.find(p => p.slotId === slot.slotId);
-
-      // Fallback 1: se slotId tiver sufixo de dia
-      if (!photo && slot.slotId.includes('_day_')) {
-        const dayPart = slot.slotId.split('_day_')[1];
-        photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
-      }
-
-      // Fallback 2: se photo não tem slotId correspondente, tenta recuperar por caption
-      if (!photo) {
-        photo = photos.find(p => {
-          if (!p.caption) return false;
-          const cap = p.caption.toLowerCase();
-          if (slot.slotId === 'fig_9' && (cap.includes('figura 9') || cap.includes('acomodação') || cap.includes('acomodacao'))) return true;
-          if (slot.slotId === 'fig_10' && (cap.includes('figura 10') || cap.includes('apresentação inicial') || cap.includes('apresentacao inicial'))) return true;
-          if (slot.slotId === 'fig_11' && (cap.includes('figura 11') || cap.includes('módulos teóricos') || cap.includes('modulos teoricos'))) return true;
-          if (slot.slotId.includes('_day_1') && (cap.includes('1º dia') || cap.includes('1° dia') || cap.includes('1 dia') || cap.includes('figura 12'))) return true;
-          if (slot.slotId.includes('_day_2') && (cap.includes('2º dia') || cap.includes('2° dia') || cap.includes('2 dia') || cap.includes('figura 13'))) return true;
-          if (slot.slotId.includes('_day_3') && (cap.includes('3º dia') || cap.includes('3° dia') || cap.includes('3 dia') || cap.includes('figura 14'))) return true;
-          return false;
-        });
-      }
+      const slotInfo = this.getPhotoSlotInfo(slot);
+      let photo = slotInfo.photo;
 
       if (photo) {
         photo.slotId = slot.slotId;
-        if (!photo.caption) photo.caption = slot.defaultCaption;
+        photo.caption = slotInfo.caption;
+        photo.title = slotInfo.title;
+        photo.source = slotInfo.sourceFormatted;
       }
 
       if (photo) {
@@ -7012,6 +8528,7 @@ class AutoReportApp {
           <div class="glass-card" 
                draggable="true"
                ondragstart="app.handlePhotoDragStart('${slot.slotId}', event)"
+               ondragend="app.draggedPhotoSlotId = null"
                ondragover="app.handlePhotoDragOverCard(event)"
                ondragleave="app.handlePhotoDragLeaveCard(event)"
                ondrop="app.handlePhotoDropCard('${slot.slotId}', event)"
@@ -7019,20 +8536,66 @@ class AutoReportApp {
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <strong style="color:var(--accent-emerald-text, #10b981); font-size:0.88rem; display:flex; align-items:center; gap:0.35rem;">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                <span>${slot.defaultCaption}</span>
+                <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
               </strong>
-              <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                <span class="nav-badge badge-emerald" style="font-size:0.72rem;">Anexada</span>
+              </div>
             </div>
 
             <div style="position:relative; width:100%; height:180px; border-radius:var(--radius-sm); overflow:hidden; background:var(--bg-input); border:1px solid var(--border-color);">
-              <img src="${photo.blob}" alt="${photo.caption || ''}" style="width:100%; height:100%; object-fit:cover;">
+              <img src="${photo.blob}" alt="${this.escapeHtml(slotInfo.caption)}" style="width:100%; height:100%; object-fit:cover;">
             </div>
 
             <div style="display:flex; flex-direction:column; gap:0.35rem;">
-              <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Legenda da Figura:</label>
-              <input type="text" class="form-control" value="${photo.caption || slot.defaultCaption}" 
-                     style="font-size:0.82rem; padding:0.4rem 0.6rem;"
-                     onchange="app.updatePhotoCaption('${slot.slotId}', this.value)">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura (mantém padrão):</label>
+                ${slotInfo.isCustom ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoTitle('${slot.slotId}')" title="Restaurar título padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-title-addon">Figura ${slot.figNum}.</span>
+                <input type="text" class="photo-title-input" id="photo-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.title)}"
+                       placeholder="Título descritivo da figura..."
+                       oninput="app.handlePhotoTitleInput('${slot.slotId}', ${slot.figNum}, this.value)"
+                       onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura (mantém padrão):</label>
+                ${slotInfo.isCustomSource ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoSource('${slot.slotId}')" title="Restaurar fonte padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-source-addon">Fonte:</span>
+                <input type="text" class="photo-title-input" id="photo-source-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.sourceClean)}"
+                       placeholder="Ex: Elaborada pelos autores."
+                       oninput="app.handlePhotoSourceInput('${slot.slotId}', this.value)"
+                       onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+              </div>
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.25rem;">
@@ -7047,16 +8610,21 @@ class AutoReportApp {
           </div>
         `;
       } else {
-        // Card vazio (Dropzone padronizada amarela)
+        // Card vazio (Dropzone padronizada com suporte a edição de título e fonte mantendo padrão)
         html += `
           <div class="glass-card" 
                ondragover="app.handleDragOver(event)"
                ondragleave="app.handleDragLeave(event)"
-               ondrop="app.handlePhotoDrop('${slot.slotId}', '${slot.defaultCaption}', event)"
+               ondrop="app.handlePhotoDrop('${slot.slotId}', '', event)"
                style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong style="color:var(--text-primary); font-size:0.88rem;">${slot.defaultCaption}</strong>
-              <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
+              <strong style="color:var(--text-primary); font-size:0.88rem;">
+                <span id="photo-header-title-${slot.slotId}">${this.escapeHtml(slotInfo.caption)}</span>
+              </strong>
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                ${(slotInfo.isCustom || slotInfo.isCustomSource) ? `<span class="nav-badge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text, #3b82f6); font-size:0.68rem; padding:0.15rem 0.45rem;">Personalizado</span>` : ''}
+                <span class="nav-badge" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b; font-size:0.72rem;">Pendente</span>
+              </div>
             </div>
 
             <div class="upload-dropzone" 
@@ -7067,10 +8635,60 @@ class AutoReportApp {
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
               <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">
-                Clique ou arraste a foto da ${slot.defaultTitle}
+                Clique ou arraste a foto para ${this.escapeHtml(slotInfo.caption)}
               </div>
               <div class="upload-dropzone-hint" style="font-size:0.74rem;">Formatos aceitos: JPG, PNG, WEBP</div>
               <input type="file" id="file-slot-${slot.slotId}" accept="image/*" style="display:none;" onclick="event.stopPropagation()" onchange="app.handleSinglePhotoUpload('${slot.slotId}', '${slot.defaultCaption}', event)">
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura (mantém padrão):</label>
+                ${slotInfo.isCustom ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoTitle('${slot.slotId}')" title="Restaurar título padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-title-addon pending">Figura ${slot.figNum}.</span>
+                <input type="text" class="photo-title-input" id="photo-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.title)}"
+                       placeholder="Título descritivo da figura..."
+                       oninput="app.handlePhotoTitleInput('${slot.slotId}', ${slot.figNum}, this.value)"
+                       onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura (mantém padrão):</label>
+                ${slotInfo.isCustomSource ? `
+                  <button type="button" class="btn-restore-title" onclick="app.restorePhotoSource('${slot.slotId}')" title="Restaurar fonte padrão oficial">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                    Restaurar Padrão
+                  </button>
+                ` : `
+                  <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                `}
+              </div>
+              <div class="photo-title-input-group">
+                <span class="photo-source-addon pending">Fonte:</span>
+                <input type="text" class="photo-title-input" id="photo-source-input-${slot.slotId}" 
+                       value="${this.escapeHtml(slotInfo.sourceClean)}"
+                       placeholder="Ex: Elaborada pelos autores."
+                       oninput="app.handlePhotoSourceInput('${slot.slotId}', this.value)"
+                       onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+              </div>
             </div>
           </div>
         `;
@@ -7079,29 +8697,78 @@ class AutoReportApp {
 
     // Exibir fotos extras não pertencentes aos slots padronizados
     const extraPhotos = photos.filter(p => !slots.some(s => s.slotId === p.slotId));
+    const extraStart = this.getExtraPhotoFigureStart();
     extraPhotos.forEach((photo, idx) => {
+      const extraFigNum = extraStart + idx;
+      const cleanTitle = this.cleanFigureTitle(extraFigNum, photo.title || photo.caption || `Registro complementar #${idx + 1}.`, `Registro complementar #${idx + 1}.`);
+      const fullCaption = photo.caption && photo.caption.startsWith(`Figura ${extraFigNum}.`) ? photo.caption : this.formatFigureCaption(extraFigNum, cleanTitle);
+      // Mantém a legenda salva sincronizada com a numeração exibida (usada no relatório)
+      photo.caption = fullCaption;
+      photo.title = cleanTitle;
+      const extraCleanSource = this.cleanFigureSource(photo.customSource || photo.source || 'Elaborada pelos autores.');
+      const extraFullSource = this.formatFigureSource(extraCleanSource);
+      const isCustomExtraSource = Boolean(photo.customSource && photo.customSource !== 'Elaborada pelos autores.');
+
       html += `
         <div class="glass-card" 
              draggable="true"
              ondragstart="app.handlePhotoDragStart('${photo.id}', event)"
+             ondragend="app.draggedPhotoSlotId = null"
              ondragover="app.handlePhotoDragOverCard(event)"
              ondragleave="app.handlePhotoDragLeaveCard(event)"
              ondrop="app.handlePhotoDropCard('${photo.id}', event)"
              style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem; border:1px solid rgba(59, 130, 246, 0.3); cursor:grab;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="color:var(--accent-blue-text); font-size:0.88rem;">Foto Extra #${idx + 1}</strong>
+            <strong style="color:var(--accent-blue-text); font-size:0.88rem;">
+              <span id="photo-header-title-${photo.id}">${this.escapeHtml(fullCaption)}</span>
+            </strong>
             <button type="button" class="btn btn-secondary btn-sm btn-action-delete" onclick="app.confirmRemovePhoto('${photo.id}')" style="padding:0.2rem 0.55rem; font-size:0.75rem; font-weight:600; display:inline-flex; align-items:center;">
               ${window.icons.delete} Remover
             </button>
           </div>
 
           <div style="background:var(--bg-input); border-radius:var(--radius-md); overflow:hidden; max-height:220px; display:flex; align-items:center; justify-content:center;">
-            <img src="${photo.blob}" style="width:100%; max-height:220px; object-fit:cover;" alt="${photo.caption}">
+            <img src="${photo.blob}" style="width:100%; max-height:220px; object-fit:cover;" alt="${this.escapeHtml(fullCaption)}">
           </div>
 
-          <div class="form-group" style="margin:0;">
-            <label class="form-label" style="font-size:0.78rem;">Legenda da Figura Extra:</label>
-            <input type="text" class="form-control form-control-sm" value="${photo.caption || ''}" onchange="app.updatePhotoCaption('${photo.id}', this.value)">
+          <div style="display:flex; flex-direction:column; gap:0.35rem;">
+            <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Título da Figura Extra (mantém padrão):</label>
+            <div class="photo-title-input-group">
+              <span class="photo-title-addon extra">Figura ${extraFigNum}.</span>
+              <input type="text" class="photo-title-input" 
+                     value="${this.escapeHtml(cleanTitle)}" 
+                     placeholder="Título descritivo da figura..."
+                     oninput="app.handlePhotoTitleInput('${photo.id}', ${extraFigNum}, this.value)"
+                     onchange="app.updatePhotoTitle('${photo.id}', ${extraFigNum}, this.value)">
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
+              <span>Legenda: <strong id="photo-caption-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(fullCaption)}</strong></span>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">Fonte da Figura Extra (mantém padrão):</label>
+              ${isCustomExtraSource ? `
+                <button type="button" class="btn-restore-title" onclick="app.restoreExtraPhotoSource('${photo.id}')" title="Restaurar fonte padrão oficial">
+                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                  Restaurar Padrão
+                </button>
+              ` : `
+                <span style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+              `}
+            </div>
+            <div class="photo-title-input-group">
+              <span class="photo-source-addon extra">Fonte:</span>
+              <input type="text" class="photo-title-input" id="photo-source-input-${photo.id}" 
+                     value="${this.escapeHtml(extraCleanSource)}" 
+                     placeholder="Ex: Elaborada pelos autores."
+                     oninput="app.handleExtraPhotoSourceInput('${photo.id}', this.value)"
+                     onchange="app.updateExtraPhotoSource('${photo.id}', ${extraFigNum}, this.value)">
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
+              <span>Fonte: <strong id="photo-source-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(extraFullSource)}</strong></span>
+            </div>
           </div>
         </div>
       `;
@@ -7153,15 +8820,23 @@ class AutoReportApp {
         }
         const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
         const pageImages = [];
-        for (let num = 1; num <= pdf.numPages; num++) {
+        // Limite de páginas por documento para não esgotar a memória do navegador com PDFs longos
+        const MAX_APPENDIX_PAGES = 30;
+        const totalPages = Math.min(pdf.numPages, MAX_APPENDIX_PAGES);
+        if (pdf.numPages > MAX_APPENDIX_PAGES) {
+          this.showToast(`"${fileName}" tem ${pdf.numPages} páginas; apenas as ${MAX_APPENDIX_PAGES} primeiras serão incluídas no relatório.`, 'warning', 7000);
+        }
+        for (let num = 1; num <= totalPages; num++) {
           const page = await pdf.getPage(num);
           const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           await page.render({ canvasContext: ctx, viewport }).promise;
-          pageImages.push(canvas.toDataURL('image/png'));
+          pageImages.push(canvas.toDataURL('image/jpeg', 0.88));
         }
         return pageImages;
       } catch (err) {
@@ -7173,14 +8848,36 @@ class AutoReportApp {
 
   async handleAppendixUpload(type, event) {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || !this.currentTraining) return;
 
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
+    let addedCount = 0;
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const dataUrl = await this.fileToDataUrl(file);
-      const pageImages = await this.extractDocPageImages(dataUrl, file.type, file.name);
+      let dataUrl;
+      let pageImages;
+      try {
+        const isImage = file.type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name || '');
+        dataUrl = isImage ? await this.fileToReportImageDataUrl(file) : await this.fileToDataUrl(file);
+        pageImages = await this.extractDocPageImages(dataUrl, isImage ? 'image/jpeg' : file.type, file.name);
+        if (!pageImages || pageImages.length === 0) {
+          // Arquivos Word (ou PDFs que não puderam ser lidos) entram no relatório apenas com o nome
+          const isWord = /\.docx?$/i.test(file.name || '');
+          this.showToast(
+            isWord
+              ? `"${file.name}" foi anexado, mas o conteúdo de arquivos Word não aparece no relatório. Para exibir as páginas, salve o documento como PDF e anexe o PDF.`
+              : `"${file.name}" foi anexado, mas suas páginas não puderam ser convertidas; no relatório aparecerá apenas o nome do arquivo.`,
+            'warning',
+            8000
+          );
+        }
+      } catch (err) {
+        console.warn('Falha ao anexar documento de apêndice:', file?.name, err);
+        this.showToast(`Não foi possível anexar "${file?.name || 'arquivo'}". Verifique se o arquivo não está corrompido.`, 'error', 6000);
+        continue;
+      }
+      addedCount++;
 
       this.currentTraining.media.push({
         id: `doc_${type}_${Date.now()}_${i}`,
@@ -7195,9 +8892,19 @@ class AutoReportApp {
       });
     }
 
+    if (event && event.target && event.target.value !== undefined) {
+      try {
+        event.target.value = '';
+      } catch (e) {
+        // Ignorar em caso de mock event
+      }
+    }
+
     this.renderAppendicesStep();
     this.saveCurrentStepData();
-    this.showToast(`Documento anexado com sucesso!`, 'success');
+    if (addedCount > 0) {
+      this.showToast(addedCount === 1 ? 'Documento anexado com sucesso!' : `${addedCount} documentos anexados com sucesso!`, 'success');
+    }
   }
 
   formatFileSize(bytes) {
@@ -7216,8 +8923,8 @@ class AutoReportApp {
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
           </svg>
-          <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.fileName}">
-            ${d.fileName}
+          <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${this.escapeHtml(d.fileName)}">
+            ${this.escapeHtml(d.fileName)}
           </span>
         </div>
         <div style="display:flex; justify-content:flex-end; width:100%; border-top:1px solid var(--border-color); padding-top:0.45rem;">
@@ -7261,7 +8968,7 @@ class AutoReportApp {
     const fndeDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_fnde');
     const cecateDocs = (this.currentTraining.media || []).filter(m => m.type === 'doc_cecate');
 
-    // Ocultar janelas de inserção quando já houver documentos anexados
+    // Ocultar janelas de inserção principais quando já houver documentos anexados
     const dropzoneFnde = document.getElementById('dropzone-appendix-fnde');
     if (dropzoneFnde) {
       if (fndeDocs.length > 0) {
@@ -7283,15 +8990,49 @@ class AutoReportApp {
     }
 
     if (fndeContainer) {
-      fndeContainer.innerHTML = fndeDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do FNDE anexada.</p>`
-        : fndeDocs.map(d => this.renderAppendixItem(d)).join('');
+      if (fndeDocs.length === 0) {
+        fndeContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do FNDE anexada.</p>`;
+      } else {
+        const itemsHtml = fndeDocs.map(d => this.renderAppendixItem(d)).join('');
+        const addMoreHtml = `
+          <div class="appendix-add-more-zone"
+               onclick="document.getElementById('file-input-appendix-fnde').click()"
+               ondragover="app.handleDragOver(event)"
+               ondragleave="app.handleDragLeave(event)"
+               ondrop="app.handleAppendixDrop('doc_fnde', event)"
+               title="Clique ou arraste para adicionar mais arquivos de convocação do FNDE">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>+ Adicionar mais arquivos de convocação (FNDE)</span>
+          </div>
+        `;
+        fndeContainer.innerHTML = itemsHtml + addMoreHtml;
+      }
     }
 
     if (cecateContainer) {
-      cecateContainer.innerHTML = cecateDocs.length === 0
-        ? `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do CECATE anexada.</p>`
-        : cecateDocs.map(d => this.renderAppendixItem(d)).join('');
+      if (cecateDocs.length === 0) {
+        cecateContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma convocação do CECATE anexada.</p>`;
+      } else {
+        const itemsHtml = cecateDocs.map(d => this.renderAppendixItem(d)).join('');
+        const addMoreHtml = `
+          <div class="appendix-add-more-zone"
+               onclick="document.getElementById('file-input-appendix-cecate').click()"
+               ondragover="app.handleDragOver(event)"
+               ondragleave="app.handleDragLeave(event)"
+               ondrop="app.handleAppendixDrop('doc_cecate', event)"
+               title="Clique ou arraste para adicionar mais arquivos de convocação do CECATE">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>+ Adicionar mais convocações / e-mails (CECATE)</span>
+          </div>
+        `;
+        cecateContainer.innerHTML = itemsHtml + addMoreHtml;
+      }
     }
   }
 
@@ -7334,9 +9075,9 @@ class AutoReportApp {
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           </div>
           <div class="metric-info">
-            <h4>Média Geral de Avaliação</h4>
-            <div class="metric-value" style="color:var(--accent-success);">${metrics.evalStatsGeneral.overallMean} / 5.0</div>
-            <div class="metric-trend">${metrics.evalStatsGeneral.totalResponses} respostas computadas</div>
+            <h4>Conceitos 4 e 5 (Likert)</h4>
+            <div class="metric-value" style="color:var(--accent-success);">${metrics.evalStatsGeneral?.highRatingPercent ? `${String(metrics.evalStatsGeneral.highRatingPercent).replace('.', ',')}%` : (metrics.evalStatsGeneral?.totalResponses > 0 ? 'Predominante' : '0,0%')}</div>
+            <div class="metric-trend">${metrics.evalStatsGeneral?.totalResponses || 0} questionários avaliados</div>
           </div>
         </div>
       </div>
@@ -7363,9 +9104,17 @@ class AutoReportApp {
           </div>
 
           <div class="audit-item ${metrics.evalStatsGeneral.totalResponses > 0 ? 'valid' : 'warning'}">
-            <div><strong>Pesquisa Avaliativa:</strong> ${metrics.evalStatsGeneral.totalResponses} respostas com médias calculadas.</div>
+            <div><strong>Pesquisa Avaliativa:</strong> ${metrics.evalStatsGeneral.totalResponses} avaliações processadas na escala Likert.</div>
             <span class="nav-badge" style="${metrics.evalStatsGeneral.totalResponses > 0 ? 'background:rgba(16, 185, 129, 0.15); color:#10b981;' : 'background:rgba(245, 158, 11, 0.15); color:#f59e0b;'} display:inline-flex; align-items:center; gap:0.25rem;">
               ${metrics.evalStatsGeneral.totalResponses > 0 ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Validado</span>' : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><span>Pendência</span>'}
+            </span>
+          </div>
+
+          <div class="audit-item valid">
+            <div><strong>Tecnologias Educacionais:</strong> Figuras pedagógicas configuradas (Kahoot e Plickers).</div>
+            <span class="nav-badge" style="background:rgba(16, 185, 129, 0.15); color:#10b981; display:inline-flex; align-items:center; gap:0.25rem;">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Validado</span>
             </span>
           </div>
 
@@ -7420,8 +9169,44 @@ class AutoReportApp {
     return { numText, infoLine, numPadded, polo, ufFull, dateStr };
   }
 
+  formatContraCapaMonthYear(training) {
+    if (window.reportDocxGenerator && typeof window.reportDocxGenerator.formatContraCapaMonthYear === 'function') {
+      return window.reportDocxGenerator.formatContraCapaMonthYear(training);
+    }
+    if (training?.monthYear) return String(training.monthYear).trim();
+    if (training?.reportMonthYear) return String(training.reportMonthYear).trim();
+
+    const dateStr = (training?.datesFormatted || '').toLowerCase();
+    const months = {
+      'janeiro': '01', 'fevereiro': '02', 'março': '03', 'marco': '03',
+      'abril': '04', 'maio': '05', 'junho': '06', 'julho': '07',
+      'agosto': '08', 'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+    };
+
+    for (const [mName, mNum] of Object.entries(months)) {
+      if (dateStr.includes(mName)) {
+        const yearMatch = dateStr.match(/\b(20\d{2})\b/);
+        const year = yearMatch ? yearMatch[1] : '2026';
+        if (String(training?.number).trim() === '16' && mNum === '06') {
+          return `07/${year}`;
+        }
+        return `${mNum}/${year}`;
+      }
+    }
+
+    const dateCandidate = training?.endDate || training?.startDate;
+    if (dateCandidate && /^\d{4}-\d{2}-\d{2}/.test(dateCandidate)) {
+      const parts = dateCandidate.split('-');
+      return `${parts[1]}/${parts[0]}`;
+    }
+
+    const now = new Date();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${m}/${now.getFullYear()}`;
+  }
+
   /* ==========================================================================
-     ETAPA 11: PRÉ-VISUALIZAÇÃO & GERAÇÃO FINAL DO RELATÓRIO
+     ETAPA 12: PRÉ-VISUALIZAÇÃO & GERAÇÃO FINAL DO RELATÓRIO
      ========================================================================== */
   async renderReportPreviewStep() {
     const container = document.getElementById('wizard-report-preview-document');
@@ -7440,10 +9225,10 @@ class AutoReportApp {
     const metrics = window.statsEngine.calculateAllMetrics(t);
     this.metrics = metrics;
 
-    // 0. CAPA OFICIAL DO RELATÓRIO
+    // 1. CAPA OFICIAL INTEGRAL DO RELATÓRIO (PÁGINA 1)
     const coverInfo = this.formatCoverTrainingInfo(t);
     const coverHtml = `
-      <!-- CAPA OFICIAL DO RELATÓRIO -->
+      <!-- PÁGINA 1: CAPA OFICIAL INTEGRAL -->
       <div class="report-cover-page">
         <!-- 1. PARTE SUPERIOR: IMAGEM TEMÁTICA E IDENTIFICAÇÃO -->
         <div class="cover-top-section">
@@ -7478,10 +9263,266 @@ class AutoReportApp {
             <img src="visualrelatorio/capa/fndefigura.svg" alt="Fundo Nacional de Desenvolvimento da Educação - FNDE" class="cover-logo-fnde" onerror="if(window.coverAssets?.fnde) this.src=window.coverAssets.fnde">
           </div>
         </div>
+        <div style="height:12px; background-color:#4D4D4D; width:100%;"></div>
       </div>
     `;
 
-    // 1. Figuras fotográficas em ordem oficial
+    // 2. CONTRA-CAPA OFICIAL DO RELATÓRIO (PÁGINA 2)
+    const contraCapaMonthYear = this.formatContraCapaMonthYear(t);
+    const contraCapaHtml = `
+      <!-- PÁGINA 2: CONTRA-CAPA OFICIAL -->
+      <div class="report-doc-page report-contra-capa-page" style="padding-bottom: 0.5rem !important;">
+        <!-- TOPO: IDENTIFICAÇÃO DO PROJETO COM BORDA SUPERIOR -->
+        <div style="border-top: 1.5px solid #595959; padding-top: 0.8rem; text-align: center;">
+          <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: #000000; margin: 0; line-height: 1.4; text-transform: uppercase;">
+            Projeto: FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS<br>DE TRANSPORTE ESCOLAR DO BRASIL
+          </p>
+        </div>
+
+        <!-- CENTRO: IDENTIFICAÇÃO DO RELATÓRIO E TÍTULO -->
+        <div style="margin-top: 14rem; margin-bottom: auto; text-align: center; padding: 1rem 0;">
+          <p style="font-family: 'Times New Roman', serif; font-size: 14pt; color: #000000; margin: 0 0 1rem 0;">
+            Relatório de Atividades Nº ${coverInfo.numPadded}
+          </p>
+          <h2 style="font-family: 'Times New Roman', serif; font-size: 18pt; font-weight: bold; color: #000000; margin: 0 0 1rem 0; letter-spacing: 0.5px;">
+            CAPACITAÇÃO EM TRANSPORTE ESCOLAR
+          </h2>
+          <p style="font-family: 'Times New Roman', serif; font-size: 14pt; font-weight: bold; color: #000000; margin: 0;">
+            ${coverInfo.infoLine}
+          </p>
+        </div>
+
+        <!-- BASE: LOCALIZAÇÃO, DATA E LOGOMARCAS COM BORDA SUPERIOR -->
+        <div style="text-align: center; margin-top: auto; padding-bottom: 0;">
+          <p style="font-family: 'Times New Roman', serif; font-size: 12pt; color: #000000; margin: 0 0 0.35rem 0;">
+            Aparecida de Goiânia
+          </p>
+          <p style="font-family: 'Times New Roman', serif; font-size: 12pt; color: #000000; margin: 0 0 1.25rem 0;">
+            ${contraCapaMonthYear}
+          </p>
+          <div style="border-top: 1.5px solid #595959; padding-top: 0.85rem; display: flex; justify-content: space-around; align-items: center;">
+            <img src="visualrelatorio/capa/cecatefigura.svg" style="height: 38px; max-width: 140px; object-fit: contain;" alt="CECATE" class="cover-logo-cecate" onerror="if(window.coverAssets?.cecate) this.src=window.coverAssets.cecate">
+            <img src="visualrelatorio/capa/ufgfigura.svg" style="height: 38px; max-width: 140px; object-fit: contain;" alt="UFG" class="cover-logo-ufg" onerror="if(window.coverAssets?.ufg) this.src=window.coverAssets.ufg">
+            <img src="visualrelatorio/capa/fndefigura.svg" style="height: 38px; max-width: 140px; object-fit: contain;" alt="FNDE" class="cover-logo-fnde" onerror="if(window.coverAssets?.fnde) this.src=window.coverAssets.fnde">
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 3. EQUIPE PARTICIPANTE (PÁGINA 3)
+    const teamList = (t.team && t.team.length > 0)
+      ? t.team
+      : (window.getMasterTeam ? window.getMasterTeam() : (window.DEFAULT_OFFICIAL_TEAM || []));
+
+    const fndeMembers = teamList.filter(m => (m.institutionGroup === 'FNDE' || m.institution === 'FNDE' || m.type === 'fnde'));
+    // Cada integrante aparece em um único grupo: quem não é do FNDE fica na equipe da UFG
+    const ufgMembers = teamList.filter(m => !fndeMembers.includes(m));
+
+    let equipeMembersHtml = '';
+
+    if (ufgMembers.length > 0) {
+      equipeMembersHtml += `
+        <div style="margin-left: 1.25cm; margin-bottom: 1.5rem;">
+          <h4 style="font-family: 'Times New Roman', serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">UNIVERSIDADE FEDERAL DE GOIÁS – UFG</h4>
+          <div style="margin-left: 1.25cm;">
+      `;
+      const ufgCoords = ufgMembers.filter(m => (m.role && m.role.toLowerCase().includes('coordenador')) || m.type === 'coordenacao');
+      const ufgTech = ufgMembers.filter(m => !ufgCoords.includes(m));
+
+      if (ufgCoords.length > 0) {
+        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">Coordenador do Projeto</p>`;
+        ufgCoords.forEach(m => {
+          const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.35rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+        });
+      }
+
+      if (ufgTech.length > 0) {
+        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.6rem 0 0.15rem 0; color: #000000;">Equipe de Técnica</p>`;
+        ufgTech.forEach(m => {
+          const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+        });
+      }
+
+      equipeMembersHtml += `
+          </div>
+        </div>
+      `;
+    }
+
+    if (fndeMembers.length > 0) {
+      equipeMembersHtml += `
+        <div style="margin-left: 1.25cm;">
+          <h4 style="font-family: 'Times New Roman', serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">FUNDO NACIONAL DE DESENVOLVIMENTO DA EDUCAÇÃO – FNDE</h4>
+          <div style="margin-left: 1.25cm;">
+      `;
+
+      const fndeRoles = [];
+      const fndeByRole = new Map();
+      fndeMembers.forEach(m => {
+        const r = m.role || 'Representante Técnico FNDE';
+        if (!fndeByRole.has(r)) {
+          fndeByRole.set(r, []);
+          fndeRoles.push(r);
+        }
+        fndeByRole.get(r).push(m);
+      });
+
+      fndeRoles.forEach(r => {
+        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">${r}</p>`;
+        fndeByRole.get(r).forEach(m => {
+          const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+        });
+      });
+
+      equipeMembersHtml += `
+          </div>
+        </div>
+      `;
+    }
+
+    const equipeHtml = `
+      <!-- PÁGINA 3: EQUIPE PARTICIPANTE OFICIAL -->
+      <div class="report-doc-page report-equipe-page">
+        <div>
+          <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="font-family: 'Times New Roman', serif; color: #1F4E79; font-size: 18pt; font-weight: bold; margin: 0;">
+              RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}
+            </h2>
+          </div>
+          <div style="margin-bottom: auto;">
+            <h3 style="font-family: 'Times New Roman', serif; font-size: 14pt; font-weight: bold; color: #000000; margin-bottom: 1.5rem; text-align: left;">
+              EQUIPE PARTICIPANTE
+            </h3>
+            ${equipeMembersHtml}
+          </div>
+        </div>
+
+        <!-- RODAPÉ INSTITUCIONAL PADRONIZADO -->
+        <div class="report-standard-footer" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #4D4D4D; padding-top: 6px; margin-top: 2rem;">
+          <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
+            <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
+          </div>
+          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+            1
+          </div>
+        </div>
+      </div>
+    `;
+
+    // 4. ÍNDICE DE FIGURAS, TABELAS E SUMÁRIO (PÁGINAS 4 E 5)
+    let indicesData = { sumarioList: [], tablesList: [], figuresList: [] };
+    if (window.reportDocxGenerator && typeof window.reportDocxGenerator.buildReportIndices === 'function') {
+      indicesData = window.reportDocxGenerator.buildReportIndices(t, metrics, {
+        fig3: true,
+        fig4: true,
+        fig5: true,
+        fig6: true,
+        fig7: true,
+        fig8: true
+      });
+    }
+    const { sumarioList, tablesList, figuresList } = indicesData;
+
+    const indicesHtml = `
+      <!-- PÁGINA 4: ÍNDICE DE FIGURAS E ÍNDICE DE TABELAS -->
+      <div class="report-doc-page report-indices-page">
+        <!-- CABEÇALHO OFICIAL PADRONIZADO -->
+        <div class="report-standard-header">
+          <div class="report-header-left">
+            <img src="visualrelatorio/cabecalho/cecate_cabecalho.png" alt="CECATE Centro-Oeste" class="report-header-logo" onerror="if(window.coverAssets?.cecateCabecalho) this.src=window.coverAssets.cecateCabecalho">
+          </div>
+          <div class="report-header-right">
+            <span class="report-header-title">RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: auto; margin-top: 1rem;">
+          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem; font-family: 'Times New Roman', serif;">ÍNDICE DE FIGURAS</h2>
+          <div style="margin-bottom: 2rem;">
+            ${figuresList.map(fig => `
+              <div class="report-index-row">
+                <span class="report-index-label">${fig.label}</span>
+                <span class="report-index-dots"></span>
+                <span class="report-index-page">${fig.page}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-top: 2rem; margin-bottom: 1.2rem; font-family: 'Times New Roman', serif;">ÍNDICE DE TABELAS</h2>
+          <div>
+            ${tablesList.map(tab => `
+              <div class="report-index-row">
+                <span class="report-index-label">${tab.label}</span>
+                <span class="report-index-dots"></span>
+                <span class="report-index-page">${tab.page}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- RODAPÉ INSTITUCIONAL PADRONIZADO -->
+        <div class="report-standard-footer" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #4D4D4D; padding-top: 6px; margin-top: 2rem;">
+          <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
+            <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
+          </div>
+          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+            2
+          </div>
+        </div>
+      </div>
+    `;
+
+    const sumarioHtml = `
+      <!-- PÁGINA 5: SUMÁRIO OFICIAL -->
+      <div class="report-doc-page report-sumario-page">
+        <!-- CABEÇALHO OFICIAL PADRONIZADO -->
+        <div class="report-standard-header">
+          <div class="report-header-left">
+            <img src="visualrelatorio/cabecalho/cecate_cabecalho.png" alt="CECATE Centro-Oeste" class="report-header-logo" onerror="if(window.coverAssets?.cecateCabecalho) this.src=window.coverAssets.cecateCabecalho">
+          </div>
+          <div class="report-header-right">
+            <span class="report-header-title">RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: auto; margin-top: 1rem;">
+          <h2 style="text-align: left; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: 'Times New Roman', serif;">Sumário</h2>
+          <div style="line-height: 1.8;">
+            ${sumarioList.map(item => `
+              <div class="report-index-row" style="margin: 0.45rem 0;">
+                <span class="report-index-label" style="${item.label.startsWith('Apêndice') || item.label.startsWith('APÊNDICE') ? 'font-weight: 500;' : 'font-weight: bold;'}">${item.label}</span>
+                <span class="report-index-dots"></span>
+                <span class="report-index-page">${item.page}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- RODAPÉ INSTITUCIONAL PADRONIZADO -->
+        <div class="report-standard-footer" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #4D4D4D; padding-top: 6px; margin-top: 2rem;">
+          <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
+            <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
+          </div>
+          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+            3
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Numeração das figuras idêntica à do documento Word (renumera quando figuras são removidas/adicionadas)
+    const figGen = window.reportDocxGenerator;
+    const previewNumbering = (figGen && typeof figGen.getFigureNumbering === 'function') ? figGen.getFigureNumbering(t) : null;
+    const numberedCaption = (key, caption) => (previewNumbering && previewNumbering.numbers[key])
+      ? figGen.applyFigureNumber(caption, previewNumbering.numbers[key])
+      : caption;
+    const renumberRefs = (text) => previewNumbering ? figGen.renumberFigureReferences(text, previewNumbering.baseToFinal) : text;
+    const photoKey = (ph) => (figGen && typeof figGen.getPhotoFigureKey === 'function') ? figGen.getPhotoFigureKey(ph) : '';
+
+    // 5. Figuras fotográficas em ordem oficial
     const photos = (t.media || []).filter(m => m.type === 'photo');
     const slots = this.getStandardPhotoSlots();
 
@@ -7493,15 +9534,23 @@ class AutoReportApp {
         p = photos.find(ph => ph.slotId && ph.slotId.endsWith(`_day_${dayPart}`));
       }
       if (!p) {
-        p = photos.find(ph => ph.caption && ph.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
+        p = photos.find(ph => !ph.slotId && ph.caption && ph.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
       }
 
       if (p && p.blob) {
+        const slotInfo = this.getPhotoSlotInfo(slot);
+        const captionToDisplay = numberedCaption(photoKey(p), p.caption || slotInfo.caption || slot.defaultCaption);
+        const sourceToDisplay = p.source || slotInfo.sourceFormatted || 'Fonte: Elaborada pelos autores.';
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
-            <img src="${p.blob}" alt="${p.caption || slot.defaultCaption}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-            <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-top: 0.6rem; text-align: center;">
-              <em>${p.caption || slot.defaultCaption}</em>
+            <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
+              ${this.escapeHtml(captionToDisplay)}
+            </p>
+            <div style="text-align: center;">
+              <img src="${p.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            </div>
+            <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
+              ${this.escapeHtml(sourceToDisplay)}
             </p>
           </div>
         `;
@@ -7511,11 +9560,20 @@ class AutoReportApp {
     const extraPhotos = photos.filter(ph => !slots.some(s => s.slotId === ph.slotId));
     extraPhotos.forEach((ph, idx) => {
       if (ph.blob) {
+        const extraFigNum = this.getExtraPhotoFigureStart() + idx;
+        const captionToDisplay = numberedCaption(photoKey(ph), ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.'));
+        const cleanExtraSource = this.cleanFigureSource(ph.customSource || ph.source || 'Elaborada pelos autores.');
+        const sourceToDisplay = this.formatFigureSource(cleanExtraSource);
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
-            <img src="${ph.blob}" alt="${ph.caption || 'Foto Extra'}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-            <p style="font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-top: 0.6rem; text-align: center;">
-              <em>${ph.caption || `Figura Extra ${idx + 1}. Registro fotográfico complementar.`}</em>
+            <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
+              ${this.escapeHtml(captionToDisplay)}
+            </p>
+            <div style="text-align: center;">
+              <img src="${ph.blob}" alt="${this.escapeHtml(captionToDisplay)}" style="max-width: 100%; max-height: 420px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); object-fit: contain; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            </div>
+            <p style="font-size: 0.82rem; font-style: italic; color: var(--text-muted); margin-top: 0.4rem; text-align: center;">
+              ${this.escapeHtml(sourceToDisplay)}
             </p>
           </div>
         `;
@@ -7526,7 +9584,7 @@ class AutoReportApp {
       photosHtml = `<p style="color:var(--text-muted); font-style:italic;">Nenhum registro fotográfico anexado no momento.</p>`;
     }
 
-    // 2. Apêndices (FNDE e CECATE) com visualização das páginas dos documentos
+    // 6. Apêndices (FNDE e CECATE) com visualização das páginas dos documentos
     const fndeDocs = (t.media || []).filter(m => m.type === 'doc_fnde');
     const cecateDocs = (t.media || []).filter(m => m.type === 'doc_cecate');
 
@@ -7536,7 +9594,7 @@ class AutoReportApp {
       if (pages.length > 0) {
         visualHtml = pages.map((pg, idx) => `
           <div style="margin: 1.25rem 0; text-align: center; page-break-inside: avoid;">
-            <img src="${pg}" alt="${d.fileName} - Pág ${idx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
+            <img src="${pg}" alt="${this.escapeHtml(d.fileName)} - Pág ${idx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
             ${pages.length > 1 ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;">Página ${idx + 1} de ${pages.length}</p>` : ''}
           </div>
         `).join('');
@@ -7546,9 +9604,9 @@ class AutoReportApp {
           <div style="display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.9rem; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-sm); margin-bottom:0.75rem;">
             <div style="display:inline-flex; align-items:center; gap:0.5rem; min-width:0;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-secondary); flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${d.fileName}</span>
+              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${this.escapeHtml(d.fileName)}</span>
             </div>
-            ${d.blob ? `<a href="${d.blob}" download="${d.fileName}" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.55rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">Baixar Arquivo</a>` : ''}
+            ${d.blob ? `<a href="${d.blob}" download="${this.escapeHtml(d.fileName)}" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.55rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">Baixar Arquivo</a>` : ''}
           </div>
           ${visualHtml}
         </div>
@@ -7585,10 +9643,10 @@ class AutoReportApp {
               ${evalList.map(ev => `
                 <tr>
                   <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.ibgeCode || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color); font-weight:600;">${ev.municipality || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.representation || 'Gestão municipal'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.likedAspects || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.improveAspects || '-'}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color); font-weight:600;">${this.escapeHtml(ev.municipality || '-')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.representation || 'Gestão municipal')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.likedAspects || '-')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.improveAspects || '-')}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -7611,178 +9669,250 @@ class AutoReportApp {
     const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '62,0';
     const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
-    container.innerHTML = coverHtml + `
-      <div class="report-doc-page">
-        <!-- CABEÇALHO OFICIAL PADRONIZADO -->
-        <div class="report-standard-header">
-          <div class="report-header-left">
-            <img src="visualrelatorio/cabecalho/cecate_cabecalho.png" alt="CECATE Centro-Oeste" class="report-header-logo" onerror="if(window.coverAssets?.cecateCabecalho) this.src=window.coverAssets.cecateCabecalho">
-          </div>
-          <div class="report-header-right">
-            <span class="report-header-title">RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}</span>
-          </div>
-        </div>
+    // Comentários das Figuras da Etapa 8 (Fidelidade aos relatórios de exemplo e editáveis pelo usuário)
+    const fig3Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig3) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig3', t) : ''));
+    const fig4Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig4) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig4', t) : ''));
+    const fig5Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig5) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig5', t) : ''));
+    const fig6Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig6) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig6', t) : ''));
+    const fig7Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig7) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', t) : ''));
+    const fig8Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig8) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', t) : ''));
 
-        <!-- TÍTULO DO RELATÓRIO -->
-        <div style="text-align:center; margin: 2.5rem 0;">
-          <h1 style="font-size:20pt; margin-bottom:0.5rem; font-weight:800; color:#0f172a;">RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}</h1>
-          <h2 style="font-size:16pt; color:#1e3a8a; margin:0; font-weight:700;">${t.title || 'CAPACITAÇÃO EM TRANSPORTE ESCOLAR'}</h2>
-          <h3 style="font-size:13pt; color:#334155; margin-top:0.5rem; font-weight:600;">${t.polo || 'Polo Regional'} - ${t.uf || 'GO'}, ${t.datesFormatted || '2026'}</h3>
-        </div>
+    // Títulos e Fontes personalizáveis das Nuvens de Palavras (Figuras 7 e 8)
+    const fig7TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig7)
+      ? t.customWordCloudTitles.fig7.trim()
+      : 'Aspectos que gostaram da capacitação.';
+    const fig7Title = numberedCaption('fig_7', fig7TitleRaw);
+    const fig7SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig7)
+      ? t.customWordCloudSources.fig7.trim()
+      : 'Elaborada pelos autores.';
+    const fig7Source = fig7SourceRaw.toLowerCase().startsWith('fonte:')
+      ? fig7SourceRaw
+      : `Fonte: ${fig7SourceRaw}${/[.!?]$/.test(fig7SourceRaw) ? '' : '.'}`;
 
-        <!-- 1. INTRODUÇÃO -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">1. INTRODUÇÃO</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado "${t.relatedProject || 'Fortalecendo e aprimorando as políticas públicas de transporte escolar do Brasil'}", processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
-        <p style="text-align:justify; line-height:1.6;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${t.polo || 'Município Polo'}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
+    const fig8TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig8)
+      ? t.customWordCloudTitles.fig8.trim()
+      : 'Aspectos que devem melhorar da capacitação.';
+    const fig8Title = numberedCaption('fig_8', fig8TitleRaw);
+    const fig8SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig8)
+      ? t.customWordCloudSources.fig8.trim()
+      : 'Elaborada pelos autores.';
+    const fig8Source = fig8SourceRaw.toLowerCase().startsWith('fonte:')
+      ? fig8SourceRaw
+      : `Fonte: ${fig8SourceRaw}${/[.!?]$/.test(fig8SourceRaw) ? '' : '.'}`;
+
+    // Tecnologias Educacionais (Figuras 1 e 2 e extras para o preview)
+    const eduTech = t.educationalTech || {};
+    const eduText = (eduTech.text && eduTech.text.trim()) ? eduTech.text.trim() :
+      'Durante o transcorrer dos módulos teóricos e práticos, foram incorporadas dinâmicas interativas mediante o uso de tecnologias educacionais e plataformas de aprendizagem baseada em jogos, com a finalidade de acompanhar o nível de assimilação dos conteúdos e potencializar o engajamento coletivo. Foram empregados os aplicativos Kahoot e Plickers: o Kahoot permitiu a participação em tempo real por meio dos smartphones dos cursistas em questionários dinâmicos; já o Plickers viabilizou a coleta imediata de respostas mediante a leitura óptica de cartões com QR Code (alternativas A, B, C e D) realizada exclusivamente pelo celular do instrutor, contornando eventuais oscilações de sinal de internet e garantindo dinamismo à atividade.';
+
+    // Figuras removidas pelo usuário não entram no relatório; numeração idêntica à do documento Word
+    const eduFigureHtml = (image, caption, source) => `
+        <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${this.escapeHtml(caption)}</p>
+          <div style="text-align:center;">
+            <img src="${image}" alt="${this.escapeHtml(caption)}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          </div>
+          <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(source || 'Fonte: Elaborada pelos autores.')}</p>
+        </div>
+      `;
+
+    let eduTechFiguresHtml = '';
+    ['fig_1', 'fig_2'].forEach(figId => {
+      const fig = (figGen && typeof figGen.resolveEduTechFigure === 'function') ? figGen.resolveEduTechFigure(t, figId) : null;
+      if (fig) {
+        eduTechFiguresHtml += eduFigureHtml(fig.image, numberedCaption(figId, fig.caption), fig.source);
+      }
+    });
+    (eduTech.extraFigures || []).forEach(ef => {
+      if (ef.image) {
+        eduTechFiguresHtml += eduFigureHtml(ef.image, numberedCaption(`edu_${ef.id}`, ef.caption || `Avaliação via ${ef.title || 'ferramenta educacional'}.`), ef.source);
+      }
+    });
+
+    // 7. CORPO TÉCNICO OFICIAL DO RELATÓRIO (PÁGINA 6 EM DIANTE)
+    const conteudoHtml = `
+      <div class="report-doc-page report-content-page">
+        <table class="report-paged-body-table" style="width:100%; border-collapse:collapse; border:none; margin:0; padding:0;">
+          <thead class="report-paged-thead" style="display:table-header-group;">
+            <tr>
+              <td style="border:none; padding:0;">
+                <!-- CABEÇALHO OFICIAL PADRONIZADO REPETIDO EM TODAS AS PÁGINAS -->
+                <div class="report-standard-header" style="margin-bottom:14px;">
+                  <div class="report-header-left">
+                    <img src="visualrelatorio/cabecalho/cecate_cabecalho.png" alt="CECATE Centro-Oeste" class="report-header-logo" onerror="if(window.coverAssets?.cecateCabecalho) this.src=window.coverAssets.cecateCabecalho">
+                  </div>
+                  <div class="report-header-right">
+                    <span class="report-header-title">RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </thead>
+          <tfoot class="report-paged-tfoot" style="display:table-footer-group;">
+            <tr>
+              <td style="border:none; padding:0;">
+                <!-- RODAPÉ INSTITUCIONAL PADRONIZADO REPETIDO EM TODAS AS PÁGINAS -->
+                <div class="report-standard-footer" style="display:flex; align-items:center; justify-content:center; border-top:1px solid #4D4D4D; padding-top:6px; margin-top:1.25rem;">
+                  <div style="flex:1; text-align:center;">
+                    <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+          <tbody>
+            <tr>
+              <td style="border:none; padding:0;">
+                <!-- 1. INTRODUÇÃO -->
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
+        <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:'Times New Roman', serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${this.escapeHtml(t.polo || 'Município Polo')}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
 
         <!-- 2. DADOS BÁSICOS DO CURSO & TABELAS 1 E 2 -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${t.polo || 'Município Polo'}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${this.escapeHtml(t.polo || 'Município Polo')}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
         
-        <p style="font-weight:600; margin-top:1.25rem; margin-bottom:0.5rem;"><em>Tabela 1. Municípios convocados.</em></p>
+        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 1. Municípios convocados.</p>
         ${window.statsEngine.generateTable1Html(t.municipalities || [])}
-        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem;">Fonte: Elaborada pelos autores.</p>
+        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
-        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">A estrutura curricular do curso contempla quatro (04) módulos sequenciais, sendo os três primeiros voltados aos fundamentos gerais, programas governamentais e normativas do transporte escolar. O quarto módulo é personalizado ao perfil do participante: para os gestores, o foco é integralmente direcionado à prática intensiva no Sistema SETE ("mãos na massa"); para os conselheiros CACS, a abordagem enfatiza as atribuições legais do conselho e a consulta analítica dos dados no sistema. A distribuição temática e as cargas horárias são detalhadas na Tabela 2:</p>
-        <p style="font-weight:600; margin-top:1.25rem; margin-bottom:0.5rem;"><em>Tabela 2. Estrutura do curso de capacitação em transporte escolar.</em></p>
+        <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">A estrutura curricular do curso contempla quatro (04) módulos sequenciais, sendo os três primeiros voltados aos fundamentos gerais, programas governamentais e normativas do transporte escolar. O quarto módulo é personalizado ao perfil do participante: para os gestores, o foco é integralmente direcionado à prática intensiva no Sistema SETE ("mãos na massa"); para os conselheiros CACS, a abordagem enfatiza as atribuições legais do conselho e a consulta analítica dos dados no sistema. A distribuição temática e as cargas horárias são detalhadas na Tabela 2:</p>
+        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 2. Estrutura do curso de capacitação em transporte escolar.</p>
         ${window.statsEngine.generateTable2Html(t.courseModules || [])}
-        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem;">Fonte: Elaborada pelos autores.</p>
+        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 3. CONTATO COM OS MUNICÍPIOS & TABELA 3 -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">O contato oficial com os municípios selecionados teve início mediante o encaminhamento de ofícios expedidos pela Coordenação-Geral da Política do Transporte Escolar (CGPTE) do FNDE, endereçados aos dirigentes das secretarias municipais de educação e aos representantes dos conselhos CACS/FUNDEB (Apêndice I). O expediente formal continha as diretrizes gerais da capacitação, orientações de participação e o formulário eletrônico de inscrições disponibilizado por link direto e QR Code institucional.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">De modo suplementar, a equipe técnica do CECATE Centro-Oeste realizou ampla mobilização institucional (Apêndice II), utilizando canais oficiais das administrações municipais. Foram estabelecidos contatos complementares via correio eletrônico, chamadas telefônicas e mensagens institucionais para certificar o recebimento das convocações, esclarecer dúvidas e incentivar a homologação das inscrições.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Ao encerramento da fase de convocação, registrou-se um total de ${metrics.totalInscribed} participantes formalmente inscritos, sendo ${metrics.totalInscribedGestores} gestores municipais e ${metrics.totalInscribedCACS} representantes dos CACS/FUNDEB. Dos municípios convocados, ${metrics.totalInscribedMunicipalities} efetivaram inscrição de representantes. A discriminação dos meios e canais de contato empregados para cada município é consolidada na Tabela 3 a seguir:</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">O contato oficial com os municípios selecionados teve início mediante o encaminhamento de ofícios expedidos pela Coordenação-Geral da Política do Transporte Escolar (CGPTE) do FNDE, endereçados aos dirigentes das secretarias municipais de educação e aos representantes dos conselhos CACS/FUNDEB (Apêndice I). O expediente formal continha as diretrizes gerais da capacitação, orientações de participação e o formulário eletrônico de inscrições disponibilizado por link direto e QR Code institucional.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">De modo suplementar, a equipe técnica do CECATE Centro-Oeste realizou ampla mobilização institucional (Apêndice II), utilizando canais oficiais das administrações municipais. Foram estabelecidos contatos complementares via correio eletrônico, chamadas telefônicas e mensagens institucionais para certificar o recebimento das convocações, esclarecer dúvidas e incentivar a homologação das inscrições.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Ao todo, foram convocados ${metrics.totalSummonedMunicipalities} municípios com vistas a atingir a meta de ${metrics.targetParticipants || (metrics.totalSummonedMunicipalities * 4)} participantes, sendo ${metrics.targetGestores || (metrics.totalSummonedMunicipalities * 2)} gestores municipais e ${metrics.targetCACS || (metrics.totalSummonedMunicipalities * 2)} representantes do CACS. Destes, ${metrics.totalInscribedMunicipalities} municípios tiveram participantes inscritos no curso, dos quais ${metrics.bothCategoriesInscribedMunicipalities || 0} municípios inscreveram representantes de ambas as categorias, ${metrics.onlyCACSInscribedMunicipalities || 0} município(s) apenas CACS e ${metrics.onlyGestoresInscribedMunicipalities || 0} apenas gestores. No que se refere ao quantitativo de pessoas, foram inscritas ${metrics.totalInscribed} pessoas, sendo ${metrics.totalInscribedGestores} gestores e ${metrics.totalInscribedCACS} representantes do CACS. A relação dos municípios com o respectivo número de inscritos por categoria é apresentada na Tabela 3.</p>
 
-        <p style="font-weight:600; margin-top:1.25rem; margin-bottom:0.5rem;"><em>Tabela 3. Contato com os municípios convocados.</em></p>
-        ${window.statsEngine.generateTable3Html(t.municipalities || [])}
-        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem;">Fonte: Elaborada pelos autores.</p>
+        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 3. Inscritos por município.</p>
+        ${window.statsEngine.generateTable3Html(t.municipalities || [], metrics)}
+        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 4. DESENVOLVIMENTO DO CURSO E PARTICIPAÇÃO & TABELA 4 & FIGURA 3 -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Conforme estruturado na matriz formativa, o curso foi planejado e executado em quatro (04) módulos sequenciais, cumprindo rigorosamente os seguintes momentos pedagógicos:</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Primeiro momento:</strong> acolhimento dos participantes com credenciamento e entrega de material didático (pastas com caderno de anotações e caneta institucional), seguido de momento de integração com coffee break.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Segundo momento:</strong> abertura oficial com pronunciamento da coordenação do CECATE Centro-Oeste e dos representantes da Coordenação-Geral da Política do Transporte Escolar (CGPTE/FNDE), apresentando a contextualização do projeto e as metas de aprimoramento da gestão pública.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Terceiro momento:</strong> espaço aberto para a apresentação individual de todos os presentes, promovendo a integração entre gestores municipais, conselheiros sociais do CACS-FUNDEB e as equipes executoras da UFG e do FNDE.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Quarto momento:</strong> apresentação do Módulo 1, com o panorama histórico e situacional do Transporte Escolar no Brasil, os estudos desenvolvidos em parceria entre FNDE e instituições de ensino superior e a missão do CECATE-CO, sensibilizando para os desafios locais e trocas de experiências.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Quinto momento:</strong> exposição detalhada do Módulo 2, abordando os programas federais estruturantes: o Programa Nacional de Apoio ao Transporte do Escolar (PNATE) e o Programa Caminho da Escola, explicitando normas operacionais, critérios de repasse financeiro e prestação de contas.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Sexto momento:</strong> desenvolvimento do Módulo 3, com foco em aspectos de planejamento territorial, contratação de serviços, controle de custos, segurança viária e marcos regulatórios essenciais para assegurar a regularidade e eficiência do transporte escolar.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.5rem;"><strong>Sétimo momento:</strong> execução do Módulo 4 de forma segmentada por público-alvo. Para os conselheiros do CACS/FUNDEB, detalharam-se os procedimentos fiscalizatórios, análise documental e utilização analítica do SETE para acompanhamento de rotas. Para os gestores municipais, realizou-se treinamento prático intensivo no Sistema SETE ("mãos na massa"), capacitando os servidores no cadastramento de alunos, escolas, veículos, motoristas e roteirização georreferenciada.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;"><strong>Oitavo momento:</strong> aplicação do instrumento avaliativo da capacitação, coletando percepções técnicas e qualitativas dos participantes sobre metodologia, facilitadores, infraestrutura e conteúdos trabalhados.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Durante o transcorrer dos módulos teóricos e práticos, foram incorporadas dinâmicas interativas mediante o uso de tecnologias educacionais e plataformas de aprendizagem baseada em jogos, com a finalidade de acompanhar o nível de assimilação dos conteúdos e potencializar o engajamento coletivo. Foram empregados os aplicativos Kahoot e Plickers: o Kahoot permitiu a participação em tempo real por meio dos smartphones dos cursistas em questionários dinâmicos; já o Plickers viabilizou a coleta imediata de respostas mediante a leitura óptica de cartões com QR Code (alternativas A, B, C e D) realizada exclusivamente pelo celular do instrutor, contornando eventuais oscilações de sinal de internet e garantindo dinamismo à atividade.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">A participação final dos entes federados registrou ${metrics.totalPresentMunicipalities} municípios presentes dos ${metrics.totalInscribedMunicipalities} formalmente inscritos (${metrics.participationRateMunicipalities}%). No que tange ao público participante, compareceram ${metrics.totalPresent} pessoas dentre as ${metrics.totalInscribed} inscritas, representando uma taxa de participação global de ${metrics.participationRateGeneral}%. No segmento do CACS-FUNDEB, compareceram ${metrics.presentCACS} conselheiros (${metrics.participationRateCACS}%), ao passo que na Gestão Municipal participaram ${metrics.presentGestores} técnicos (${metrics.participationRateGestores}%). A distribuição da presença por município e segmento institucional é detalhada na Tabela 4 a seguir:</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Conforme estruturado na matriz formativa, o curso foi planejado e executado em quatro (04) módulos sequenciais, cumprindo rigorosamente os seguintes momentos pedagógicos:</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Primeiro momento:</strong> acolhimento dos participantes com credenciamento e entrega de material didático (pastas com caderno de anotações e caneta institucional), seguido de momento de integração com coffee break.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Segundo momento:</strong> abertura oficial com pronunciamento da coordenação do CECATE Centro-Oeste e dos representantes da Coordenação-Geral da Política do Transporte Escolar (CGPTE/FNDE), apresentando a contextualização do projeto e as metas de aprimoramento da gestão pública.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Terceiro momento:</strong> espaço aberto para a apresentação individual de todos os presentes, promovendo a integração entre gestores municipais, conselheiros sociais do CACS-FUNDEB e as equipes executoras da UFG e do FNDE.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Quarto momento:</strong> apresentação do Módulo 1, com o panorama histórico e situacional do Transporte Escolar no Brasil, os estudos desenvolvidos em parceria entre FNDE e instituições de ensino superior e a missão do CECATE-CO, sensibilizando para os desafios locais e trocas de experiências.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Quinto momento:</strong> exposição detalhada do Módulo 2, abordando os programas federais estruturantes: o Programa Nacional de Apoio ao Transporte do Escolar (PNATE) e o Programa Caminho da Escola, explicitando normas operacionais, critérios de repasse financeiro e prestação de contas.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Sexto momento:</strong> desenvolvimento do Módulo 3, com foco em aspectos de planejamento territorial, contratação de serviços, controle de custos, segurança viária e marcos regulatórios essenciais para assegurar a regularidade e eficiência do transporte escolar.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Sétimo momento:</strong> execução do Módulo 4 de forma segmentada por público-alvo. Para os conselheiros do CACS/FUNDEB, detalharam-se os procedimentos fiscalizatórios, análise documental e utilização analítica do SETE para acompanhamento de rotas. Para os gestores municipais, realizou-se treinamento prático intensivo no Sistema SETE ("mãos na massa"), capacitando os servidores no cadastramento de alunos, escolas, veículos, motoristas e roteirização georreferenciada.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;"><strong>Oitavo momento:</strong> aplicação do instrumento avaliativo da capacitação, coletando percepções técnicas e qualitativas dos participantes sobre metodologia, facilitadores, infraestrutura e conteúdos trabalhados.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">${eduText}</p>
+        ${eduTechFiguresHtml}
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">A participação final dos entes federados registrou ${metrics.totalPresentMunicipalities} municípios presentes dos ${metrics.totalInscribedMunicipalities} formalmente inscritos (${metrics.participationRateMunicipalities}%). No que tange ao público participante, compareceram ${metrics.totalPresent} pessoas dentre as ${metrics.totalInscribed} inscritas, representando uma taxa de participação global de ${metrics.participationRateGeneral}%. No segmento do CACS-FUNDEB, compareceram ${metrics.presentCACS} conselheiros (${metrics.participationRateCACS}%), ao passo que na Gestão Municipal participaram ${metrics.presentGestores} técnicos (${metrics.participationRateGestores}%). A distribuição da presença por município e segmento institucional é detalhada na Tabela 4 a seguir:</p>
 
-        <p style="font-weight:600; margin-top:1.25rem; margin-bottom:0.5rem;"><em>Tabela 4. Participação por município (Presentes / Inscritos).</em></p>
-        ${window.statsEngine.generateTable4Html(t.municipalities || [])}
-        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem;">Fonte: Elaborada pelos autores.</p>
+        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 4. Participação por município.</p>
+        ${window.statsEngine.generateTable4Html(t.municipalities || [], metrics)}
+        <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
-        <!-- FIGURA 3 -->
+        <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:1.5rem;">Ao término das atividades formativas, todos os certificados oficiais de capacitação (carga horária de 08 horas) foram devidamente emitidos e remetidos para o e-mail cadastrado de cada participante por intermédio da plataforma PLATEIA da Universidade Federal de Goiás (UFG), contando com código de verificação digital e QR Code para autenticação de veracidade.</p>
+
+        <!-- 5. AVALIAÇÃO DA CAPACITAÇÃO & FIGURAS 3, 4, 5, 6, 7 E 8 -->
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Nesta edição do curso, aplicou-se o formulário padronizado de avaliação proposto pela equipe técnica do FNDE, que coleta percepções estruturadas dos cursistas. O instrumento é dividido em duas abordagens: primeiramente, uma escala psicométrica de Likert com cinco níveis qualitativos de percepção (1 - Ruim, 2 - Regular, 3 - Neutro, 4 - Muito Bom e 5 - Excelente) para avaliar os aspectos didáticos, pedagógicos, operacionais e de infraestrutura do evento; em seguida, duas perguntas dissertativas qualitativas, nas quais os participantes detalham livremente os aspectos que mais gostaram e os pontos com oportunidade de melhoria com base na experiência vivenciada.</p>
+
+        <!-- FIGURA 3 (TÓPICO 5) -->
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">${fig3Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-weight:600; margin-bottom:0.75rem;"><em>Figura 3. Participação segundo o tipo de representação.</em></p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_3', 'Figura 3. Participação segundo o tipo de representação.'))}</p>
           <div style="max-width:520px; height:280px; position:relative; margin:auto;">
             <canvas id="report-preview-fig3-canvas"></canvas>
           </div>
-          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem;">Fonte: Elaborada pelos autores.</p>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
         </div>
 
-        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:1.5rem;">Ao término das atividades formativas, todos os certificados oficiais de capacitação (carga horária de 08 horas) foram devidamente emitidos e remetidos para o e-mail cadastrado de cada participante por intermédio da plataforma PLATEIA da Universidade Federal de Goiás (UFG), contando com código de verificação digital e QR Code para autenticação de veracidade.</p>
-
-        <!-- 5. AVALIAÇÃO DA CAPACITAÇÃO & FIGURAS 4, 5, 6, 7 E 8 -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Nesta edição do curso, aplicou-se o formulário padronizado de avaliação proposto pela equipe técnica do FNDE, que coleta percepções estruturadas dos cursistas. O instrumento é dividido em duas abordagens: primeiramente, uma escala psicométrica de Likert (pontuações de 1 a 5) para avaliar de maneira objetiva e quantitativa os aspectos didáticos, pedagógicos, operacionais e de infraestrutura do evento; em seguida, duas perguntas dissertativas qualitativas, nas quais os participantes detalham livremente os aspectos que mais gostaram e os pontos com oportunidade de melhoria com base na experiência vivenciada.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">A totalidade dos participantes presentes realizou a avaliação da capacitação, garantindo representatividade integral (${totalResp} questionários válidos). Em termos de distribuição institucional, ${pctCacsResp}% (${cacsRespCount}/${totalResp}) dos respondentes integraram os conselhos sociais CACS-FUNDEB e ${pctGestResp}% (${gestRespCount}/${totalResp}) pertenceram às equipes de Gestão Municipal.</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Os resultados consolidados da avaliação do curso de capacitação são ilustrados nas Figuras 4, 5 e 6 a seguir. De modo geral, as qualificações de excelência (notas 4 e 5) abrangeram a expressiva maioria das respostas coletadas, alcançando média geral de ${overallMean} / 5,0. No entanto, apontamentos específicos situados fora da tendência hegemônica indicam oportunidades pontuais de aprimoramento em itens logísticos, tais como a antecedência na divulgação e adequação de horários:</p>
-
         <!-- FIGURA 4 -->
+        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">${fig4Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-weight:600; margin-bottom:0.75rem;"><em>Figura 4. Avaliação da capacitação de todos os participantes.</em></p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_4', 'Figura 4. Avaliação da capacitação de todos os participantes.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig4-canvas"></canvas>
           </div>
-          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem;">Fonte: Elaborada pelos autores.</p>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
         </div>
 
-        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">Ao analisar os resultados segundo a instituição representada, constata-se a manutenção da tendência geral de elevada aprovação. Contudo, os conselheiros dos CACS-FUNDEB apresentaram proporções ainda mais expressivas de notas máximas (conceitos 4 e 5), não registrando pontuações em faixas inferiores, o que evidencia a grande pertinência dos conteúdos de controle social trabalhados:</p>
-
         <!-- FIGURA 5 -->
+        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig5Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-weight:600; margin-bottom:0.75rem;"><em>Figura 5. Avaliação da capacitação dos conselheiros CACS.</em></p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_5', 'Figura 5. Avaliação da capacitação dos conselheiros CACS.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig5-canvas"></canvas>
           </div>
-          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem;">Fonte: Elaborada pelos autores.</p>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
         </div>
 
-        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">Por sua vez, os gestores municipais também manifestaram avaliações francamente positivas, com ampla predominância de respostas nas notas 4 e 5 na quase totalidade das dimensões avaliadas. Eventuais registros com conceitos inferiores concentraram-se essencialmente na duração e horário da formação, reforçando a demanda por períodos mais extensos para as oficinas práticas de preenchimento de rotas:</p>
-
         <!-- FIGURA 6 -->
+        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig6Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-weight:600; margin-bottom:0.75rem;"><em>Figura 6. Avaliação da capacitação dos gestores municipais.</em></p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_6', 'Figura 6. Avaliação da capacitação dos gestores municipais.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig6-canvas"></canvas>
           </div>
-          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem;">Fonte: Elaborada pelos autores.</p>
+          <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
         </div>
 
-        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">De forma sucinta, as Figuras 7 e 8 sintetizam os resultados das perguntas dissertativas por meio de nuvens de palavras ponderadas pela frequência semântica dos termos. As respostas evidenciam percepção extremamente favorável quanto aos facilitadores e aos tópicos trabalhados, com destaque de grande relevância para os termos "Conteúdo", "Didática", "SETE", "Prática" e "Clareza", demonstrando a efetividade metodológica da formação. Em contrapartida, as sugestões de melhoria concentraram-se em demandas de infraestrutura e ritmo, sobressaindo menções a "Tempo", "Internet" e "Mais dias de curso", servindo como subsídios prioritários para as próximas rodadas do projeto. Todas as respostas qualitativas obtidas estão disponíveis integralmente no Apêndice III para consulta:</p>
-
         <!-- FIGURAS 7 E 8 (NUVENS DE PALAVRAS) -->
+        <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig7Comment}</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin:2rem 0; page-break-inside:avoid;">
           <div style="text-align:center;">
-            <p style="font-weight:600; font-size:0.85rem; margin-bottom:0.5rem;"><em>Figura 7. Aspectos que gostaram da capacitação.</em></p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem;">Fonte: Elaborada pelos autores.</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig7Source)}</p>
           </div>
           <div style="text-align:center;">
-            <p style="font-weight:600; font-size:0.85rem; margin-bottom:0.5rem;"><em>Figura 8. Aspectos que devem melhorar da capacitação.</em></p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem;">Fonte: Elaborada pelos autores.</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig8Source)}</p>
           </div>
         </div>
+        <p style="text-align:justify; line-height:1.6; margin-top:0.5rem; margin-bottom:1.5rem;">${fig8Comment}</p>
 
         <!-- 6. REGISTROS FOTOGRÁFICOS -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Durante a realização da capacitação, foram registrados diversos momentos por meio de fotografias que ilustram a participação ativa dos representantes municipais e dos conselheiros do CACS-FUNDEB. As imagens capturam desde a ambientação do local, momentos de acolhimento e fala dos facilitadores, até as interações e práticas colaborativas durante as atividades formativas. Esses registros visuais não apenas documentam o evento, como também reforçam o compromisso institucional dos envolvidos com o contínuo aprimoramento da política de transporte escolar nos municípios. As fotografias servem como evidência do engajamento coletivo, memória institucional e prestação de contas das ações desenvolvidas perante o FNDE:</p>
         ${photosHtml}
 
         <!-- 7. CONSIDERAÇÕES FINAIS -->
-        <h3 style="color:#1e3a8a; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">7. CONSIDERAÇÕES FINAIS</h3>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${t.polo || 'Município Polo'}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto "${t.relatedProject || 'Fortalecendo e aprimorando as políticas públicas de transporte escolar do Brasil'}" (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
-        <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">Salienta-se que, de forma geral, o curso atendeu plenamente ao objetivo primordial de aprimorar os conhecimentos e habilidades técnicas de gestores municipais e conselheiros do CACS-FUNDEB, conforme atestado nos elevados índices de satisfação apurados na pesquisa avaliativa. Por outro lado, pôde-se comprovar que reforçar a convocação mediante a articulação multicanal do CECATE Centro-Oeste — combinando correspondências oficiais, contatos telefônicos diretos e mensagens em canais institucionais — revelou-se determinante para assegurar expressivo comparecimento dos entes federados convocados.</p>
-        <p style="text-align:justify; line-height:1.6;">Ficou igualmente evidente que a abordagem de diálogo permanente adotada consolida-se como canal imprescindível para atender às demandas de qualificação técnica continuada. Para finalizar, ressalta-se a suma importância de o processo formativo estar inserido em um ambiente que possibilite a livre e qualificada interação entre os cursistas e os formadores, proporcionando um rico espaço de compartilhamento de vivências territoriais, esclarecimento de dúvidas operacionais e retroalimentação contínua de todas as dimensões da política de transporte escolar no Brasil.</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${this.escapeHtml(t.polo || 'Município Polo')}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Salienta-se que, de forma geral, o curso atendeu plenamente ao objetivo primordial de aprimorar os conhecimentos e habilidades técnicas de gestores municipais e conselheiros do CACS-FUNDEB, conforme atestado nos elevados índices de satisfação apurados na pesquisa avaliativa. Por outro lado, pôde-se comprovar que reforçar a convocação mediante a articulação multicanal do CECATE Centro-Oeste — combinando correspondências oficiais, contatos telefônicos diretos e mensagens em canais institucionais — revelou-se determinante para assegurar expressivo comparecimento dos entes federados convocados.</p>
+        <p style="text-align:justify; line-height:1.5;">Ficou igualmente evidente que a abordagem de diálogo permanente adotada consolida-se como canal imprescindível para atender às demandas de qualificação técnica continuada. Para finalizar, ressalta-se a suma importância de o processo formativo estar inserido em um ambiente que possibilite a livre e qualificada interação entre os cursistas e os formadores, proporcionando um rico espaço de compartilhamento de vivências territoriais, esclarecimento de dúvidas operacionais e retroalimentação contínua de todas as dimensões da política de transporte escolar no Brasil.</p>
 
         <!-- APÊNDICE I: CONVOCAÇÕES DO FNDE -->
-        <h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:0.35rem; margin-top:3rem;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:3rem; page-break-before:always;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos ofícios e convocações oficiais emitidos pelo FNDE referentes a esta capacitação:</p>
         ${fndeHtml}
 
         <!-- APÊNDICE II: CONVOCAÇÕES DO CECATE -->
-        <h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:0.35rem; margin-top:2.5rem;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos comunicados e e-mails de convocação emitidos pela equipe técnica do CECATE-CO referentes a esta capacitação:</p>
         ${cecateHtml}
 
         <!-- APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO -->
-        <h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:0.35rem; margin-top:2.5rem;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Relação completa das respostas dissertativas registradas pelos participantes no formulário de avaliação da formação, detalhando aspectos positivos e sugestões de aperfeiçoamento por município e representação institucional:</p>
         ${evalsHtml}
 
-        <!-- RODAPÉ OFICIAL PADRONIZADO -->
-        <div class="report-standard-footer" style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #4D4D4D; padding-top: 6px; margin-top: 3rem;">
-          <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
-            <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
-          </div>
-          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
-            1
-          </div>
-        </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     `;
+
+    // 8. COMBINAÇÃO DE TODAS AS PÁGINAS OFICIAIS NA ORDEM EXATA DO WORD
+    container.innerHTML = coverHtml + contraCapaHtml + equipeHtml + indicesHtml + sumarioHtml + conteudoHtml;
 
     setTimeout(() => {
       this.renderReportPreviewCharts();
@@ -7832,6 +9962,7 @@ class AutoReportApp {
     if (window.wordCloudEngine) {
       const positiveTexts = evals.map(e => e.likedAspects || e.liked || '').filter(Boolean);
       const improveTexts = evals.map(e => e.improveAspects || e.improve || '').filter(Boolean);
+      const cloudFont = this.currentTraining.customWordCloudFont || 'Plus Jakarta Sans';
 
       const canvas7 = document.getElementById('report-preview-fig7-canvas');
       if (canvas7) {
@@ -7840,7 +9971,8 @@ class AutoReportApp {
           isDark, 
           width: 550, 
           height: 320, 
-          maxWords: 35 
+          maxWords: 35,
+          fontFamily: cloudFont
         });
       }
 
@@ -7851,64 +9983,88 @@ class AutoReportApp {
           isDark, 
           width: 550, 
           height: 320, 
-          maxWords: 35 
+          maxWords: 35,
+          fontFamily: cloudFont
         });
       }
     }
   }
 
   async downloadDocxReport() {
-    if (!this.currentTraining || !window.reportDocxGenerator) return;
-    this.showToast('Preparando dados e gráficos para o documento Word (.docx)...', 'info');
-    if (!this.metrics) {
-      this.metrics = window.statsEngine.calculateAllMetrics(this.currentTraining);
+    if (!this.currentTraining) {
+      this.showToast('Nenhuma capacitação selecionada para gerar o relatório.', 'warning');
+      return;
+    }
+    if (!window.reportDocxGenerator) {
+      this.showToast('O gerador de relatório Word (.docx) não está disponível.', 'error');
+      return;
     }
 
-    // Renderizar gráficos prévios para garantir canvases populados
-    this.renderReportPreviewCharts();
+    try {
+      this.showToast('Preparando dados e gráficos para o documento Word (.docx)...', 'info');
+      if (!this.metrics) {
+        this.metrics = window.statsEngine.calculateAllMetrics(this.currentTraining);
+      }
 
-    // Capturar imagens dos gráficos e nuvens a partir dos canvases
-    const imagesData = {};
-    const canvasMap = [
-      { key: 'fig3', id: 'report-preview-fig3-canvas' },
-      { key: 'fig4', id: 'report-preview-fig4-canvas' },
-      { key: 'fig5', id: 'report-preview-fig5-canvas' },
-      { key: 'fig6', id: 'report-preview-fig6-canvas' },
-      { key: 'fig7', id: 'report-preview-fig7-canvas' },
-      { key: 'fig8', id: 'report-preview-fig8-canvas' }
-    ];
+      // A prévia ainda não foi montada (ou está sendo montada): monta antes de capturar os gráficos,
+      // senão o Word sairia sem as Figuras 3 a 8
+      if (!document.getElementById('report-preview-fig3-canvas')) {
+        await this.renderReportPreviewStep();
+      }
 
-    canvasMap.forEach(item => {
-      const cv = document.getElementById(item.id);
-      if (cv) {
-        try {
-          imagesData[item.key] = cv.toDataURL('image/png');
-        } catch (e) {
-          console.warn('Erro ao extrair imagem do canvas:', item.id, e);
+      // Renderizar gráficos prévios para garantir canvases populados
+      this.renderReportPreviewCharts();
+      // Aguarda o navegador desenhar os canvases
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      // Capturar imagens dos gráficos e nuvens a partir dos canvases
+      const imagesData = {};
+      const canvasMap = [
+        { key: 'fig3', id: 'report-preview-fig3-canvas' },
+        { key: 'fig4', id: 'report-preview-fig4-canvas' },
+        { key: 'fig5', id: 'report-preview-fig5-canvas' },
+        { key: 'fig6', id: 'report-preview-fig6-canvas' },
+        { key: 'fig7', id: 'report-preview-fig7-canvas' },
+        { key: 'fig8', id: 'report-preview-fig8-canvas' }
+      ];
+
+      canvasMap.forEach(item => {
+        const cv = document.getElementById(item.id);
+        if (cv) {
+          try {
+            imagesData[item.key] = cv.toDataURL('image/png');
+          } catch (e) {
+            console.warn('Erro ao extrair imagem do canvas:', item.id, e);
+          }
+        }
+      });
+
+      // Garantir conversão de PDFs de apêndices para imagens antes de gerar o Word
+      const appendixDocs = (this.currentTraining.media || []).filter(m => (m.type === 'doc_fnde' || m.type === 'doc_cecate') && (!m.pageImages || m.pageImages.length === 0));
+      for (const doc of appendixDocs) {
+        if (doc.blob) {
+          doc.pageImages = await this.extractDocPageImages(doc.blob, doc.fileType, doc.fileName);
         }
       }
-    });
 
-    // Garantir conversão de PDFs de apêndices para imagens antes de gerar o Word
-    const appendixDocs = (this.currentTraining.media || []).filter(m => (m.type === 'doc_fnde' || m.type === 'doc_cecate') && (!m.pageImages || m.pageImages.length === 0));
-    for (const doc of appendixDocs) {
-      if (doc.blob) {
-        doc.pageImages = await this.extractDocPageImages(doc.blob, doc.fileType, doc.fileName);
-      }
+      await window.reportDocxGenerator.generateAndDownload(this.currentTraining, this.metrics, imagesData);
+      this.showToast('Documento Word (.docx) baixado com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao gerar documento Word (.docx):', err);
+      this.showToast('Erro ao gerar documento Word: ' + (err.message || 'Falha inesperada'), 'error');
     }
-
-    await window.reportDocxGenerator.generateAndDownload(this.currentTraining, this.metrics, imagesData);
-    this.showToast('Documento Word (.docx) baixado com sucesso!', 'success');
   }
 
-  printReportPDF() {
+  async printReportPDF() {
     if (!this.currentTraining) {
       this.showToast('Nenhuma capacitação selecionada.', 'warning');
       return;
     }
 
     const t = this.currentTraining;
-    this.showToast('Preparando PDF do relatório oficial...', 'info');
+
+    // Notificar e preparar a visualização em PDF oficial idêntica ao Word
+    this.showToast('Preparando PDF oficial de alta fidelidade idêntico ao modelo Word... Na janela de impressão, selecione "Salvar como PDF".', 'info', 5000);
 
     // Garantir renderização dos gráficos e nuvens de palavras
     this.renderReportPreviewCharts();
@@ -7961,16 +10117,11 @@ class AutoReportApp {
     if (window.coverAssets) {
       const coverFig = clone.querySelector('.cover-main-illustration');
       if (coverFig && window.coverAssets.figuradacapa) coverFig.src = window.coverAssets.figuradacapa;
-      const logoCecate = clone.querySelector('.cover-logo-cecate');
-      if (logoCecate && window.coverAssets.cecate) logoCecate.src = window.coverAssets.cecate;
-      const logoUfg = clone.querySelector('.cover-logo-ufg');
-      if (logoUfg && window.coverAssets.ufg) logoUfg.src = window.coverAssets.ufg;
-      const logoFnde = clone.querySelector('.cover-logo-fnde');
-      if (logoFnde && window.coverAssets.fnde) logoFnde.src = window.coverAssets.fnde;
-      const headerLogo = clone.querySelector('.report-header-logo');
-      if (headerLogo && window.coverAssets.cecateCabecalho) headerLogo.src = window.coverAssets.cecateCabecalho;
-      const footerBanner = clone.querySelector('.report-footer-banner');
-      if (footerBanner && window.coverAssets.rodape5Logos) footerBanner.src = window.coverAssets.rodape5Logos;
+      clone.querySelectorAll('.cover-logo-cecate').forEach(img => { if (window.coverAssets.cecate) img.src = window.coverAssets.cecate; });
+      clone.querySelectorAll('.cover-logo-ufg').forEach(img => { if (window.coverAssets.ufg) img.src = window.coverAssets.ufg; });
+      clone.querySelectorAll('.cover-logo-fnde').forEach(img => { if (window.coverAssets.fnde) img.src = window.coverAssets.fnde; });
+      clone.querySelectorAll('.report-header-logo').forEach(img => { if (window.coverAssets.cecateCabecalho) img.src = window.coverAssets.cecateCabecalho; });
+      clone.querySelectorAll('.report-footer-banner').forEach(img => { if (window.coverAssets.rodape5Logos) img.src = window.coverAssets.rodape5Logos; });
     }
 
     // Iframe isolado para impressão exclusiva do relatório
@@ -7990,6 +10141,9 @@ class AutoReportApp {
     const cleanPolo = (t.polo || 'Polo').replace(/[^a-zA-Z0-9_-]/g, '_');
     const docTitle = `Relatorio_Capacitacao_${t.number || 'Final'}_${cleanPolo}`;
 
+    // Remover botões de download e elementos interativos do clone para impressão pura
+    clone.querySelectorAll('.btn, .no-print, a.btn').forEach(el => el.remove());
+
     const iframeDoc = printIframe.contentWindow.document;
     iframeDoc.open();
     iframeDoc.write(`<!DOCTYPE html>
@@ -8000,9 +10154,6 @@ class AutoReportApp {
   <style>
     @page {
       size: A4 portrait;
-      margin: 15mm 15mm 15mm 15mm;
-    }
-    @page:first {
       margin: 0;
     }
     * {
@@ -8017,14 +10168,17 @@ class AutoReportApp {
       color: #0f172a !important;
       font-family: 'Times New Roman', serif;
       font-size: 11pt;
-      line-height: 1.6;
+      line-height: 1.5;
+      width: 210mm;
     }
+
+    /* PÁGINA 1: CAPA OFICIAL INTEGRAL */
     .report-cover-page {
       background-color: #4D4D4D !important;
       color: #FFFFFF !important;
-      width: 100% !important;
-      min-height: 297mm !important;
+      width: 210mm !important;
       height: 297mm !important;
+      min-height: 297mm !important;
       max-height: 297mm !important;
       padding: 0 !important;
       margin: 0 !important;
@@ -8139,30 +10293,205 @@ class AutoReportApp {
       width: 100%;
       gap: 1.5rem;
     }
-    .cover-logo-cecate { height: 48px; max-width: 220px; object-fit: contain; }
-    .cover-logo-ufg { height: 48px; max-width: 160px; object-fit: contain; }
-    .cover-logo-fnde { height: 48px; max-width: 200px; object-fit: contain; }
+    .cover-logo-cecate { height: 40px; max-width: 170px; object-fit: contain; }
+    .cover-logo-ufg { height: 40px; max-width: 130px; object-fit: contain; }
+    .cover-logo-fnde { height: 40px; max-width: 170px; object-fit: contain; }
 
+    /* ESTILOS DAS PÁGINAS A4 OFICIAIS */
     .report-doc-page {
       background: #ffffff !important;
       color: #0f172a !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      padding: 0 !important;
-      margin: 0 !important;
+      width: 210mm !important;
+      min-height: 297mm !important;
+      box-sizing: border-box !important;
+      position: relative !important;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.5;
+      font-size: 11pt;
       box-shadow: none !important;
       border: none !important;
     }
+
+    /* PÁGINA 2: CONTRA-CAPA */
+    .report-contra-capa-page {
+      height: 297mm !important;
+      max-height: 297mm !important;
+      padding: 16mm 25mm 5mm 25mm !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    /* PÁGINA 3: EQUIPE PARTICIPANTE */
+    .report-equipe-page {
+      height: 297mm !important;
+      max-height: 297mm !important;
+      padding: 22mm 20mm 15mm 20mm !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    /* PÁGINA 4: ÍNDICES E PÁGINA 5: SUMÁRIO */
+    .report-indices-page,
+    .report-sumario-page {
+      height: 297mm !important;
+      max-height: 297mm !important;
+      padding: 18mm 20mm 15mm 20mm !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    /* LINHAS PONTILHADAS DE ÍNDICES E SUMÁRIO */
+    .report-index-row {
+      display: flex !important;
+      align-items: baseline !important;
+      margin: 0.35rem 0 !important;
+      font-family: 'Times New Roman', serif !important;
+      font-size: 11pt !important;
+      color: #000000 !important;
+      line-height: 1.35 !important;
+    }
+    .report-index-label {
+      flex-shrink: 0 !important;
+      max-width: 82% !important;
+      color: #000000 !important;
+    }
+    .report-index-dots {
+      flex-grow: 1 !important;
+      border-bottom: 1.5px dotted #000000 !important;
+      margin: 0 0.5rem 4px 0.5rem !important;
+    }
+    .report-index-page {
+      flex-shrink: 0 !important;
+      font-weight: 600 !important;
+      text-align: right !important;
+      min-width: 24px !important;
+      color: #000000 !important;
+    }
+
+    /* PÁGINA 6+: CONTEÚDO TÉCNICO */
+    .report-content-page {
+      padding: 18mm 20mm 18mm 20mm !important;
+    }
+
+    /* CABEÇALHO OFICIAL PADRONIZADO */
+    .report-standard-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      border-bottom: 1px solid #4D4D4D !important;
+      padding-bottom: 6px !important;
+      margin-bottom: 1.5rem !important;
+    }
+    .report-header-left {
+      display: flex !important;
+      align-items: center !important;
+    }
+    .report-header-logo {
+      height: 28px !important;
+      max-width: 140px !important;
+      object-fit: contain !important;
+    }
+    .report-header-right {
+      text-align: right !important;
+    }
+    .report-header-title {
+      font-family: 'Times New Roman', serif !important;
+      font-size: 10pt !important;
+      font-weight: 700 !important;
+      color: #000000 !important;
+    }
+
+    /* CABEÇALHO E RODAPÉ REPETIDOS EM TODAS AS PÁGINAS DO CORPO */
+    table.report-paged-body-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    thead.report-paged-thead {
+      display: table-header-group !important;
+    }
+    tfoot.report-paged-tfoot {
+      display: table-footer-group !important;
+    }
+    .report-paged-body-table td {
+      border: none !important;
+      padding: 0 !important;
+    }
+
+    /* RODAPÉ OFICIAL PADRONIZADO */
+    .report-standard-footer {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-top: 1px solid #4D4D4D !important;
+      padding-top: 6px !important;
+      margin-top: 1.5rem !important;
+    }
+    .report-footer-banner {
+      height: 24px !important;
+      max-width: 100% !important;
+      object-fit: contain !important;
+      display: inline-block !important;
+    }
+
+    /* TIPOGRAFIA E ELEMENTOS */
     h1, h2, h3, h4 {
       font-family: 'Times New Roman', serif;
       page-break-after: avoid;
       break-after: avoid;
-      color: #1e3a8a;
+    }
+    h3 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #1f4e79 !important;
     }
     p {
-      margin: 0.75rem 0;
+      margin: 0.65rem 0;
       text-align: justify;
-      line-height: 1.6;
+      line-height: 1.5;
+      font-size: 11pt;
+      font-family: 'Times New Roman', serif;
+      color: #000000;
+    }
+    .report-content-page p {
+      text-indent: 1.25cm;
+    }
+    .report-content-page p[style*="font-weight:700"],
+    .report-content-page p[style*="font-weight: 700"],
+    .report-content-page p[style*="font-style:italic"],
+    .report-content-page p[style*="font-style: italic"],
+    .report-content-page p[style*="text-align:center"],
+    .report-content-page p[style*="text-align: center"],
+    .report-content-page .no-indent,
+    .cover-top-section p,
+    .cover-central-stripe p,
+    .cover-project-section p,
+    .cover-logos-banner p,
+    .report-contra-capa-page p,
+    .report-equipe-page p,
+    .report-indices-page p,
+    .report-sumario-page p {
+      text-indent: 0 !important;
+    }
+    .report-contra-capa-page p {
+      line-height: 1.35 !important;
     }
     table {
       width: 100%;
@@ -8172,14 +10501,50 @@ class AutoReportApp {
       page-break-inside: avoid;
       break-inside: avoid;
     }
-    th, td {
-      border: 1px solid #475569;
-      padding: 6px 8px;
-      color: #0f172a;
+
+    /* Tabelas bilaterais ABNT */
+    .report-data-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-family: 'Times New Roman', serif !important;
+      font-size: 10pt !important;
+      color: #000000 !important;
     }
-    th {
+    .report-data-table th {
+      background-color: #D9D9D9 !important;
+      color: #000000 !important;
+      font-weight: bold !important;
+      border-top: 1px solid #000 !important;
+      border-bottom: 1px solid #000 !important;
+      border-left: none !important;
+      border-right: none !important;
+      padding: 5px 6px !important;
+    }
+    .report-data-table td {
+      color: #000000 !important;
+      padding: 4px 6px !important;
+      border-top: 1px solid #000 !important;
+      border-bottom: 1px solid #000 !important;
+      border-left: none !important;
+      border-right: none !important;
+    }
+    .data-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-family: 'Times New Roman', serif !important;
+      font-size: 10pt !important;
+    }
+    .data-table th {
       background-color: #f1f5f9 !important;
-      font-weight: bold;
+      color: #000000 !important;
+      font-weight: bold !important;
+      border: 1px solid #cbd5e1 !important;
+      padding: 6px !important;
+    }
+    .data-table td {
+      border: 1px solid #cbd5e1 !important;
+      padding: 5px !important;
+      color: #000000 !important;
     }
     img {
       max-width: 100% !important;
@@ -8188,13 +10553,17 @@ class AutoReportApp {
       break-inside: avoid;
     }
     div[style*="page-break-inside: avoid"],
-    div[style*="page-break-inside:avoid"] {
+    div[style*="page-break-inside:avoid"],
+    .appendix-document-block {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
     a {
       color: #1e3a8a;
       text-decoration: none;
+    }
+    .btn, .no-print {
+      display: none !important;
     }
   </style>
 </head>
@@ -8212,7 +10581,7 @@ class AutoReportApp {
         console.error('Falha ao acionar impressão via iframe:', err);
         window.print();
       }
-    }, 450);
+    }, 500);
   }
 
   async directDownloadDocx(trainingId) {
@@ -8511,7 +10880,7 @@ class AutoReportApp {
               return `
                 <tr>
                   <td style="text-align:center; font-weight:800; font-size:1.05rem; color:var(--accent-secondary);">${t.number}</td>
-                  <td><strong>${t.polo || 'Polo Regional'}</strong></td>
+                  <td><strong>${this.escapeHtml(t.polo || 'Polo Regional')}</strong></td>
                   <td><span class="nav-badge">${t.uf || 'MT'}</span></td>
                   <td style="font-size:0.85rem;">${t.datesFormatted || t.startDate || '-'}</td>
                   <td style="font-size:0.85rem;">${t.workload || '16h'}</td>
@@ -8685,7 +11054,31 @@ class AutoReportApp {
     });
   }
 
-  showToast(message, type = 'info') {
+  /**
+   * Lê um arquivo de imagem já padronizado para o relatório: formato compatível com o Word,
+   * orientação EXIF de fotos de celular aplicada e dimensão máxima de 1600 px.
+   */
+  async fileToReportImageDataUrl(file) {
+    const dataUrl = await this.fileToDataUrl(file);
+    if (window.reportDocxGenerator && typeof window.reportDocxGenerator.normalizeImageDataUrl === 'function') {
+      return window.reportDocxGenerator.normalizeImageDataUrl(dataUrl);
+    }
+    return dataUrl;
+  }
+
+  notifyImageReadError(file, err) {
+    console.warn('Falha ao ler imagem:', file?.name, err);
+    const isHeic = /\.(heic|heif)$/i.test(file?.name || '') || /image\/hei[cf]/i.test(file?.type || '');
+    this.showToast(
+      isHeic
+        ? `A imagem "${file.name}" está em HEIC (iPhone), formato não suportado. Converta para JPG ou PNG e envie novamente.`
+        : `Não foi possível ler a imagem "${file?.name || ''}". Use arquivos JPG, PNG ou WEBP.`,
+      'error',
+      6000
+    );
+  }
+
+  showToast(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
@@ -8732,10 +11125,11 @@ class AutoReportApp {
     toast.innerHTML = `${iconSvg}<span style="line-height:1.4;">${cleanMessage}</span>`;
     container.appendChild(toast);
 
+    const toastDuration = typeof duration === 'number' && duration > 0 ? duration : 3500;
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);
-    }, 3500);
+    }, toastDuration);
   }
 
   bindEvents() {

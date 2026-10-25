@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Parser de Ofícios de Convocação
- * Versão: v.3.1.0
+ * Versão: v.3.4.14
  */
 
 class ConvocacaoParser {
@@ -11,6 +11,17 @@ class ConvocacaoParser {
   /**
    * Normaliza strings para busca e comparação
    */
+  /**
+   * Verifica se o nome normalizado do município aparece como termo inteiro no texto normalizado,
+   * ignorando menções ao estado (ex.: "Estado de Goiás" não indica o município de Goiás)
+   */
+  containsCityName(normText, normCity) {
+    if (!normText || !normCity) return false;
+    // normalizeText só deixa letras, dígitos, "_" e espaços: o nome pode entrar direto na expressão regular
+    const re = new RegExp(`(?<![a-z0-9])(?<!estado d[eo] )${normCity}(?![a-z0-9])`);
+    return re.test(normText);
+  }
+
   normalizeText(text) {
     if (!text) return '';
     return text
@@ -349,7 +360,7 @@ class ConvocacaoParser {
       const normChunk = this.normalizeText(chunk);
       for (const city of stateCities) {
         const normCity = this.normalizeText(city.n);
-        if (normChunk === normCity || normChunk.includes(normCity)) {
+        if (normChunk === normCity || this.containsCityName(normChunk, normCity)) {
           if (!foundCities.some(c => c.code === city.c)) {
             foundCities.push({
               name: city.n,
@@ -365,7 +376,7 @@ class ConvocacaoParser {
     // 2. Varredura global de segurança insensível a acentos sobre o bloco inteiro
     for (const city of stateCities) {
       const normCity = this.normalizeText(city.n);
-      if (normCity.length >= 4 && normalizedBlock.includes(normCity)) {
+      if (normCity.length >= 4 && this.containsCityName(normalizedBlock, normCity)) {
         if (!foundCities.some(c => c.code === city.c)) {
           foundCities.push({
             name: city.n,

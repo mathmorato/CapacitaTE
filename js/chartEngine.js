@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Geração de Gráficos (Chart.js)
- * Versão: v.3.1.0
+ * Versão: v.3.4.14
  */
 
 class ChartEngine {
@@ -55,8 +55,8 @@ class ChartEngine {
     if (!window.Chart) return null;
     const ctx = canvas.getContext('2d');
 
-    const percCACS = ((presentCACS / total) * 100).toFixed(1);
-    const percGest = ((presentGestores / total) * 100).toFixed(1);
+    const percCACS = ((presentCACS / total) * 100).toFixed(1).replace('.', ','); // vírgula decimal (padrão brasileiro)
+    const percGest = ((presentGestores / total) * 100).toFixed(1).replace('.', ',');
 
     const chartData = [presentCACS, presentGestores];
     const bgColors = ['#06b6d4', '#6366f1'];
@@ -189,7 +189,7 @@ class ChartEngine {
               const centerX = (x + base) / 2;
               if (width > 20) {
                 ctx.fillStyle = dsIdx === 3 ? '#1e293b' : '#ffffff';
-                ctx.fillText(`${val}%`, centerX, y);
+                ctx.fillText(`${String(val).replace('.', ',')}%`, centerX, y);
               }
             }
           });
@@ -252,7 +252,7 @@ class ChartEngine {
           },
           tooltip: {
             callbacks: {
-              label: (context) => ` ${context.dataset.label}: ${context.raw}%`
+              label: (context) => ` ${context.dataset.label}: ${String(context.raw).replace('.', ',')}%`
             }
           }
         }

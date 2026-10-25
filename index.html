@@ -85,7 +85,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          v.3.1.0
+          v.3.4.14
         </div>
       </div>
     </aside>
@@ -274,30 +274,34 @@
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(5)">
                     <span class="step-tab-num">5</span>
-                    <span class="step-tab-text">Contatos & Telefones</span>
+                    <span class="step-tab-text">Tecnologias Educacionais</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(6)">
                     <span class="step-tab-num">6</span>
-                    <span class="step-tab-text">Lista de Presença</span>
+                    <span class="step-tab-text">Contatos & Telefones</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(7)">
                     <span class="step-tab-num">7</span>
-                    <span class="step-tab-text">Avaliação da Capacitação</span>
+                    <span class="step-tab-text">Lista de Presença</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(8)">
                     <span class="step-tab-num">8</span>
-                    <span class="step-tab-text">Registros Fotográficos</span>
+                    <span class="step-tab-text">Avaliação da Capacitação</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(9)">
                     <span class="step-tab-num">9</span>
-                    <span class="step-tab-text">Documentos & Apêndices</span>
+                    <span class="step-tab-text">Registros Fotográficos</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(10)">
                     <span class="step-tab-num">10</span>
-                    <span class="step-tab-text">Conferência & Auditoria</span>
+                    <span class="step-tab-text">Documentos & Apêndices</span>
                   </button>
                   <button class="step-tab-btn" onclick="app.setWizardStep(11)">
                     <span class="step-tab-num">11</span>
+                    <span class="step-tab-text">Conferência & Auditoria</span>
+                  </button>
+                  <button class="step-tab-btn" onclick="app.setWizardStep(12)">
+                    <span class="step-tab-num">12</span>
                     <span class="step-tab-text">Geração do Relatório</span>
                   </button>
                 </div>
@@ -774,17 +778,93 @@
 
                 <div class="wizard-actions-footer">
                   <button class="btn btn-secondary" onclick="app.wizardPrev()" style="display:inline-flex; align-items:center; gap:0.35rem;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>Voltar</button>
+                  <button class="btn btn-primary" onclick="app.wizardNext()" style="display:inline-flex; align-items:center; gap:0.35rem;">Salvar e Próxima Etapa (Tecnologias Educacionais) <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="15" y2="12"></line><polyline points="10 7 15 12 10 17"></polyline><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ETAPA 5: TECNOLOGIAS EDUCACIONAIS (KAHOOT & PLICKERS) -->
+            <div class="wizard-step-panel" id="wizard-step-5">
+              <div class="wizard-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.75rem;">
+                  <div>
+                    <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                      <span>Etapa 5: Tecnologias Educacionais (Kahoot & Plickers)</span>
+                    </h3>
+                    <p class="wizard-card-desc">Anexe as imagens e personalize as legendas das atividades pedagógicas interativas com ferramentas tecnológicas (Kahoot e Plickers) que integram a Seção 4 (Desenvolvimento do Curso) no relatório.</p>
+                  </div>
+                  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="app.preloadAllDefaultEduTechExamples()" style="font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;" title="Carregar imagens oficiais de exemplo para Kahoot e Plickers">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Preencher com Imagens de Exemplo
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Box Informativo / Texto Contextual -->
+                <div class="glass-card" style="margin-bottom:1.5rem; padding:1.25rem; background:rgba(30,58,138,0.06); border:1px solid rgba(59,130,246,0.25);">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.5rem;">
+                    <label class="form-label" style="font-weight:700; margin:0; display:flex; align-items:center; gap:0.4rem;">
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      <span>Texto Descritivo das Tecnologias Educacionais no Relatório (Seção 4):</span>
+                    </label>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreDefaultEduTechText()" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.25rem;">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg> Restaurar Texto Padrão
+                    </button>
+                  </div>
+                  <textarea id="wiz-edutech-text" class="form-control" rows="5" style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;" placeholder="Texto sobre as ferramentas Kahoot e Plickers que será inserido após os momentos pedagógicos..." oninput="app.onEduTechTextInput()"></textarea>
+                  <div style="font-size:0.76rem; color:var(--text-muted); margin-top:0.4rem;">
+                    Este parágrafo contextualiza o uso pedagógico dos jogos e precede as Figuras 1 e 2 no documento Word.
+                  </div>
+                </div>
+
+                <!-- Grid com Cards das Figuras 1 e 2 -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;" id="wizard-edutech-figures-grid">
+                  <!-- Cards das figuras populados dinamicamente via renderEducationalTechStep() -->
+                </div>
+
+                <!-- Seção de Figuras Extras Opcionais -->
+                <div id="wizard-edutech-extra-container" style="margin-bottom:1rem;">
+                  <div id="wizard-edutech-extra-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:1.25rem;">
+                    <!-- Figuras extras se houver -->
+                  </div>
+                </div>
+
+                <!-- Botão Adicionar Mais Imagens/Ferramentas -->
+                <div style="margin-bottom:1.75rem; display:flex; gap:0.5rem;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="app.addExtraEduTechFigure()" style="font-weight:600; display:inline-flex; align-items:center; gap:0.35rem;">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Adicionar Outra Figura / Ferramenta
+                  </button>
+                </div>
+
+                <!-- Pré-Visualização Oficial ABNT do Relatório -->
+                <div class="glass-card" style="padding:1.5rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.4rem;">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                      <span>Pré-visualização Oficial no Relatório (Como será gerado no Word)</span>
+                    </h4>
+                    <span class="nav-badge badge-blue" style="font-size:0.75rem;">ABNT CECATE</span>
+                  </div>
+                  <div id="edutech-report-live-preview" style="background:var(--bg-input); padding:1.5rem; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                    <!-- Pré-visualização ao vivo renderizada dinamicamente -->
+                  </div>
+                </div>
+
+                <div class="wizard-actions-footer">
+                  <button class="btn btn-secondary" onclick="app.wizardPrev()" style="display:inline-flex; align-items:center; gap:0.35rem;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg>Voltar</button>
                   <button class="btn btn-primary" onclick="app.wizardNext()" style="display:inline-flex; align-items:center; gap:0.35rem;">Salvar e Próxima Etapa (Contatos) <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="15" y2="12"></line><polyline points="10 7 15 12 10 17"></polyline><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
                 </div>
               </div>
             </div>
 
-            <!-- ETAPA 5: CONTATO COM OS MUNICÍPIOS -->
-            <div class="wizard-step-panel" id="wizard-step-5">
+            <!-- ETAPA 6: CONTATO COM OS MUNICÍPIOS -->
+            <div class="wizard-step-panel" id="wizard-step-6">
               <div class="wizard-card">
                 <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                  <span>Etapa 5: Contato com os Municípios</span>
+                  <span>Etapa 6: Contato com os Municípios</span>
                 </h3>
                 <p class="wizard-card-desc">Registre as datas de início de convocação, canais utilizados e quantitativos de contatos.</p>
 
@@ -846,13 +926,13 @@
               </div>
             </div>
 
-            <!-- ETAPA 6: INSCRIÇÃO & LISTA DE PRESENÇA (UPLOAD EXCEL & TABELA 4) -->
-            <div class="wizard-step-panel" id="wizard-step-6">
+            <!-- ETAPA 7: INSCRIÇÃO & LISTA DE PRESENÇA (UPLOAD EXCEL & TABELA 4) -->
+            <div class="wizard-step-panel" id="wizard-step-7">
               <div class="wizard-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
                   <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem; margin:0;">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                    <span>Etapa 6: Importação de Inscrições e Lista de Presença</span>
+                    <span>Etapa 7: Importação de Inscrições e Lista de Presença</span>
                   </h3>
                   <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="app.reprocessDataStep6()" style="padding:0.35rem 0.75rem; font-weight:700; font-size:0.82rem; display:inline-flex; align-items:center; gap:0.35rem; color:var(--accent-amber-text);" title="Recalcular totais de inscritos e presentes por município">
@@ -906,7 +986,14 @@
                 </div>
 
                 <div style="margin-top:2rem;">
-                  <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--text-secondary);">Tabela 4: Participação por Município (Presentes / Convocados)</h4>
+                  <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--text-secondary);">Tabela 3: Inscritos por Município</h4>
+                  <div id="wizard-table3-preview">
+                    <!-- Tabela 3 Gerada Dinamicamente -->
+                  </div>
+                </div>
+
+                <div style="margin-top:2rem;">
+                  <h4 style="font-size:0.95rem; margin-bottom:0.5rem; color:var(--text-secondary);">Tabela 4: Participação por Município</h4>
                   <div id="wizard-table4-preview">
                     <!-- Tabela 4 Gerada Dinamicamente -->
                   </div>
@@ -919,20 +1006,20 @@
               </div>
             </div>
 
-            <!-- ETAPA 7: AVALIAÇÃO DA CAPACITAÇÃO (GRÁFICOS & NUVENS) -->
-            <div class="wizard-step-panel" id="wizard-step-7">
+            <!-- ETAPA 8: AVALIAÇÃO DA CAPACITAÇÃO (GRÁFICOS & NUVENS) -->
+            <div class="wizard-step-panel" id="wizard-step-8">
               <div class="wizard-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                   <div>
                     <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                      <span>Etapa 7: Avaliação da Capacitação</span>
+                      <span>Etapa 8: Avaliação da Capacitação</span>
                     </h3>
-                    <p class="wizard-card-desc">Importe a planilha de avaliação para gerar automaticamente as médias das 7 perguntas, gráficos comparativos e nuvens de palavras nativas.</p>
+                    <p class="wizard-card-desc">Importe a planilha de avaliação para gerar automaticamente a distribuição das respostas das 7 perguntas na escala Likert, gráficos comparativos e nuvens de palavras nativas.</p>
                   </div>
                   <div style="display:flex; gap:0.75rem;">
                     <span class="nav-badge" id="wiz-eval-total-count">0 Avaliações</span>
-                    <span class="nav-badge" id="wiz-eval-overall-mean" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">0.0 / 5.0</span>
+                    <span class="nav-badge" id="wiz-eval-overall-mean" style="background:rgba(16, 185, 129, 0.15); color:#10b981;">0% Conceitos 4 e 5</span>
                   </div>
                 </div>
 
@@ -949,48 +1036,401 @@
                 <!-- Banner Informativo e Botão de Limpar Planilha de Avaliação -->
                 <div id="wizard-evaluation-status-banner"></div>
 
-                <!-- Layout em Coluna Única (1 Figura por Linha) -->
-                <div style="display:flex; flex-direction:column; gap:1.5rem; margin-top:2rem;">
+                <!-- Layout em Coluna Única (1 Figura por Linha) com Campos de Comentários -->
+                <div style="display:flex; flex-direction:column; gap:1.75rem; margin-top:2rem;">
                   
+                  <!-- FIGURA 3 -->
                   <div class="glass-card" style="padding:1.25rem;">
                     <h4 style="font-size:0.9rem; margin-bottom:1rem;">Figura 3. Participação CACS vs Gestores</h4>
                     <div style="height:280px; position:relative;">
                       <canvas id="chart-fig3-canvas"></canvas>
                     </div>
+
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig3" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 3 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig3-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig3-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig3', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Análise Descritiva & Amostral</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig3-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig3')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig3" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os resultados da Figura 3..."
+                                oninput="app.handleFigureCommentChange('fig3', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
+                    </div>
                   </div>
 
+                  <!-- FIGURA 4 -->
                   <div class="glass-card" style="padding:1.25rem;">
                     <h4 style="font-size:0.9rem; margin-bottom:1rem;">Figura 4. Avaliação Geral (Todos os Participantes)</h4>
                     <div style="height:320px; position:relative;">
                       <canvas id="chart-fig4-canvas"></canvas>
                     </div>
+
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig4" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 4 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig4-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig4-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig4', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Análise Descritiva & Indicadores</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig4-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig4')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig4" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os resultados da Figura 4..."
+                                oninput="app.handleFigureCommentChange('fig4', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
+                    </div>
                   </div>
 
+                  <!-- FIGURA 5 -->
                   <div class="glass-card" style="padding:1.25rem;">
                     <h4 style="font-size:0.9rem; margin-bottom:1rem;">Figura 5. Avaliação Conselheiros CACS</h4>
                     <div style="height:320px; position:relative;">
                       <canvas id="chart-fig5-canvas"></canvas>
                     </div>
+
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig5" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 5 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig5-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig5-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig5', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico de Fortalecimento Colegiado</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig5-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig5')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig5" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os resultados da Figura 5..."
+                                oninput="app.handleFigureCommentChange('fig5', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
+                    </div>
                   </div>
 
+                  <!-- FIGURA 6 -->
                   <div class="glass-card" style="padding:1.25rem;">
                     <h4 style="font-size:0.9rem; margin-bottom:1rem;">Figura 6. Avaliação Gestores Municipais</h4>
                     <div style="height:320px; position:relative;">
                       <canvas id="chart-fig6-canvas"></canvas>
                     </div>
-                  </div>
 
-                  <div class="glass-card" style="padding:1.25rem;">
-                    <h4 style="font-size:0.9rem; margin-bottom:0.75rem;">Figura 7. Nuvem de Palavras: Aspectos Positivos</h4>
-                    <div style="display:flex; justify-content:center; background:var(--bg-input); border-radius:var(--radius-md); padding:0.5rem;">
-                      <canvas id="wordcloud-fig7-canvas" width="650" height="320" style="max-width:100%; height:auto;"></canvas>
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig6" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 6 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig6-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig6-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig6', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Técnico-Operacional Municipal</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig6-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig6')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig6" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os resultados da Figura 6..."
+                                oninput="app.handleFigureCommentChange('fig6', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
                     </div>
                   </div>
 
+                  <!-- BARRA DE CONFIGURAÇÃO TIPOGRÁFICA & ESTILO DAS NUVENS DE PALAVRAS -->
+                  <div class="glass-card" style="padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-left:4px solid var(--accent-purple);">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                      <div style="width:36px; height:36px; border-radius:var(--radius-md); background:rgba(139, 92, 246, 0.15); color:var(--accent-purple); display:flex; align-items:center; justify-content:center;">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                      </div>
+                      <div>
+                        <div style="font-size:0.9rem; font-weight:700; color:var(--text-color);">Tipografia das Nuvens de Palavras</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Defina a fonte das palavras geradas nas Figuras 7 e 8</div>
+                      </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                      <label for="wordcloud-font-select" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin:0;">Fonte Tipográfica:</label>
+                      <select id="wordcloud-font-select" class="form-control" onchange="app.handleWordCloudFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:210px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna - Padrão)</option>
+                        <option value="Times New Roman">Times New Roman (Institucional / ABNT)</option>
+                        <option value="Arial">Arial (Corporativa & Neutra)</option>
+                        <option value="Segoe UI">Segoe UI (Fluida & Nítida)</option>
+                        <option value="Georgia">Georgia (Editorial Elegante)</option>
+                        <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                        <option value="Impact">Impact (Destaque Forte)</option>
+                      </select>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreWordCloudFont()" title="Restaurar fonte padrão Plus Jakarta Sans" style="padding:0.35rem 0.65rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                        Padrão
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- FIGURA 7 -->
                   <div class="glass-card" style="padding:1.25rem;">
-                    <h4 style="font-size:0.9rem; margin-bottom:0.75rem;">Figura 8. Nuvem de Palavras: Aspectos a Melhorar</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                      <h4 style="font-size:0.9rem; margin:0;" id="wordcloud-fig7-card-title">Figura 7. Nuvem de Palavras: Aspectos Positivos</h4>
+                    </div>
+                    <div style="display:flex; justify-content:center; background:var(--bg-input); border-radius:var(--radius-md); padding:0.5rem;">
+                      <canvas id="wordcloud-fig7-canvas" width="650" height="320" style="max-width:100%; height:auto;"></canvas>
+                    </div>
+
+                    <!-- TÍTULO E FONTE DA FIGURA 7 (PADRÃO OFICIAL COM PERSONALIZAÇÃO) -->
+                    <div style="margin-top:1rem; padding:0.85rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-color); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:0.75rem;">
+                      
+                      <!-- Título da Figura 7 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-title-fig7" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                            <span>Título da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig7-title-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig7-title-restore-btn" onclick="app.restoreWordCloudTitle('fig7')" title="Restaurar título padrão da Figura 7" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Figura 7.</span>
+                          <input type="text" id="wordcloud-title-fig7" class="form-control"
+                                 value="Aspectos que gostaram da capacitação."
+                                 placeholder="Aspectos que gostaram da capacitação."
+                                 oninput="app.handleWordCloudTitleInput('fig7', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig7-title-preview">
+                          Legenda no relatório: <strong>Figura 7. Aspectos que gostaram da capacitação.</strong>
+                        </div>
+                      </div>
+
+                      <!-- Fonte da Figura 7 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-source-fig7" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span>Fonte da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig7-source-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig7-source-restore-btn" onclick="app.restoreWordCloudSource('fig7')" title="Restaurar fonte padrão da Figura 7" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Fonte:</span>
+                          <input type="text" id="wordcloud-source-fig7" class="form-control"
+                                 value="Elaborada pelos autores."
+                                 placeholder="Ex: Elaborada pelos autores."
+                                 oninput="app.handleWordCloudSourceInput('fig7', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig7-source-preview">
+                          Fonte no relatório: <em>Fonte: Elaborada pelos autores.</em>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig7" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 7 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig7-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig7-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig7', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Qualitativo & Evidências</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig7-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig7')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig7" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os aspectos positivos (Figura 7)..."
+                                oninput="app.handleFigureCommentChange('fig7', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- FIGURA 8 -->
+                  <div class="glass-card" style="padding:1.25rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                      <h4 style="font-size:0.9rem; margin:0;" id="wordcloud-fig8-card-title">Figura 8. Nuvem de Palavras: Aspectos a Melhorar</h4>
+                    </div>
                     <div style="display:flex; justify-content:center; background:var(--bg-input); border-radius:var(--radius-md); padding:0.5rem;">
                       <canvas id="wordcloud-fig8-canvas" width="650" height="320" style="max-width:100%; height:auto;"></canvas>
+                    </div>
+
+                    <!-- TÍTULO E FONTE DA FIGURA 8 (PADRÃO OFICIAL COM PERSONALIZAÇÃO) -->
+                    <div style="margin-top:1rem; padding:0.85rem; background:rgba(0,0,0,0.02); border:1px solid var(--border-color); border-radius:var(--radius-md); display:flex; flex-direction:column; gap:0.75rem;">
+                      
+                      <!-- Título da Figura 8 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-title-fig8" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                            <span>Título da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig8-title-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig8-title-restore-btn" onclick="app.restoreWordCloudTitle('fig8')" title="Restaurar título padrão da Figura 8" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Figura 8.</span>
+                          <input type="text" id="wordcloud-title-fig8" class="form-control"
+                                 value="Aspectos que devem melhorar da capacitação."
+                                 placeholder="Aspectos que devem melhorar da capacitação."
+                                 oninput="app.handleWordCloudTitleInput('fig8', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig8-title-preview">
+                          Legenda no relatório: <strong>Figura 8. Aspectos que devem melhorar da capacitação.</strong>
+                        </div>
+                      </div>
+
+                      <!-- Fonte da Figura 8 -->
+                      <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem; flex-wrap:wrap; gap:0.4rem;">
+                          <label for="wordcloud-source-fig8" style="font-size:0.82rem; font-weight:700; color:var(--text-color); margin:0; display:flex; align-items:center; gap:0.35rem;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span>Fonte da Figura (mantém padrão):</span>
+                          </label>
+                          <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span class="badge-title-status" id="wordcloud-fig8-source-badge" style="font-size:0.72rem; color:var(--text-muted); font-style:italic;">Padrão Oficial</span>
+                            <button type="button" class="btn btn-secondary btn-sm" id="wordcloud-fig8-source-restore-btn" onclick="app.restoreWordCloudSource('fig8')" title="Restaurar fonte padrão da Figura 8" style="display:none; padding:0.2rem 0.5rem; font-size:0.72rem; align-items:center; gap:0.25rem;">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                              Restaurar Padrão
+                            </button>
+                          </div>
+                        </div>
+                        <div class="input-group" style="display:flex; width:100%;">
+                          <span class="input-group-addon photo-source-addon" style="border-radius:var(--radius-sm) 0 0 var(--radius-sm); font-weight:700;">Fonte:</span>
+                          <input type="text" id="wordcloud-source-fig8" class="form-control"
+                                 value="Elaborada pelos autores."
+                                 placeholder="Ex: Elaborada pelos autores."
+                                 oninput="app.handleWordCloudSourceInput('fig8', this.value)"
+                                 style="border-radius:0 var(--radius-sm) var(--radius-sm) 0; font-size:0.86rem;">
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; font-family:var(--font-mono, monospace);" id="wordcloud-fig8-source-preview">
+                          Fonte no relatório: <em>Fonte: Elaborada pelos autores.</em>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="figure-comment-box" style="margin-top:1.25rem; border-top:1px solid var(--border-color); padding-top:1rem;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:0.6rem;">
+                        <label for="eval-comment-fig8" style="font-size:0.85rem; font-weight:600; display:flex; align-items:center; gap:0.4rem; color:var(--text-color);">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          <span>Comentário da Figura 8 para o Relatório:</span>
+                        </label>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                          <div style="display:flex; align-items:center; gap:0.35rem;">
+                            <label for="eval-comment-fig8-template" style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Padrão:</label>
+                            <select id="eval-comment-fig8-template" class="form-control" onchange="app.changeFigureCommentTemplate('fig8', this.value)" style="font-size:0.75rem; padding:0.25rem 0.5rem; height:auto; width:auto; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color);">
+                              <option value="categorial">Análise de Conteúdo (Recomendado)</option>
+                              <option value="sintese">Síntese Executiva Oficial</option>
+                              <option value="detalhado">Diagnóstico Operacional & Propostas</option>
+                            </select>
+                          </div>
+                          <span class="nav-badge" id="eval-comment-fig8-badge" style="font-size:0.75rem; background:rgba(59, 130, 246, 0.15); color:var(--accent-blue-text);">Sugestão Padrão: Análise de Conteúdo</span>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureComment('fig8')" title="Restaurar texto do padrão selecionado" style="padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            Restaurar Padrão
+                          </button>
+                        </div>
+                      </div>
+                      <textarea id="eval-comment-fig8" class="form-control" rows="3"
+                                placeholder="Digite ou ajuste a análise sobre os aspectos a melhorar (Figura 8)..."
+                                oninput="app.handleFigureCommentChange('fig8', this.value)"
+                                style="width:100%; font-size:0.88rem; line-height:1.55; resize:vertical;"></textarea>
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
+                      </div>
                     </div>
                   </div>
 
@@ -1003,18 +1443,22 @@
               </div>
             </div>
 
-            <!-- ETAPA 8: REGISTROS FOTOGRÁFICOS -->
-            <div class="wizard-step-panel" id="wizard-step-8">
+            <!-- ETAPA 9: REGISTROS FOTOGRÁFICOS -->
+            <div class="wizard-step-panel" id="wizard-step-9">
               <div class="wizard-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                   <div>
                     <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                      <span>Etapa 8: Registros Fotográficos da Capacitação</span>
+                      <span>Etapa 9: Registros Fotográficos da Capacitação</span>
                     </h3>
-                    <p class="wizard-card-desc">Insira as imagens para cada momento oficial do relatório (Figura 9: Acomodação, Figura 10: Apresentação inicial, Figura 11: Módulos teóricos, Figura 12 em diante: Final de cada dia de capacitação).</p>
+                    <p class="wizard-card-desc">Insira as imagens para cada momento oficial do relatório (Acomodação, Apresentação inicial, Módulos teóricos e Final de cada dia de capacitação). A numeração das figuras é ajustada automaticamente conforme as figuras incluídas no relatório.</p>
                   </div>
-                  <div style="display:flex; gap:0.5rem;">
+                  <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="app.openBatchSourceModal()" style="display:inline-flex; align-items:center; gap:0.35rem;" title="Definir texto da fonte para todas as figuras">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+                      Fonte em Lote
+                    </button>
                     <button class="btn btn-primary btn-sm" onclick="document.getElementById('file-input-photos').click()">+ Upload em Lote</button>
                     <input type="file" id="file-input-photos" accept="image/*" multiple style="display:none;" onchange="app.handlePhotoUpload(event)">
                   </div>
@@ -1035,20 +1479,24 @@
               </div>
             </div>
 
-            <!-- ETAPA 9: APÊNDICES I & II -->
-            <div class="wizard-step-panel" id="wizard-step-9">
+            <!-- ETAPA 10: APÊNDICES I & II -->
+            <div class="wizard-step-panel" id="wizard-step-10">
               <div class="wizard-card">
                 <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                  <span>Etapa 9: Documentos e Apêndices</span>
+                  <span>Etapa 10: Documentos e Apêndices</span>
                 </h3>
                 <p class="wizard-card-desc">Anexe os ofícios de convocação do FNDE (Apêndice I) e as convocações/e-mails do CECATE (Apêndice II).</p>
 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-top:1.5rem;">
                   
                   <div class="glass-card" style="padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
-                    <div style="text-align:center;">
-                      <h4 style="font-size:0.95rem; font-weight:700; text-align:center; margin:0;">Apêndice I: Convocações do FNDE</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                      <h4 style="font-size:0.95rem; font-weight:700; margin:0;">Apêndice I: Convocações do FNDE</h4>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-input-appendix-fnde').click()" style="display:inline-flex; align-items:center; gap:0.35rem; font-size:0.78rem; font-weight:600; padding:0.35rem 0.75rem;" title="Clique para anexar novos arquivos">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        + Adicionar Arquivos
+                      </button>
                       <input type="file" id="file-input-appendix-fnde" accept=".pdf, .docx, .doc, .png, .jpg, .jpeg" multiple style="display:none;" onchange="app.handleAppendixUpload('doc_fnde', event)">
                     </div>
 
@@ -1070,8 +1518,12 @@
                   </div>
 
                   <div class="glass-card" style="padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
-                    <div style="text-align:center;">
-                      <h4 style="font-size:0.95rem; font-weight:700; text-align:center; margin:0;">Apêndice II: Convocações do CECATE</h4>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                      <h4 style="font-size:0.95rem; font-weight:700; margin:0;">Apêndice II: Convocações do CECATE</h4>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('file-input-appendix-cecate').click()" style="display:inline-flex; align-items:center; gap:0.35rem; font-size:0.78rem; font-weight:600; padding:0.35rem 0.75rem;" title="Clique para anexar novos arquivos">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        + Adicionar Arquivos
+                      </button>
                       <input type="file" id="file-input-appendix-cecate" accept=".pdf, .docx, .doc, .png, .jpg, .jpeg" multiple style="display:none;" onchange="app.handleAppendixUpload('doc_cecate', event)">
                     </div>
 
@@ -1101,12 +1553,12 @@
               </div>
             </div>
 
-            <!-- ETAPA 10: CONFERÊNCIA GERAL & AUDITORIA -->
-            <div class="wizard-step-panel" id="wizard-step-10">
+            <!-- ETAPA 11: CONFERÊNCIA GERAL & AUDITORIA -->
+            <div class="wizard-step-panel" id="wizard-step-11">
               <div class="wizard-card">
                 <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  <span>Etapa 10: Painel de Conferência & Auditoria</span>
+                  <span>Etapa 11: Painel de Conferência & Auditoria</span>
                 </h3>
                 <p class="wizard-card-desc">Audite a integridade dos dados, reconciliação entre lista de presença e avaliação antes de gerar o relatório oficial.</p>
 
@@ -1121,16 +1573,16 @@
               </div>
             </div>
 
-            <!-- ETAPA 11: GERAÇÃO DO RELATÓRIO OFICIAL -->
-            <div class="wizard-step-panel" id="wizard-step-11">
+            <!-- ETAPA 12: GERAÇÃO DO RELATÓRIO OFICIAL -->
+            <div class="wizard-step-panel" id="wizard-step-12">
               <div class="wizard-card">
                 <div style="margin-bottom:1.5rem;">
                   <div>
                     <h3 class="wizard-card-title" style="display:flex; align-items:center; gap:0.5rem;">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                      <span>Etapa 11: Geração & Download do Relatório</span>
+                      <span>Etapa 12: Geração & Download do Relatório</span>
                     </h3>
-                    <p class="wizard-card-desc">Pré-visualize o documento institucional e gere o arquivo PDF oficial ou baixe o arquivo editável em Word (.docx) estruturado conforme o padrão de referência.</p>
+                    <p class="wizard-card-desc">Pré-visualize o documento institucional e baixe o arquivo editável em Word (.docx) estruturado conforme o padrão de referência.</p>
                   </div>
                 </div>
 
@@ -1145,9 +1597,6 @@
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="5" y2="19"></line><line x1="19" y1="12" x2="9" y2="12"></line><polyline points="14 7 9 12 14 17"></polyline></svg> Voltar para Conferência
                   </button>
                   <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-                    <button class="btn btn-secondary" onclick="app.printReportPDF()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.6rem 1.15rem; font-weight:600;" title="Gera o PDF apenas do relatório oficial, sem elementos da página">
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> Imprimir / Salvar PDF
-                    </button>
                     <button class="btn btn-primary" onclick="app.downloadDocxReport()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.6rem 1.25rem; font-weight:600;">
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Baixar Relatório em Word (.docx)
                     </button>
@@ -1470,7 +1919,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.1.0 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.14 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1480,7 +1929,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.1.0</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.4.14</span>
         </div>
       </footer>
     </div>
@@ -2526,6 +2975,44 @@
   <!-- ==========================================
        SCRIPTS DA APLICAÇÃO
        ========================================== -->
+  <!-- Modal de Fonte em Lote para Registros Fotográficos -->
+  <div id="app-batch-source-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:99999; backdrop-filter:blur(4px); align-items:center; justify-content:center; animation:fadeIn 0.2s ease;">
+    <div style="background:var(--bg-card, #1e293b); border:1px solid var(--border-color); border-radius:14px; padding:1.75rem; max-width:480px; width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); transition:all 0.3s ease;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="margin:0; font-size:1.1rem; color:var(--text-primary); font-weight:700; display:flex; align-items:center; gap:0.5rem;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-blue-text, #3b82f6);"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
+          Fonte em Lote das Figuras
+        </h3>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="app.closeBatchSourceModal()" style="padding:0.2rem 0.5rem; font-size:0.8rem;">
+          ✕
+        </button>
+      </div>
+      <p style="margin:0 0 1.25rem 0; font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
+        Defina o texto descritivo da fonte para aplicar a todas as figuras da capacitação. O prefixo oficial institucional <strong>"Fonte:"</strong> e a formatação ABNT são preservados automaticamente.
+      </p>
+      
+      <div style="display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <label style="font-size:0.8rem; font-weight:600; color:var(--text-primary);">Texto da Fonte:</label>
+          <button type="button" class="btn-restore-title" onclick="document.getElementById('batch-source-modal-input').value = 'Elaborada pelos autores.'" title="Restaurar padrão">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+            Restaurar Padrão Oficial
+          </button>
+        </div>
+        <div class="photo-title-input-group">
+          <span class="photo-source-addon">Fonte:</span>
+          <input type="text" class="photo-title-input" id="batch-source-modal-input" value="Elaborada pelos autores." placeholder="Ex: Elaborada pelos autores.">
+        </div>
+        <span style="font-size:0.75rem; color:var(--text-muted); font-style:italic;">Exemplo padrão: Elaborada pelos autores.</span>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="app.closeBatchSourceModal()" style="padding:0.5rem 1rem; font-size:0.85rem;">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="app.applyBatchSourceModalAction()" style="padding:0.5rem 1.25rem; font-size:0.85rem; font-weight:700;">Aplicar a Todas as Figuras</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Confirmação In-Page com Barra de Carregamento e Confirmação de Sucesso -->
   <div id="app-confirm-modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:99999; backdrop-filter:blur(4px); align-items:center; justify-content:center; animation:fadeIn 0.2s ease;">
     <div id="app-confirm-modal-card" style="background:var(--bg-card, #1e293b); border:1px solid rgba(244, 63, 94, 0.35); border-radius:14px; padding:1.75rem; max-width:440px; width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7); text-align:center; transition:all 0.3s ease;">
@@ -2588,9 +3075,8 @@
   <script src="js/statsEngine.js"></script>
   <script src="js/chartEngine.js"></script>
   <script src="js/coverAssets.js"></script>
+  <script src="js/educationalTechAssets.js"></script>
   <script src="js/reportDocxGenerator.js"></script>
-  <script src="js/templates.js"></script>
-  <script src="js/reportEngine.js"></script>
   <script src="js/app.js"></script>
 
 </body>

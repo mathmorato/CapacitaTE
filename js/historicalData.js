@@ -1,5 +1,7 @@
-// Banco de Dados Histórico Oficial: Capacitações Nº 6 a 14
-// Fonte: Documentos de Referência 01, 02 e 03 do CECATE Centro-Oeste
+/**
+ * AutoReport CECATE - Banco de Dados Histórico Oficial (Capacitações Nº 6 a 14)
+ * Versão: v.3.4.14
+ */
 window.HISTORICAL_TRAININGS = [
   {
     "id": "cap_historico_6",

@@ -1,326 +1,435 @@
 /* ==========================================================================
    AutoReport CECATE - Print & PDF Export Stylesheet
+   Garante exportação e impressão idêntica ao documento oficial Word (.docx)
    ========================================================================== */
 
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
 @media print {
-  /* Hide all application chrome and navigation */
+  /* Ocultar elementos de navegação e controles da interface */
   .sidebar,
   .topbar,
-  .editor-panel,
-  .preview-header,
+  .wizard-progress-bar,
+  .wizard-actions-bar,
+  .sidebar-footer,
+  .app-main-footer,
   .toast-container,
   .modal-backdrop,
   .btn,
-  .nav-menu,
-  .no-print {
+  .no-print,
+  a.btn {
     display: none !important;
+  }
+
+  * {
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   body, html {
     background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 12pt !important;
-    line-height: 1.5 !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
+    width: 210mm !important;
+    font-family: 'Times New Roman', serif !important;
   }
 
-  .app-container, .main-wrapper, .content-area, .studio-container, .preview-viewport {
+  .app-container, .main-wrapper, .content-area, .wizard-container, .step-panel {
     display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
+    width: 210mm !important;
     padding: 0 !important;
     margin: 0 !important;
     background: transparent !important;
-  }
-
-  .preview-panel {
     border: none !important;
     box-shadow: none !important;
-    background: transparent !important;
-    width: 100% !important;
   }
 
+  /* PÁGINA 1: CAPA OFICIAL INTEGRAL */
   .report-cover-page {
     background-color: #4D4D4D !important;
     color: #FFFFFF !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 297mm !important;
+    width: 210mm !important;
     height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
     padding: 0 !important;
     margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    box-sizing: border-box !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    font-family: 'Times New Roman', serif !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
   .cover-top-section {
-    padding-top: 3.5rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding-top: 3.5rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
   }
 
   .cover-image-container {
-    max-width: 650px;
-    width: 86%;
-    margin: 0 auto;
-    text-align: center;
+    max-width: 650px !important;
+    width: 86% !important;
+    margin: 0 auto !important;
+    text-align: center !important;
   }
 
   .cover-main-illustration {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    display: inline-block;
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 4px !important;
+    display: inline-block !important;
   }
 
   .cover-report-id {
-    margin-top: 2.5rem;
-    margin-bottom: 0.8rem;
-    text-align: center;
+    margin-top: 2.8rem !important;
+    margin-bottom: 0.8rem !important;
+    text-align: center !important;
   }
 
   .cover-report-id h2 {
-    color: #F9DB61 !important;
-    font-size: 16pt;
-    font-weight: 700;
-    margin: 0;
-    font-family: 'Times New Roman', serif;
+    color: #E9C95C !important;
+    font-size: 14.5pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
   }
 
   .cover-central-stripe {
     background-color: #E9C95C !important;
-    width: 100%;
-    padding: 1.4rem 1.5rem;
-    text-align: center;
+    width: 100% !important;
+    padding: 1.4rem 1.5rem !important;
+    text-align: center !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25) !important;
   }
 
   .cover-main-title {
     color: #000000 !important;
-    font-size: 20pt;
-    font-weight: 800;
-    margin: 0 0 0.4rem 0;
-    text-transform: uppercase;
-    font-family: 'Times New Roman', serif;
+    font-size: 19pt !important;
+    font-weight: 800 !important;
+    margin: 0 0 0.4rem 0 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
   }
 
   .cover-training-details {
     color: #000000 !important;
-    font-size: 16pt;
-    font-weight: 700;
-    margin: 0;
-    font-family: 'Times New Roman', serif;
+    font-size: 12.5pt !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
   }
 
   .cover-project-section {
-    padding: 2.5rem 1.5rem;
-    text-align: center;
+    padding: 2.5rem 1.5rem !important;
+    text-align: center !important;
   }
 
   .cover-project-title {
-    color: #D9D9D9 !important;
-    font-size: 16pt;
-    font-weight: 700;
-    line-height: 1.5;
-    margin: 0 auto;
-    max-width: 700px;
-    font-family: 'Times New Roman', serif;
+    color: #FFFFFF !important;
+    font-size: 12.5pt !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    margin: 0 auto !important;
+    max-width: 650px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
   }
 
   .cover-logos-banner {
     background-color: #D8D8D8 !important;
-    width: 100%;
-    padding: 1rem 2.5rem 1.25rem 2.5rem;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    border-top: 1pt solid #4D4D4D !important;
+    width: 100% !important;
+    padding: 1rem 2.5rem 1.25rem 2.5rem !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.45rem !important;
   }
 
   .cover-realizado-por {
-    font-family: Arial, sans-serif;
-    font-size: 10pt;
-    font-weight: 700;
+    font-family: Arial, sans-serif !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
     color: #4D4D4D !important;
-    margin: 0;
-    text-align: center;
+    margin: 0 !important;
+    text-align: center !important;
   }
 
   .cover-logos-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    width: 100%;
-    gap: 1.5rem;
-  }
-
-  .cover-logo-cecate { height: 48px; max-width: 220px; object-fit: contain; }
-  .cover-logo-ufg { height: 48px; max-width: 160px; object-fit: contain; }
-  .cover-logo-fnde { height: 48px; max-width: 200px; object-fit: contain; }
-
-  .appendix-document-block {
-    page-break-inside: avoid;
-    margin-bottom: 2rem;
-  }
-
-  .appendix-document-block img {
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: 250mm !important;
-    display: block !important;
-    margin: 0 auto 1.5rem auto !important;
-    object-fit: contain !important;
-  }
-
-  .a4-sheet {
-    max-width: 100% !important;
-    min-height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important;
     width: 100% !important;
-    padding: 20mm !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    page-break-after: always;
-    font-size: 11pt;
+    gap: 1.5rem !important;
   }
 
-  /* Cabeçalho e Rodapé Padronizados dos Relatórios Oficiais */
+  .cover-logo-cecate { height: 40px !important; max-width: 170px !important; object-fit: contain !important; }
+  .cover-logo-ufg { height: 40px !important; max-width: 130px !important; object-fit: contain !important; }
+  .cover-logo-fnde { height: 40px !important; max-width: 170px !important; object-fit: contain !important; }
+
+  /* ESTILOS DAS PÁGINAS A4 OFICIAIS */
+  .report-doc-page {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    font-family: 'Times New Roman', serif !important;
+    line-height: 1.6 !important;
+    font-size: 11pt !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* PÁGINA 2: CONTRA-CAPA */
+  .report-contra-capa-page {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 16mm 25mm 5mm 25mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* PÁGINA 3: EQUIPE PARTICIPANTE */
+  .report-equipe-page {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 22mm 20mm 15mm 20mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* PÁGINA 4: ÍNDICES E PÁGINA 5: SUMÁRIO */
+  .report-indices-page,
+  .report-sumario-page {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 18mm 20mm 15mm 20mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* LINHAS PONTILHADAS DE ÍNDICES E SUMÁRIO */
+  .report-index-row {
+    display: flex !important;
+    align-items: baseline !important;
+    margin: 0.35rem 0 !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 11pt !important;
+    color: #000000 !important;
+    line-height: 1.35 !important;
+  }
+
+  .report-index-label {
+    flex-shrink: 0 !important;
+    max-width: 82% !important;
+    color: #000000 !important;
+  }
+
+  .report-index-dots {
+    flex-grow: 1 !important;
+    border-bottom: 1.5px dotted #000000 !important;
+    margin: 0 0.5rem 4px 0.5rem !important;
+  }
+
+  .report-index-page {
+    flex-shrink: 0 !important;
+    font-weight: 600 !important;
+    text-align: right !important;
+    min-width: 24px !important;
+    color: #000000 !important;
+  }
+
+  /* PÁGINA 6+: CONTEÚDO TÉCNICO */
+  .report-content-page {
+    padding: 18mm 20mm 18mm 20mm !important;
+  }
+
+  /* CABEÇALHO OFICIAL PADRONIZADO */
   .report-standard-header {
     display: flex !important;
-    align-items: flex-end !important;
+    align-items: center !important;
     justify-content: space-between !important;
-    border-bottom: 1pt solid #4D4D4D !important;
-    padding-bottom: 4pt !important;
-    margin-bottom: 16pt !important;
-    width: 100% !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    border-bottom: 1px solid #4D4D4D !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 1.5rem !important;
   }
 
   .report-header-left {
     display: flex !important;
-    align-items: flex-end !important;
+    align-items: center !important;
   }
 
   .report-header-logo {
-    height: 24pt !important;
-    max-width: 120pt !important;
+    height: 28px !important;
+    max-width: 140px !important;
     object-fit: contain !important;
-    display: block !important;
   }
 
   .report-header-right {
-    display: flex !important;
-    align-items: flex-end !important;
+    text-align: right !important;
   }
 
   .report-header-title {
     font-family: 'Times New Roman', serif !important;
-    font-size: 9pt !important;
+    font-size: 10pt !important;
     font-weight: 700 !important;
-    color: #595959 !important;
-    letter-spacing: 0.5px !important;
-    text-transform: uppercase !important;
-    margin: 0 !important;
-    line-height: 1.2 !important;
+    color: #000000 !important;
   }
 
+  /* RODAPÉ OFICIAL PADRONIZADO */
   .report-standard-footer {
-    border-top: 1pt solid #4D4D4D !important;
-    padding-top: 6pt !important;
-    margin-top: 24pt !important;
-    width: 100% !important;
-    text-align: center !important;
     display: flex !important;
-    justify-content: center !important;
     align-items: center !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    justify-content: space-between !important;
+    border-top: 1px solid #4D4D4D !important;
+    padding-top: 6px !important;
+    margin-top: 2rem !important;
   }
 
   .report-footer-banner {
-    height: 22pt !important;
+    height: 24px !important;
     max-width: 100% !important;
     object-fit: contain !important;
     display: inline-block !important;
   }
 
-  .report-doc-header {
-    border-bottom: 2pt solid #4f46e5 !important;
-    padding-bottom: 15pt !important;
-    margin-bottom: 20pt !important;
+  /* TIPOGRAFIA E ELEMENTOS */
+  h1, h2, h3, h4 {
+    font-family: 'Times New Roman', serif !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
-  .doc-org-title {
-    color: #1e1b4b !important;
+  h3 {
     font-size: 16pt !important;
+    font-weight: 700 !important;
+    color: #1f4e79 !important;
   }
 
-  .doc-report-title {
-    color: #4338ca !important;
-    font-size: 13pt !important;
+  p {
+    margin: 0.75rem 0 !important;
+    text-align: justify !important;
+    line-height: 1.6 !important;
+    font-size: 11pt !important;
+    font-family: 'Times New Roman', serif !important;
+    color: #000000 !important;
   }
 
-  .report-section-title {
-    border-left: 4pt solid #4f46e5 !important;
-    color: #1e1b4b !important;
-    font-size: 12pt !important;
-    page-break-after: avoid;
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1.25rem 0 !important;
+    font-size: 10pt !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .report-table th {
+  /* Tabelas bilaterais ABNT */
+  .report-data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 10pt !important;
+    color: #000000 !important;
+  }
+
+  .report-data-table th {
+    background-color: #D9D9D9 !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+    border-top: 1px solid #000 !important;
+    border-bottom: 1px solid #000 !important;
+    border-left: none !important;
+    border-right: none !important;
+    padding: 5px 6px !important;
+  }
+
+  .report-data-table td {
+    color: #000000 !important;
+    padding: 4px 6px !important;
+    border-top: 1px solid #000 !important;
+    border-bottom: 1px solid #000 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  .data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 10pt !important;
+  }
+
+  .data-table th {
     background-color: #f1f5f9 !important;
-    color: #0f172a !important;
-    border: 1pt solid #cbd5e1 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    color: #000000 !important;
+    font-weight: bold !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px !important;
   }
 
-  .report-table td {
-    border: 1pt solid #e2e8f0 !important;
+  .data-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 5px !important;
+    color: #000000 !important;
   }
 
-  .report-kpi-box {
-    background: #f8fafc !important;
-    border: 1pt solid #cbd5e1 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .report-doc-footer {
-    position: fixed;
-    bottom: 10mm;
-    left: 20mm;
-    right: 20mm;
-    border-top: 1pt solid #cbd5e1;
-    font-size: 9pt;
+  div[style*="page-break-inside: avoid"],
+  div[style*="page-break-inside:avoid"],
+  .appendix-document-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  @page {
-    size: A4 portrait;
-    margin: 15mm;
+  a {
+    color: #1e3a8a !important;
+    text-decoration: none !important;
   }
 }
