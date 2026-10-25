@@ -1,12 +1,45 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.7.0
+ * Versão: v.3.7.1
  */
 
+// Configuração da nuvem. Prioridade: js/env.local.js (gerado a partir do .env por atualizar-env.bat),
+// depois o próprio .env (quando o app é aberto por um servidor local) e, por último, os valores abaixo.
 const SUPABASE_CONFIG = {
   url: 'https://dcsrcyemyvufevuskciz.supabase.co',
   anonKey: 'sb_publishable_81j3KojA3AaV8Hqn24EGmQ_PekAy7hQ'
 };
+
+/**
+ * Lê KEY=VALOR de um texto no formato .env (ignora linhas vazias e comentários)
+ */
+function parseEnvText(text) {
+  const env = {};
+  String(text || '').split(/\r?\n/).forEach(line => {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/i);
+    if (!m || line.trim().startsWith('#')) return;
+    env[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+  });
+  return env;
+}
+
+/**
+ * Aplica SUPABASE_URL e SUPABASE_ANON_KEY do .env (via js/env.local.js ou leitura direta do .env)
+ */
+async function loadSupabaseEnv() {
+  let env = (typeof window !== 'undefined' && window.APP_ENV) || null;
+  if (!env && typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) {
+    try {
+      const res = await fetch('.env', { cache: 'no-store' });
+      if (res.ok) env = parseEnvText(await res.text());
+    } catch (e) { /* sem .env acessível: mantém a configuração padrão */ }
+  }
+  if (env && env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+    SUPABASE_CONFIG.url = env.SUPABASE_URL.replace(/\/+$/, '');
+    SUPABASE_CONFIG.anonKey = env.SUPABASE_ANON_KEY;
+    SUPABASE_CONFIG.source = '.env';
+  }
+}
 
 class TrainingDB {
   constructor() {
@@ -106,6 +139,7 @@ class TrainingDB {
         this.isReady = true;
 
         // Inicializar conexão com Supabase e dados locais
+        await loadSupabaseEnv();
         this.initSupabase();
         await this.seedInitialData();
 
