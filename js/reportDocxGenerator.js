@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.6.7
+ * Versão: v.3.6.8
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
@@ -2417,7 +2417,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes /', font: REPORT_DOC_FONT, bold: true, size: 20 }), new TextRun({ text: 'Nº de Inscritos', break: 1, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Participantes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -2448,7 +2448,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes /', font: REPORT_DOC_FONT, bold: true, size: 20 }), new TextRun({ text: 'Nº de Inscritos', break: 1, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Participantes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2539,18 +2539,18 @@ class ReportDocxGenerator {
         })
       ];
 
-      // Linhas de Dados da Tabela 4 (formato Presentes / Inscritos)
+      // Linhas de Dados da Tabela 4: somente participantes presentes (os inscritos ficam na Tabela 3)
       for (let i = 0; i < tab4Half; i++) {
         const leftM = tab4Left[i];
         const rightM = tab4Right[i] || null;
 
-        const leftC = `${leftM.presentCACS || 0}/${leftM.inscribedCACS || 0}`;
-        const leftG = `${leftM.presentGestores || 0}/${leftM.inscribedGestores || 0}`;
-        const leftT = `${leftM.presentTotal || 0}/${leftM.inscribedTotal || 0}`;
+        const leftC = String(leftM.presentCACS || 0);
+        const leftG = String(leftM.presentGestores || 0);
+        const leftT = String(leftM.presentTotal || ((parseInt(leftM.presentCACS) || 0) + (parseInt(leftM.presentGestores) || 0)));
 
-        const rightC = rightM ? `${rightM.presentCACS || 0}/${rightM.inscribedCACS || 0}` : '';
-        const rightG = rightM ? `${rightM.presentGestores || 0}/${rightM.inscribedGestores || 0}` : '';
-        const rightT = rightM ? `${rightM.presentTotal || 0}/${rightM.inscribedTotal || 0}` : '';
+        const rightC = rightM ? String(rightM.presentCACS || 0) : '';
+        const rightG = rightM ? String(rightM.presentGestores || 0) : '';
+        const rightT = rightM ? String(rightM.presentTotal || ((parseInt(rightM.presentCACS) || 0) + (parseInt(rightM.presentGestores) || 0))) : '';
 
         tab4Rows.push(
           new TableRow({
