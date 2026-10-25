@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.6.9
+ * Versão: v.3.7.0
  */
 
 const SUPABASE_CONFIG = {
@@ -235,8 +235,13 @@ class TrainingDB {
     const summary = { downloaded: 0, uploaded: 0, unchanged: 0, failed: 0, downloadedIds: [] };
 
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A nuvem não respondeu a tempo.')), timeoutMs));
-    const { data: cloudTrainings, error } = await Promise.race([this.supabase.from('trainings').select('*'), timeout]);
-    if (error) throw new Error(error.message || 'Falha ao consultar a nuvem.');
+    let cloudTrainings, error;
+    try {
+      ({ data: cloudTrainings, error } = await Promise.race([this.supabase.from('trainings').select('*'), timeout]));
+    } catch (e) {
+      throw new Error(this.describeCloudError(e));
+    }
+    if (error) throw new Error(this.describeCloudError(error));
 
     const cloudById = new Map((cloudTrainings || []).filter(r => r && r.id).map(r => [r.id, r]));
     const timeOf = (v) => { const t = new Date(v || 0).getTime(); return isNaN(t) ? 0 : t; };
@@ -286,6 +291,22 @@ class TrainingDB {
     }
 
     return summary;
+  }
+
+  /**
+   * Traduz falhas de conexão com o Supabase em mensagens compreensíveis para o usuário
+   */
+  describeCloudError(err) {
+    const msg = String((err && (err.message || err.details)) || err || '');
+    if (/failed to fetch|networkerror|load failed|fetch failed/i.test(msg)) {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return 'Sem conexão com a internet';
+      }
+      return `o servidor da nuvem (${SUPABASE_CONFIG.url}) não respondeu. Verifique se o projeto Supabase está ativo; se ele foi pausado ou excluído, reative-o ou atualize o endereço e a chave em js/db.js`;
+    }
+    if (/JWT|apikey|Invalid API key|401/i.test(msg)) return 'a chave de acesso da nuvem (Supabase) foi recusada';
+    if (/row-level security|permission denied|42501/i.test(msg)) return 'a nuvem recusou o acesso (regras de segurança RLS do Supabase)';
+    return msg || 'falha desconhecida na nuvem';
   }
 
   /**
