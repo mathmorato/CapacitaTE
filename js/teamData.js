@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Dados Oficiais da Equipe do Projeto (UFG & FNDE)
- * Versão: v.4.2.8
+ * Versão: v.4.2.9
  */
 
 window.OFFICIAL_PRONOUNS = [

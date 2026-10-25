@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.4.2.8
+ * Versão: v.4.2.9
  */
 
 (function () {
@@ -41,17 +41,22 @@
       const extra = [...new Set(valid.map(r => r.municipality).filter(m => m && !muns.includes(m)))];
       const count = (m, cat) => valid.filter(r => r.municipality === m && (!cat || r.category === cat)).length;
       const ufOf = {};
+      const distOf = {}; // distância em linha reta até o município sede
+      (training.municipalities || []).forEach(m => {
+        const d = Number(m.distanceKm) > 0 ? Number(m.distanceKm) : c.distanceFromSede(training, m.name, m.uf);
+        distOf[m.name] = m.isSede || d === 0 ? 'Sede' : `${d.toFixed(0)} km`;
+      });
       const inepOf = {}; // código do município (IBGE de 7 dígitos, o mesmo usado pelo INEP)
       ((form.config && form.config.municipalities) || []).forEach(m => { ufOf[m.name] = m.uf; inepOf[m.name] = m.ibge || m.ibgeCode || ''; });
       const vagasRows = [...muns, ...extra].map(m => {
         const total = count(m);
         return el('tr', { class: total === 0 ? 'forms-row-empty' : null }, [
-          el('td', { text: inepOf[m] || '—' }), el('td', { text: m }), el('td', { class: 'perm-col', text: ufOf[m] || '—' }), el('td', { class: 'perm-col', text: String(total) }),
+          el('td', { text: inepOf[m] || '—' }), el('td', { text: m }), el('td', { class: 'perm-col', text: ufOf[m] || '—' }), el('td', { class: 'perm-col', text: distOf[m] || '—' }), el('td', { class: 'perm-col', text: String(total) }),
           el('td', { class: 'perm-col', text: String(count(m, 'CACS-FUNDEB')) }), el('td', { class: 'perm-col', text: String(count(m, 'Gestão municipal')) })
         ]);
       });
       vagasRows.push(el('tr', { class: 'forms-row-total' }, [
-        el('td', {}), el('td', { text: 'Total' }), el('td', {}), el('td', { class: 'perm-col', text: String(valid.length) }),
+        el('td', {}), el('td', { text: 'Total' }), el('td', {}), el('td', {}), el('td', { class: 'perm-col', text: String(valid.length) }),
         el('td', { class: 'perm-col', text: String(valid.filter(r => r.category === 'CACS-FUNDEB').length) }),
         el('td', { class: 'perm-col', text: String(valid.filter(r => r.category === 'Gestão municipal').length) })
       ]));
@@ -60,7 +65,7 @@
         el('h3', { class: 'forms-section-title', text: `Painel de vagas · ${valid.length} inscrições válidas` }),
         semInscritos ? el('p', { class: 'admin-muted', text: `${semInscritos} município(s) ainda sem inscritos (destacados).` }) : null,
         canEdit ? c.addMunicipalityBox(form) : null,
-        c.table(['Código INEP', 'Município', 'UF', 'Inscritos', 'CACS-FUNDEB', 'Gestão municipal'], vagasRows, null, 'table-compact')
+        c.table(['Código INEP', 'Município', 'UF', 'Distância da sede', 'Inscritos', 'CACS-FUNDEB', 'Gestão municipal'], vagasRows, null, 'table-compact')
       ]));
 
       body.append(c.formCard(form, c));
