@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.3.9.9
+ * Versão: v.4.0.0
  */
 
 (function () {
@@ -344,12 +344,20 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         el('td', { text: maskCpf(r.cpf) }),
         el('td', { text: r.session_key && tableName === 'attendance' ? r.session_key : (r.municipality || '—') }),
         el('td', { text: fmtDateTime(d.deleted_at) }),
-        el('td', { class: 'perm-col' }, canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Restaurar', onclick: async (e) => {
+        el('td', { class: 'perm-col' }, canEdit ? [el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Restaurar', onclick: async (e) => {
           e.currentTarget.disabled = true;
           const { error: err } = await client().rpc('staff_restore_response', { p_deleted: d.id });
           if (err) { toast(errMsg(err), 'error'); e.currentTarget.disabled = false; return; }
           toast('Restaurada.', 'success'); ctx.rerender();
-        } }) : null)
+        } }), el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', style: 'margin-left:0.4rem;', text: 'Excluir permanentemente', onclick: () => window.app.openConfirmModal({
+          title: 'Excluir permanentemente?', msg: `Os dados de ${r.full_name || 'esta pessoa'} serão apagados de vez. Esta ação NÃO pode ser desfeita.`, btnText: 'Sim, excluir para sempre',
+          successTitle: 'Excluída permanentemente', successMsg: 'O item saiu da Lixeira.',
+          onConfirm: async () => {
+            const { error: err } = await client().rpc('staff_purge_response', { p_deleted: d.id });
+            if (err) return toast(errMsg(err), 'error');
+            ctx.rerender();
+          }
+        }) })] : null)
       ]);
     });
     return el('details', { class: 'glass-card forms-section forms-config' }, [

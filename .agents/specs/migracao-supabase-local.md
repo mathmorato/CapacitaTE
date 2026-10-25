@@ -21,6 +21,7 @@
 | Gatilhos do e-mail de confirmação (pg_net) + `app_settings` | `0004e_email_gatilhos.sql` | SQL (**trocar a URL**, ver 3.4) |
 | Regras do formulário iguais às da tela (nome com 2 palavras, nascimento ≥ 1920) | `0004f_regras_formularios.sql` | SQL |
 | Lixeira de respostas (excluir e restaurar) | `0004g_lixeira.sql` | SQL |
+| Excluir definitivamente da lixeira | `0004h_lixeira_excluir_definitivo.sql` | SQL |
 | Tudo acima de uma vez (idempotente) | `supabase/schema.sql` | SQL |
 | Edge Function `admin-invite-user` (convite de usuário) | `supabase/functions/admin-invite-user/index.ts` | `supabase functions deploy` |
 | Edge Function `enviar-confirmacao` (e-mail após inscrição/presença/avaliação) | `supabase/functions/enviar-confirmacao/index.ts` | `supabase functions deploy` |
@@ -56,7 +57,7 @@ Não usamos: Storage (fotos e PDFs do relatório ficam no IndexedDB do navegador
 ### 3.1 Banco
 1. Subir os containers.
 2. No Studio local (SQL Editor) rodar `supabase/schema.sql` inteiro (é idempotente) **ou** as migrações na ordem:
-   0001 → 0002 → 0002b → 0003 → 0004 → 0004b → 0004c → 0004d → 0004e → 0004f → 0004g.
+   0001 → 0002 → 0002b → 0003 → 0004 → 0004b → 0004c → 0004d → 0004e → 0004f → 0004g → 0004h.
 3. Conferir: `select public.auth_setup_status();` deve responder `{"installed": true, ...}`.
 
 ### 3.2 Auth (arquivo `.env` do docker)
