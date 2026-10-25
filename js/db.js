@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.4.2.0
+ * Versão: v.4.2.1
  */
 
 // A configuração da nuvem (SUPABASE_CONFIG, getSavedCloudConfig, loadSupabaseEnv) fica em js/core/config.js

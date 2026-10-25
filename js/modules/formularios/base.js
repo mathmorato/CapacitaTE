@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.0
+ * Versão: v.4.2.1
  */
 
 (function () {
@@ -356,19 +356,21 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   function addMunicipalityBox(ctx, form) {
     const t = ctx.training;
     const ufs = [...new Set((window.IBGE_DATA || []).map(m => m.u))].sort();
-    const uf = el('select', { class: 'form-control', id: 'mun-uf', style: 'max-width:110px;', 'aria-label': 'UF' }, ufs.map(u => el('option', { value: u, text: u })));
-    uf.value = ufs.includes(t.uf) ? t.uf : (ufs[0] || '');
+    const uf = el('select', { class: 'form-control', id: 'mun-uf', style: 'max-width:150px;', 'aria-label': 'UF' }, [el('option', { value: '', text: 'Selecionar UF' }), ...ufs.map(u => el('option', { value: u, text: u }))]);
+    uf.value = ''; // começa sem UF escolhida
     const city = el('select', { class: 'form-control', style: 'max-width:320px;', 'aria-label': 'Cidade' });
     const fill = () => {
       const have = new Set((t.municipalities || []).map(m => String(m.ibgeCode || m.ibge || '')));
       city.textContent = '';
-      city.append(el('option', { value: '', text: 'Escolha a cidade...' }));
-      (window.IBGE_DATA || []).filter(m => m.u === uf.value && !have.has(String(m.c))).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR'))
+      city.disabled = !uf.value;
+      city.append(el('option', { value: '', text: uf.value ? 'Escolha a cidade...' : 'Selecione a UF primeiro' }));
+      if (uf.value) (window.IBGE_DATA || []).filter(m => m.u === uf.value && !have.has(String(m.c))).sort((a, b) => a.n.localeCompare(b.n, 'pt-BR'))
         .forEach(m => city.append(el('option', { value: String(m.c), text: m.n })));
     };
     uf.addEventListener('change', fill); fill();
     const btn = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Adicionar cidade', onclick: async () => {
       const m = (window.IBGE_DATA || []).find(x => String(x.c) === city.value);
+      if (!uf.value) return toast('Selecione a UF.', 'warning');
       if (!m) return toast('Escolha a cidade.', 'error');
       btn.disabled = true;
       try {
@@ -396,7 +398,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
         const iUf = col(['uf', 'estado']);
         const iIbge = col(['codigo ibge', 'ibge', 'cod ibge']);
         if (iName === -1 && iIbge === -1) throw new Error('A planilha precisa ter a coluna "Município" (ou "Código IBGE"). Baixe o modelo.');
-        const defaultUf = uf.value || t.uf || ''; // UF escolhida no seletor vale para as linhas sem UF
+        const defaultUf = uf.value || t.uf || ''; // UF escolhida no seletor (ou a da capacitação, se nenhuma) vale para as linhas sem UF
         const have = new Set((t.municipalities || []).map(m => String(m.ibgeCode || m.ibge || '')));
         const added = []; const dup = []; const notFound = [];
         rows.slice(1).forEach((r, i) => {
