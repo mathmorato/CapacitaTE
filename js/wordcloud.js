@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Nuvens de Palavras Qualitativas Artísticas
- * Versão: v.3.4.21
+ * Versão: v.3.4.24
  */
 
 class WordCloudEngine {
@@ -331,7 +331,8 @@ class WordCloudEngine {
     const fontCssFamily = this.resolveFontFamily(chosenFont);
 
     // Hi-DPI Scaling (Nitidez de texto máxima em retina e exportação)
-    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio && window.devicePixelRatio > 1) ? Math.min(window.devicePixelRatio, 2) : 2;
+    // options.pixelRatio permite exportar em alta resolução (prévia do relatório / Word usa 3x)
+    const dpr = options.pixelRatio || ((typeof window !== 'undefined' && window.devicePixelRatio && window.devicePixelRatio > 1) ? Math.min(window.devicePixelRatio, 2) : 2);
     canvas.width = Math.round(baseWidth * dpr);
     canvas.height = Math.round(baseHeight * dpr);
     canvas.style.width = baseWidth + 'px';

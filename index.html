@@ -85,7 +85,7 @@
           <span>Motor de Relatórios Ativo</span>
         </div>
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; font-family:monospace; text-align:center;">
-          v.3.4.21
+          v.3.4.24
         </div>
       </div>
     </aside>
@@ -1043,31 +1043,31 @@
                 <!-- Layout em Coluna Única (1 Figura por Linha) com Campos de Comentários -->
                 <div style="display:flex; flex-direction:column; gap:1.75rem; margin-top:2rem;">
 
-                  <!-- TIPOGRAFIA DAS FIGURAS: fonte padrão única para gráficos (Fig. 3 a 6) e nuvens de palavras (Fig. 7 e 8),
-                       com opção de fontes diferentes -->
+                  <!-- TIPOGRAFIA DO RELATÓRIO: uma fonte padrão para o documento Word, os gráficos (Fig. 3 a 6) e as
+                       nuvens de palavras (Fig. 7 e 8), com opção de escolher as três fontes separadamente -->
                   <div class="glass-card" style="padding:1rem 1.25rem; display:flex; flex-direction:column; gap:0.85rem; border-left:4px solid var(--accent-purple);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div id="figure-font-default-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
                       <div style="display:flex; align-items:center; gap:0.6rem;">
                         <div style="width:36px; height:36px; border-radius:var(--radius-md); background:rgba(246, 168, 0, 0.15); color:var(--accent-purple); display:flex; align-items:center; justify-content:center;">
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
                         </div>
                         <div>
-                          <div style="font-size:0.9rem; font-weight:700; color:var(--text-color);">Tipografia das Figuras</div>
-                          <div style="font-size:0.75rem; color:var(--text-muted);">Fonte padrão dos gráficos (Figuras 3 a 6) e das nuvens de palavras (Figuras 7 e 8)</div>
+                          <div style="font-size:0.9rem; font-weight:700; color:var(--text-color);">Tipografia do Relatório</div>
+                          <div style="font-size:0.75rem; color:var(--text-muted);">Fonte padrão do texto do documento, dos gráficos (Figuras 3 a 6) e das nuvens de palavras (Figuras 7 e 8)</div>
                         </div>
                       </div>
                       <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
                         <label for="figure-font-select" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin:0;">Fonte Padrão:</label>
-                        <select id="figure-font-select" class="form-control" onchange="app.handleFigureFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:210px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
-                        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna - Padrão)</option>
-                        <option value="Times New Roman">Times New Roman (Institucional / ABNT)</option>
-                        <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
-                        <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
-                        <option value="Georgia">Georgia (Editorial Elegante)</option>
-                        <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
-                        <option value="Impact">Impact (Destaque Forte)</option>
+                        <select id="figure-font-select" class="form-control" onchange="app.handleFigureFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:230px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                          <option value="Times New Roman">Times New Roman (Institucional / ABNT) - Padrão</option>
+                          <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna)</option>
+                          <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
+                          <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
+                          <option value="Georgia">Georgia (Editorial Elegante)</option>
+                          <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                          <option value="Impact">Impact (Destaque Forte)</option>
                         </select>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureFont()" title="Restaurar fonte padrão Plus Jakarta Sans" style="padding:0.35rem 0.65rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreFigureFont()" title="Restaurar a fonte padrão Times New Roman" style="padding:0.35rem 0.65rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
                           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
                           Padrão
                         </button>
@@ -1075,20 +1075,45 @@
                     </div>
                     <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:600; color:var(--text-color); cursor:pointer; margin:0;">
                       <input type="checkbox" id="figure-font-separate" onchange="app.toggleSeparateFigureFonts(this.checked)" style="width:16px; height:16px; accent-color:var(--accent-primary); cursor:pointer;">
-                      Usar fontes diferentes para gráficos e nuvens de palavras
+                      Usar fontes diferentes para o documento, os gráficos e as nuvens de palavras
                     </label>
-                    <div id="chart-font-separate-row" style="display:none; align-items:center; gap:0.5rem; flex-wrap:wrap; padding-top:0.75rem; border-top:1px dashed var(--border-color);">
-                      <label for="chart-font-select" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin:0;">Fonte dos Gráficos (Figuras 3 a 6):</label>
-                      <select id="chart-font-select" class="form-control" onchange="app.handleChartFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:210px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
-                        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna - Padrão)</option>
-                        <option value="Times New Roman">Times New Roman (Institucional / ABNT)</option>
-                        <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
-                        <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
-                        <option value="Georgia">Georgia (Editorial Elegante)</option>
-                        <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
-                        <option value="Impact">Impact (Destaque Forte)</option>
-                      </select>
-                      <span style="font-size:0.75rem; color:var(--text-muted);">A fonte das nuvens de palavras é definida logo acima das Figuras 7 e 8.</span>
+                    <div id="chart-font-separate-row" style="display:none; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.85rem; padding-top:0.75rem; border-top:1px dashed var(--border-color);">
+                      <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                        <label for="document-font-select" style="font-size:0.78rem; font-weight:700; color:var(--text-muted); margin:0;">Texto do documento (Word e prévia)</label>
+                        <select id="document-font-select" class="form-control" onchange="app.handleDocumentFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:100%; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                          <option value="Times New Roman">Times New Roman (Institucional / ABNT) - Padrão</option>
+                          <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna)</option>
+                          <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
+                          <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
+                          <option value="Georgia">Georgia (Editorial Elegante)</option>
+                          <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                          <option value="Impact">Impact (Destaque Forte)</option>
+                        </select>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                        <label for="chart-font-select" style="font-size:0.78rem; font-weight:700; color:var(--text-muted); margin:0;">Gráficos (Figuras 3 a 6)</label>
+                        <select id="chart-font-select" class="form-control" onchange="app.handleChartFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:100%; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                          <option value="Times New Roman">Times New Roman (Institucional / ABNT) - Padrão</option>
+                          <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna)</option>
+                          <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
+                          <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
+                          <option value="Georgia">Georgia (Editorial Elegante)</option>
+                          <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                          <option value="Impact">Impact (Destaque Forte)</option>
+                        </select>
+                      </div>
+                      <div style="display:flex; flex-direction:column; gap:0.3rem;">
+                        <label for="wordcloud-font-select" style="font-size:0.78rem; font-weight:700; color:var(--text-muted); margin:0;">Nuvens de palavras (Figuras 7 e 8)</label>
+                        <select id="wordcloud-font-select" class="form-control" onchange="app.handleWordCloudFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:100%; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
+                          <option value="Times New Roman">Times New Roman (Institucional / ABNT) - Padrão</option>
+                          <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna)</option>
+                          <option value="Arial">Arial (Corporativa &amp; Neutra)</option>
+                          <option value="Segoe UI">Segoe UI (Fluida &amp; Nítida)</option>
+                          <option value="Georgia">Georgia (Editorial Elegante)</option>
+                          <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
+                          <option value="Impact">Impact (Destaque Forte)</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -1249,35 +1274,6 @@
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                         <span>Texto inserido automaticamente no relatório oficial Word (.docx) e na pré-visualização web.</span>
                       </div>
-                    </div>
-                  </div>
-
-                  <!-- BARRA DE CONFIGURAÇÃO TIPOGRÁFICA DAS NUVENS DE PALAVRAS (visível só com "fontes diferentes"; o app alterna none/flex) -->
-                  <div class="glass-card" id="wordcloud-font-card" style="padding:1rem 1.25rem; display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-left:4px solid var(--accent-purple);">
-                    <div style="display:flex; align-items:center; gap:0.6rem;">
-                      <div style="width:36px; height:36px; border-radius:var(--radius-md); background:rgba(246, 168, 0, 0.15); color:var(--accent-purple); display:flex; align-items:center; justify-content:center;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"></path><path d="M9 20h6"></path><path d="M12 4v16"></path></svg>
-                      </div>
-                      <div>
-                        <div style="font-size:0.9rem; font-weight:700; color:var(--text-color);">Tipografia das Nuvens de Palavras</div>
-                        <div style="font-size:0.75rem; color:var(--text-muted);">Defina a fonte das palavras geradas nas Figuras 7 e 8</div>
-                      </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                      <label for="wordcloud-font-select" style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin:0;">Fonte Tipográfica:</label>
-                      <select id="wordcloud-font-select" class="form-control" onchange="app.handleWordCloudFontChange(this.value)" style="font-size:0.82rem; padding:0.35rem 0.75rem; height:auto; width:auto; min-width:210px; border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-color); border:1px solid var(--border-color); font-weight:600;">
-                        <option value="Plus Jakarta Sans">Plus Jakarta Sans (Moderna - Padrão)</option>
-                        <option value="Times New Roman">Times New Roman (Institucional / ABNT)</option>
-                        <option value="Arial">Arial (Corporativa & Neutra)</option>
-                        <option value="Segoe UI">Segoe UI (Fluida & Nítida)</option>
-                        <option value="Georgia">Georgia (Editorial Elegante)</option>
-                        <option value="Trebuchet MS">Trebuchet MS (Humanista)</option>
-                        <option value="Impact">Impact (Destaque Forte)</option>
-                      </select>
-                      <button type="button" class="btn btn-secondary btn-sm" onclick="app.restoreWordCloudFont()" title="Restaurar fonte padrão Plus Jakarta Sans" style="padding:0.35rem 0.65rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-                        Padrão
-                      </button>
                     </div>
                   </div>
 
@@ -1972,7 +1968,7 @@
 
       </main>
 
-      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.21 -->
+      <!-- Rodapé Único Oficial da Aplicação com Logo CECATE e Versão v.3.4.24 -->
       <footer class="app-main-footer">
         <div class="footer-left" style="display:flex; align-items:center; gap:0.9rem;">
           <img src="assets/CECATE_Centro-Oeste_Logo_Negativo_Horizontal_Completa-PNG.png" alt="Logo CECATE Centro-Oeste" class="footer-logo footer-logo-dark" style="height:28px; width:auto; object-fit:contain;">
@@ -1982,7 +1978,7 @@
           </span>
         </div>
         <div class="footer-right">
-          <span class="footer-version-tag" id="app-footer-version">v.3.4.21</span>
+          <span class="footer-version-tag" id="app-footer-version">v.3.4.24</span>
         </div>
       </footer>
     </div>
