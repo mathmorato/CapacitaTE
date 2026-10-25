@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.23
+ * Versão: v.3.4.24
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.23';
+    this.version = 'v.3.4.24';
   }
 
   /**
@@ -10115,6 +10115,17 @@ class AutoReportApp {
   renderReportPreviewCharts() {
     if (!window.chartEngine || !this.currentTraining) return;
     this.applyChartFont(); // os gráficos da prévia são as imagens inseridas no Word
+    // Alta resolução para as imagens exportadas (Word e PDF); os gráficos da tela continuam na densidade normal
+    const EXPORT_PIXEL_RATIO = 3;
+    if (typeof window.chartEngine.setPixelRatio === 'function') window.chartEngine.setPixelRatio(EXPORT_PIXEL_RATIO);
+    try {
+      this.renderReportPreviewChartsAtCurrentRatio(EXPORT_PIXEL_RATIO);
+    } finally {
+      if (typeof window.chartEngine.setPixelRatio === 'function') window.chartEngine.setPixelRatio(null);
+    }
+  }
+
+  renderReportPreviewChartsAtCurrentRatio(exportPixelRatio) {
     // O relatório é um documento impresso formal A4 de fundo branco; tema dos gráficos deve ser sempre claro
     const isDark = false;
     const evals = this.currentTraining.evaluations || [];
@@ -10166,7 +10177,8 @@ class AutoReportApp {
           width: 550, 
           height: 320, 
           maxWords: 35,
-          fontFamily: cloudFont
+          fontFamily: cloudFont,
+          pixelRatio: exportPixelRatio
         });
       }
 
@@ -10178,7 +10190,8 @@ class AutoReportApp {
           width: 550, 
           height: 320, 
           maxWords: 35,
-          fontFamily: cloudFont
+          fontFamily: cloudFont,
+          pixelRatio: exportPixelRatio
         });
       }
     }

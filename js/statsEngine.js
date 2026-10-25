@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.4.23
+ * Versão: v.3.4.24
  */
 
 class StatsEngine {
@@ -542,12 +542,10 @@ class StatsEngine {
           </tbody>
           <tfoot>
             <tr style="font-weight:700; background:rgba(99, 102, 241, 0.06); border-top:2px solid var(--border-color);">
-              <td colspan="2" style="text-align:right; font-weight:700; padding:0.5rem 0.75rem;">Total de municípios com inscritos:</td>
-              <td colspan="9" style="text-align:left; font-weight:700; padding:0.5rem 0.75rem;">${totalInscMuns}</td>
+              <td colspan="11" style="text-align:justify; font-weight:700; padding:0.5rem 0.75rem;">Total de municípios com inscritos: ${totalInscMuns}</td>
             </tr>
             <tr style="font-weight:700; background:rgba(99, 102, 241, 0.06);">
-              <td colspan="2" style="text-align:right; font-weight:700; padding:0.5rem 0.75rem;">Total de pessoas:</td>
-              <td colspan="9" style="text-align:left; font-weight:700; padding:0.5rem 0.75rem;">${totalInscPersons} (${totalCacs} CACS + ${totalGest} Gestores)</td>
+              <td colspan="11" style="text-align:justify; font-weight:700; padding:0.5rem 0.75rem;">Total de pessoas: ${totalInscPersons} (${totalCacs} CACS e ${totalGest} Gestores)</td>
             </tr>
           </tfoot>
         </table>

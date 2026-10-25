@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.23
+ * Versão: v.3.4.24
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
@@ -2151,45 +2151,23 @@ class ReportDocxGenerator {
       const tab3FooterBorderTop = { top: singleBorder, bottom: noBorder, left: noBorder, right: noBorder };
       const tab3FooterBorderBottom = { top: noBorder, bottom: singleBorder, left: noBorder, right: noBorder };
 
+      // Cada total ocupa a largura inteira da tabela, com texto justificado: "Rótulo: valor"
+      const tab3FooterRow = (text, borders) => new TableRow({
+        cantSplit: true,
+        children: [
+          new TableCell({
+            columnSpan: 11,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            borders,
+            verticalAlign: VerticalAlign.CENTER,
+            margins: { left: 80, right: 80 },
+            children: [new Paragraph({ alignment: AlignmentType.JUSTIFIED, keepNext: true, keepLines: true, children: [new TextRun({ text, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
+          })
+        ]
+      });
       tab3Rows.push(
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              columnSpan: 3,
-              width: { size: 37, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderTop,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios com inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            }),
-            new TableCell({
-              columnSpan: 8,
-              width: { size: 63, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderTop,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalInscribedMunicipalities || 0), font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            })
-          ]
-        }),
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              columnSpan: 3,
-              width: { size: 37, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderBottom,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            }),
-            new TableCell({
-              columnSpan: 8,
-              width: { size: 63, type: WidthType.PERCENTAGE },
-              borders: tab3FooterBorderBottom,
-              verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalInscribed || 0} (${metrics?.totalInscribedCACS || 0} CACS + ${metrics?.totalInscribedGestores || 0} Gestores)`, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
-            })
-          ]
-        })
+        tab3FooterRow(`Total de municípios com inscritos: ${metrics?.totalInscribedMunicipalities || 0}`, tab3FooterBorderTop),
+        tab3FooterRow(`Total de pessoas: ${metrics?.totalInscribed || 0} (${metrics?.totalInscribedCACS || 0} CACS e ${metrics?.totalInscribedGestores || 0} Gestores)`, tab3FooterBorderBottom)
       );
 
       docChildren.push(

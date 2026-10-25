@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Geração de Gráficos (Chart.js)
- * Versão: v.3.4.23
+ * Versão: v.3.4.24
  */
 
 class ChartEngine {
@@ -8,6 +8,19 @@ class ChartEngine {
     this.chartInstances = {};
     // Fonte dos textos dos gráficos (Figuras 3 a 6); definida pelo usuário na Etapa 8, mesmas opções da nuvem de palavras
     this.fontFamily = 'Plus Jakarta Sans';
+    // Densidade de pixels dos gráficos: null usa a da tela; a prévia do relatório (imagens do Word/PDF) usa 3x
+    this.pixelRatio = null;
+  }
+
+  /**
+   * Define a densidade de pixels dos próximos gráficos (null = densidade da tela)
+   */
+  setPixelRatio(ratio) {
+    this.pixelRatio = ratio || null;
+  }
+
+  getPixelRatio() {
+    return this.pixelRatio || (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
   }
 
   /**
@@ -90,6 +103,7 @@ class ChartEngine {
         animation: false,
         responsive: true,
         maintainAspectRatio: false,
+        devicePixelRatio: this.getPixelRatio(),
         plugins: {
           legend: {
             position: 'bottom',
@@ -173,8 +187,8 @@ class ChartEngine {
       data: safeMatrix.map(row => row[starIdx] || 0),
       backgroundColor: datasetColors[starIdx],
       borderWidth: 0,
-      barPercentage: 0.7,
-      categoryPercentage: 0.8
+      barPercentage: 0.78,
+      categoryPercentage: 0.85
     }));
 
     const chartFont = this.fontFamily; // dentro do plugin, this não é o ChartEngine
@@ -183,7 +197,7 @@ class ChartEngine {
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         ctx.save();
-        ctx.font = `bold 10px "${chartFont}", sans-serif`;
+        ctx.font = `bold 11px "${chartFont}", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -193,15 +207,15 @@ class ChartEngine {
 
           meta.data.forEach((element, idx) => {
             const val = dataset.data[idx];
-            if (val && val >= 3) {
-              const { x, y, base } = element;
-              const width = Math.abs(x - base);
-              const centerX = (x + base) / 2;
-              if (width > 20) {
-                ctx.fillStyle = dsIdx === 3 ? '#1e293b' : '#ffffff';
-                ctx.fillText(`${String(val).replace('.', ',')}%`, centerX, y);
-              }
-            }
+            if (!val) return;
+            const { x, y, base } = element;
+            const width = Math.abs(x - base);
+            const label = `${String(val).replace('.', ',')}%`;
+            // O percentual só é escrito quando cabe no segmento com folga (evita números espremidos ou sobrepostos);
+            // o valor continua disponível na dica ao passar o mouse
+            if (ctx.measureText(label).width + 8 > width) return;
+            ctx.fillStyle = (dsIdx === 3 || dsIdx === 1) ? '#1F1F1F' : '#ffffff';
+            ctx.fillText(label, (x + base) / 2, y);
           });
         });
         ctx.restore();
@@ -219,6 +233,7 @@ class ChartEngine {
         animation: false,
         responsive: true,
         maintainAspectRatio: false,
+        devicePixelRatio: this.getPixelRatio(),
         indexAxis: 'y',
         scales: {
           x: {
