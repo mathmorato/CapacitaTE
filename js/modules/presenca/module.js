@@ -1,7 +1,7 @@
 /**
  * CapacitaTE - Módulo Lista de Presença (um formulário para todos os dias; frequência por dia de envio)
  * Cada envio é registrado no dia em que foi feito (migração 0004d), então o quadro tem uma coluna por dia.
- * Versão: v.4.0.5
+ * Versão: v.4.1.0
  */
 
 (function () {
@@ -65,6 +65,7 @@
         const counts = days.map(d => `${dayLabel(d)}: ${attendance.filter(a => a.session_key === d).length}`).join(' · ');
         card.insertBefore(el('p', { class: 'forms-counter', text: `${attendance.filter(a => a.session_key === today).length} presentes hoje / ${registrations.length} inscritos${counts ? ` · ${counts}` : ''}` }), card.children[1]);
         body.append(card);
+        if (canEdit) body.append(c.manualBox(form));
       }
 
       // Formulários por dia criados antes da v.3.9.3 (modelo anterior): só listar e permitir excluir

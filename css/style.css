@@ -4714,3 +4714,16 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 @keyframes save-progress-slide { 0% { left: -40%; } 100% { left: 100%; } }
 @media (prefers-reduced-motion: reduce) { .save-progress > span { animation-duration: 2.6s; } }
 .forms-alert-draft { background: var(--accent-blue-bg); border-color: var(--accent-blue-border); color: var(--accent-blue-text); }
+
+
+/* Modo recepção (QR em tela cheia) e barras da avaliação */
+.reception-overlay { position: fixed; inset: 0; z-index: 10000; background: #0b0b0c; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; text-align: center; }
+.reception-close { position: absolute; top: 1rem; right: 1rem; }
+.reception-title { margin: 0; font-size: clamp(1.6rem, 4vw, 3rem); }
+.reception-sub { margin: 0; font-size: clamp(1rem, 2vw, 1.5rem); opacity: 0.8; }
+.reception-qr { background: #fff; padding: 1.2rem; border-radius: 1rem; width: min(70vh, 80vw); }
+.reception-qr svg { width: 100%; height: auto; display: block; }
+.reception-hint { margin: 0; font-size: clamp(1.1rem, 2.4vw, 2rem); font-weight: 600; }
+.reception-url { margin: 0; font-size: clamp(0.8rem, 1.4vw, 1.1rem); opacity: 0.6; word-break: break-all; }
+.eval-bar { height: 0.7rem; min-width: 120px; border-radius: 999px; background: rgba(127, 127, 127, 0.25); overflow: hidden; }
+.eval-bar span { display: block; height: 100%; background: var(--accent-primary, #F6A800); border-radius: 999px; }
