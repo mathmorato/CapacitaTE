@@ -1,7 +1,6 @@
 // CapacitaTE - Edge Function admin-invite-user
-// Ações de admin que exigem a chave service_role (que nunca vai para o navegador):
+// Convite de usuário pelo admin; exige a chave service_role (que nunca vai para o navegador):
 //   { action: 'invite', email, full_name, permissions: [{ module_key, action }] }  → convida por e-mail
-//   { action: 'set_password', user_id, password }                                  → define uma nova senha
 // Deploy: supabase functions deploy admin-invite-user
 // SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY já existem no ambiente das Edge Functions.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
@@ -49,16 +48,6 @@ Deno.serve(async (req) => {
     if (rows.length) await admin.from('module_permissions').insert(rows);
     await audit('user.invite', userId, { email, permissions: rows.length });
     return json({ ok: true, user_id: userId });
-  }
-
-  if (body.action === 'set_password') {
-    const userId = String(body.user_id || '');
-    const password = String(body.password || '');
-    if (password.length < 8) return json({ error: 'A senha precisa ter pelo menos 8 caracteres.' }, 400);
-    const { error } = await admin.auth.admin.updateUserById(userId, { password });
-    if (error) return json({ error: error.message }, 400);
-    await audit('user.set_password', userId); // a senha nunca é gravada no log
-    return json({ ok: true });
   }
 
   return json({ error: 'Ação desconhecida.' }, 400);

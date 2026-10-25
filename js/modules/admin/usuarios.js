@@ -1,6 +1,6 @@
 /**
- * CapacitaTE - Administração › Usuários (convidar, admin, ativo, definir nova senha)
- * Versão: v.3.8.1
+ * CapacitaTE - Administração › Usuários (convidar, admin, ativo)
+ * Versão: v.3.8.2
  */
 
 (function () {
@@ -9,7 +9,6 @@
   CapacitaTE.adminViews.usuarios = async function (body) {
     const { el, toast, client, fmtDateTime, errorMessage, permissionColumns, loadUsersAndPerms, ACTION_LABELS, reload } = CapacitaTE.adminUI;
     const { users, perms } = await loadUsersAndPerms();
-    const me = CapacitaTE.auth.user && CapacitaTE.auth.user.id;
     body.textContent = '';
 
     // Lista
@@ -101,42 +100,5 @@
       inviteForm
     ]));
 
-    // Definir nova senha (as senhas nunca são exibidas: o Supabase guarda apenas o hash)
-    const userSel = el('select', { class: 'form-control', id: 'admin-pwd-user' }, users.map(u => el('option', { value: u.user_id, text: `${u.full_name || u.email} (${u.email})` })));
-    const pwd = el('input', { type: 'password', class: 'form-control', id: 'admin-pwd-value', autocomplete: 'new-password', minlength: '8' });
-    const pwdMsg = el('p', { class: 'auth-message', style: 'text-align:left;' });
-    const pwdForm = el('form', { novalidate: true }, [
-      el('div', { class: 'admin-form-grid' }, [
-        el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'admin-pwd-user', text: 'Usuário' }), userSel]),
-        el('div', { class: 'form-group', style: 'margin:0;' }, [el('label', { class: 'form-label', for: 'admin-pwd-value', text: 'Nova senha (mínimo 8 caracteres)' }), pwd])
-      ]),
-      el('div', { style: 'margin-top:1rem;' }, el('button', { type: 'submit', class: 'btn btn-secondary btn-sm', text: 'Definir nova senha' })),
-      pwdMsg
-    ]);
-    pwdForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (pwd.value.length < 8) {
-        pwdMsg.className = 'auth-message auth-message-error';
-        pwdMsg.textContent = 'A senha precisa ter pelo menos 8 caracteres.';
-        return;
-      }
-      const { data, error } = await client().functions.invoke('admin-invite-user', {
-        body: { action: 'set_password', user_id: userSel.value, password: pwd.value }
-      });
-      if (error || (data && data.error)) {
-        pwdMsg.className = 'auth-message auth-message-error';
-        pwdMsg.textContent = (data && data.error) || 'Não foi possível definir a senha. Verifique se a Edge Function admin-invite-user foi publicada.';
-        return;
-      }
-      pwd.value = '';
-      pwdMsg.className = 'auth-message auth-message-success';
-      pwdMsg.textContent = 'Senha definida. Informe a nova senha ao usuário por um canal seguro.';
-    });
-    body.appendChild(el('div', { class: 'glass-card' }, [
-      el('h3', { style: 'margin:0 0 0.35rem; font-size:1rem;', text: 'Definir nova senha' }),
-      el('p', { class: 'admin-muted', style: 'margin:0 0 1rem;', text: 'As senhas não podem ser visualizadas (o Supabase guarda só uma versão cifrada). O admin pode definir uma nova senha para o usuário.' }),
-      pwdForm
-    ]));
-    if (me) userSel.value = me;
   };
 })();
