@@ -164,6 +164,34 @@ Y e Z retornam para 0 e X aumenta em 1.
 * Nunca utilizar `v.1.0.10`.
 * Nunca utilizar `v.1.10.0`.
 
+### Tabela de verificação (obrigatória antes de definir a próxima versão)
+
+| Versão atual | Próxima versão correta | Errado (proibido) |
+|---|---|---|
+| `v.3.4.8` | `v.3.4.9` | — |
+| `v.3.4.9` | `v.3.5.0` | `v.3.4.10` |
+| `v.3.5.9` | `v.3.6.0` | `v.3.5.10` |
+| `v.3.9.9` | `v.4.0.0` | `v.3.10.0` / `v.3.9.10` |
+
+Procedimento para calcular a próxima versão:
+
+1. Ler a versão atual no rodapé (`index.html`, `id="app-footer-version"`).
+2. Somar 1 ao Z.
+3. Se Z passar de 9: Z = 0 e somar 1 ao Y.
+4. Se Y passar de 9: Y = 0 e somar 1 ao X.
+5. Conferir que nenhum dos números Y e Z tem dois dígitos antes de gravar.
+
+Se a versão atual já estiver fora do padrão (Y ou Z com dois dígitos), normalize-a antes de incrementar, contando as versões a partir da última versão válida.
+
+### Registro de correção
+
+Em 24/10/2026 foram publicadas, por erro, as versões `v.3.4.10` a `v.3.4.26` (Z com dois dígitos). Elas correspondem, na sequência correta, a `v.3.5.0` a `v.3.6.6`:
+
+* `v.3.4.10` a `v.3.4.19` = `v.3.5.0` a `v.3.5.9`
+* `v.3.4.20` a `v.3.4.26` = `v.3.6.0` a `v.3.6.6`
+
+A numeração foi normalizada em `v.3.6.7`. As mensagens dos commits antigos não foram reescritas, porque já estavam publicadas no GitHub.
+
 ## 3.3 Regra obrigatória de alteração
 
 Toda alteração que modificar arquivos do projeto deverá gerar uma nova versão.

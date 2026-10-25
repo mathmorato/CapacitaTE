@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.24
+ * Versão: v.3.6.7
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.24';
+    this.version = 'v.3.6.7';
   }
 
   /**
@@ -9856,11 +9856,11 @@ class AutoReportApp {
     if (evalsArr.length > 0) {
       cacsRespCount = evalsArr.filter(e => String(e.representation || '').toUpperCase().includes('CACS')).length;
     } else if (metrics?.totalPresent > 0) {
-      cacsRespCount = metrics.presentCACS || 0;
+      cacsRespCount = metrics.totalPresentCACS || 0;
     }
     const gestRespCount = totalResp > 0 ? (totalResp - cacsRespCount) : 0;
-    const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '38,0';
-    const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '62,0';
+    const pctCacsResp = totalResp > 0 ? ((cacsRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
+    const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '0,0';
     const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
     // Comentários das Figuras da Etapa 8 (Fidelidade aos relatórios de exemplo e editáveis pelo usuário)
@@ -10026,7 +10026,7 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">${fig4Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
           <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_4', 'Figura 4. Avaliação da capacitação de todos os participantes.'))}</p>
-          <div style="max-width:720px; height:340px; position:relative; margin:auto;">
+          <div style="max-width:900px; height:430px; position:relative; margin:auto;">
             <canvas id="report-preview-fig4-canvas"></canvas>
           </div>
           <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
@@ -10036,7 +10036,7 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig5Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
           <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_5', 'Figura 5. Avaliação da capacitação dos conselheiros CACS.'))}</p>
-          <div style="max-width:720px; height:340px; position:relative; margin:auto;">
+          <div style="max-width:900px; height:430px; position:relative; margin:auto;">
             <canvas id="report-preview-fig5-canvas"></canvas>
           </div>
           <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
@@ -10046,7 +10046,7 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig6Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
           <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_6', 'Figura 6. Avaliação da capacitação dos gestores municipais.'))}</p>
-          <div style="max-width:720px; height:340px; position:relative; margin:auto;">
+          <div style="max-width:900px; height:430px; position:relative; margin:auto;">
             <canvas id="report-preview-fig6-canvas"></canvas>
           </div>
           <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>

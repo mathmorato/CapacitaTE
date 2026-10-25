@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Geração de Gráficos (Chart.js)
- * Versão: v.3.4.24
+ * Versão: v.3.6.7
  */
 
 class ChartEngine {
@@ -182,13 +182,16 @@ class ChartEngine {
       '#10b981'  // Verde (5 - Excelente)
     ];
 
+    // Versões escuras das cores, legíveis sobre o fundo branco (rótulos acima dos segmentos estreitos)
+    const datasetColorsDark = ['#b91c1c', '#b45309', '#57534e', '#a16207', '#047857'];
+
     const datasets = datasetLabels.map((lbl, starIdx) => ({
       label: lbl,
       data: safeMatrix.map(row => row[starIdx] || 0),
       backgroundColor: datasetColors[starIdx],
       borderWidth: 0,
-      barPercentage: 0.78,
-      categoryPercentage: 0.85
+      barPercentage: 0.62,
+      categoryPercentage: 0.92
     }));
 
     const chartFont = this.fontFamily; // dentro do plugin, this não é o ChartEngine
@@ -197,10 +200,13 @@ class ChartEngine {
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         ctx.save();
-        ctx.font = `bold 11px "${chartFont}", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        const bigFont = `bold 11px "${chartFont}", sans-serif`;
+        const smallFont = `bold 9.5px "${chartFont}", sans-serif`;
+        const outside = new Map(); // índice da linha -> rótulos que não cabem dentro do segmento
 
+        // Todos os percentuais aparecem: dentro do segmento quando cabem (11 px ou 9,5 px); senão, acima dele
         chart.data.datasets.forEach((dataset, dsIdx) => {
           const meta = chart.getDatasetMeta(dsIdx);
           if (meta.hidden) return;
@@ -210,12 +216,35 @@ class ChartEngine {
             if (!val) return;
             const { x, y, base } = element;
             const width = Math.abs(x - base);
+            const centerX = (x + base) / 2;
             const label = `${String(val).replace('.', ',')}%`;
-            // O percentual só é escrito quando cabe no segmento com folga (evita números espremidos ou sobrepostos);
-            // o valor continua disponível na dica ao passar o mouse
-            if (ctx.measureText(label).width + 8 > width) return;
-            ctx.fillStyle = (dsIdx === 3 || dsIdx === 1) ? '#1F1F1F' : '#ffffff';
-            ctx.fillText(label, (x + base) / 2, y);
+            const color = (dsIdx === 3 || dsIdx === 1) ? '#1F1F1F' : '#ffffff';
+            for (const font of [bigFont, smallFont]) {
+              ctx.font = font;
+              if (ctx.measureText(label).width + 6 <= width) {
+                ctx.fillStyle = color;
+                ctx.fillText(label, centerX, y);
+                return;
+              }
+            }
+            const barTop = y - (element.height || 0) / 2;
+            if (!outside.has(idx)) outside.set(idx, []);
+            outside.get(idx).push({ centerX, barTop, label, color: datasetColorsDark[dsIdx] });
+          });
+        });
+
+        // Rótulos acima do segmento, afastados entre si para não se sobreporem
+        ctx.font = smallFont;
+        ctx.textBaseline = 'bottom';
+        outside.forEach(items => {
+          items.sort((a, b) => a.centerX - b.centerX);
+          let lastRight = -Infinity;
+          items.forEach(item => {
+            const w = ctx.measureText(item.label).width;
+            const left = Math.max(item.centerX - w / 2, lastRight + 4);
+            ctx.fillStyle = item.color;
+            ctx.fillText(item.label, left + w / 2, item.barTop - 1.5);
+            lastRight = left + w;
           });
         });
         ctx.restore();
@@ -235,6 +264,7 @@ class ChartEngine {
         maintainAspectRatio: false,
         devicePixelRatio: this.getPixelRatio(),
         indexAxis: 'y',
+        layout: { padding: { top: 14, right: 8 } },
         scales: {
           x: {
             stacked: true,
