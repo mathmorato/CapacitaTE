@@ -5,7 +5,7 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.4.1.6** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.4.1.7** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -44,6 +44,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 **v.4.1.5:** (a) Admin › Importar base ganhou "Importar também como respostas de uma capacitação" (RPC `admin_import_responses`, migração **0004j**): inscrição, presença (dia pelo carimbo, fuso de Brasília) e avaliação (notas pelas colunas `[item]`), mantendo o carimbo original, sem e-mail, repetidas ignoradas. (b) Prévia da avaliação: distribuição da nota geral e palavras mais citadas. Nada testado no navegador nem na nuvem (a 0004j não foi aplicada).
 
 **v.4.1.6:** removidos os botões "Voltar a rascunho" e "Gerar novo link" dos 3 formulários (a RPC `staff_rotate_token` continua no banco, sem uso na tela); o modo recepção agora abre ao clicar no QR Code (botão da barra removido). Não testado no navegador.
+
+**v.4.1.7:** Painel de vagas: a planilha de cidades agora abre uma janela de confirmação com as cidades encontradas para marcar/desmarcar antes de importar (e avisos de repetidas e não encontradas); novo botão "Excluir cidades..." (escolhe e confirma; inscrições já feitas não são apagadas); a UF escolhida no seletor vale para as linhas da planilha sem UF. Não testado no navegador.
 
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).

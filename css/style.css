@@ -4734,3 +4734,7 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 
 .forms-qr-click { cursor: zoom-in; transition: transform 0.15s; }
 .forms-qr-click:hover, .forms-qr-click:focus-visible { transform: scale(1.03); outline: 2px solid var(--accent-primary, #F6A800); outline-offset: 2px; }
+
+.pick-overlay { position: fixed; inset: 0; z-index: 9000; background: rgba(0, 0, 0, 0.55); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.pick-card { width: min(560px, 100%); max-height: 86vh; overflow: auto; }
+.pick-list { max-height: 42vh; overflow: auto; border: 1px solid var(--border-color, rgba(127, 127, 127, 0.3)); border-radius: 0.5rem; padding: 0.4rem 0.6rem; margin-top: 0.4rem; display: grid; gap: 0.15rem; }
