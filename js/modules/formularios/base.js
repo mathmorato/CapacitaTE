@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.1.3
+ * Versão: v.4.1.4
  */
 
 (function () {
@@ -129,6 +129,8 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return data;
   }
 
+  const AUTO_MUN_TRIED = new Set();
+
   async function updateForm(form, patch, auditAction) {
     const { data, error } = await client().from('forms').update(patch).eq('id', form.id).select().single();
     if (error) throw error;
@@ -253,6 +255,15 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     const munCount = (cfg.municipalities || []).length;
     const trainingMuns = trainingMunicipalities(training);
     const munChanged = JSON.stringify((cfg.municipalities || []).map(m => m.name)) !== JSON.stringify(trainingMuns.map(m => m.name));
+    // Atualização automática: se a lista da capacitação mudou, o formulário recebe a lista nova sozinho (link e QR Code não mudam).
+    // Tenta uma vez para cada lista nova de cidades; se falhar, o aviso com o botão continua na tela.
+    const autoKey = `${form.id}|${trainingMuns.map(m => m.name).join(',')}`;
+    if (munChanged && canEdit && !AUTO_MUN_TRIED.has(autoKey)) {
+      AUTO_MUN_TRIED.add(autoKey);
+      updateForm(form, { config: Object.assign({}, form.config, { municipalities: trainingMuns }) }, 'form.config')
+        .then(() => { toast('Cidades do formulário atualizadas automaticamente.', 'success'); rerender(); })
+        .catch(() => { /* mantém o aviso manual */ });
+    }
     fields.push(el('div', { class: 'forms-muns' }, [
       el('span', { text: `${munCount} municípios no formulário.` }),
       munChanged ? el('span', { class: 'forms-warn', text: ` A lista de municípios convocados mudou (${trainingMuns.length} na Etapa 3 do Relatório).` }) : null,

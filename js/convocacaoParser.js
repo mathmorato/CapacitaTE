@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Parser de Ofícios de Convocação
- * Versão: v.4.1.3
+ * Versão: v.4.1.4
  */
 
 class ConvocacaoParser {
