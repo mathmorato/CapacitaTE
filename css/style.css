@@ -4751,3 +4751,5 @@ body.light-theme .forms-counter { color: var(--accent-primary-hover); }
 .data-table.table-compact tbody tr { height: auto; }
 .busy-check { width: 48px; height: 48px; margin: 0 auto; border-radius: 50%; background: var(--accent-emerald-bg, rgba(16, 185, 129, 0.18)); color: var(--accent-emerald-text, #10b981); font-size: 1.6rem; line-height: 48px; font-weight: 700; }
 .data-table.table-compact th, .data-table.table-compact td { text-align: center; }
+.busy-bar span { animation: none; left: 0; width: 0; transition: width 0.12s linear; }
+.busy-pct { font-weight: 700; font-variant-numeric: tabular-nums; }

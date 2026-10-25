@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.2.7
+ * Versão: v.4.2.8
  */
 
 (function () {
@@ -318,19 +318,34 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
-  // Carregamento em tela: barra animada e texto enquanto algo é gravado. Devolve done(mensagem?): sem mensagem só fecha;
-  // com mensagem mostra a confirmação "Concluído" e espera o clique em Continuar.
+  // Carregamento em tela com barra de 0 a 100% e duração mínima de 1,5 s. A barra sobe até 90% com o tempo e só chega a
+  // 100% quando o trabalho termina. Devolve done(mensagem?): sem mensagem só fecha; com mensagem mostra "Concluído" e
+  // espera o clique em Continuar.
+  const BUSY_MIN_MS = 1500;
   function showBusy(text) {
     const title = el('strong', { text });
-    const bar = el('div', { class: 'busy-bar' }, el('span'));
-    const hint = el('small', { class: 'admin-muted', text: 'Aguarde, não feche esta janela.' });
-    const card = el('div', { class: 'busy-card glass-card' }, [title, bar, hint]);
+    const fill = el('span', { style: 'width:0%;' });
+    const pctText = el('small', { class: 'busy-pct', text: '0%' });
+    const card = el('div', { class: 'busy-card glass-card' }, [
+      title, el('div', { class: 'busy-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': '0' }, fill), pctText,
+      el('small', { class: 'admin-muted', text: 'Aguarde, não feche esta janela.' })
+    ]);
     const node = el('div', { class: 'busy-overlay', role: 'status', 'aria-live': 'polite' }, card);
     document.body.appendChild(node);
     const since = Date.now();
+    const setPct = (v) => {
+      const n = Math.round(v);
+      fill.style.width = `${n}%`;
+      pctText.textContent = `${n}%`;
+      fill.parentNode.setAttribute('aria-valuenow', String(n));
+    };
+    const timer = setInterval(() => setPct(Math.min(90, ((Date.now() - since) / BUSY_MIN_MS) * 90)), 40);
     return async (successMessage) => {
-      const wait = Math.max(0, 700 - (Date.now() - since)); // tempo mínimo para não piscar
+      const wait = Math.max(0, BUSY_MIN_MS - (Date.now() - since));
       if (wait) await new Promise(r => setTimeout(r, wait));
+      clearInterval(timer);
+      setPct(100);
+      await new Promise(r => setTimeout(r, 350)); // deixa ver o 100%
       if (successMessage) {
         await new Promise(resolve => {
           const ok = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Continuar', onclick: resolve });
