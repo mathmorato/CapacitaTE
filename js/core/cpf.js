@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - CPF: validar, normalizar, formatar e mascarar (compartilhado com as páginas públicas)
- * Versão: v.3.8.2
+ * Versão: v.3.8.3
  */
 
 (function (root) {
