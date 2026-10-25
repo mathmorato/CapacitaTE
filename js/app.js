@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.9.0
+ * Versão: v.3.9.1
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class CapacitaTEApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.9.0';
+    this.version = 'v.3.9.1';
   }
 
   /**
@@ -548,7 +548,7 @@ class CapacitaTEApp {
     };
 
     await window.db.saveTrainingFull(newTraining, 'Criação de nova capacitação em branco');
-    this.openWizard(newId, 1);
+    this.openWizard(newId, 1, { mode: 'cadastro' });
   }
 
   /* ==========================================================================
@@ -1169,7 +1169,12 @@ class CapacitaTEApp {
     }
   }
 
-  async openWizard(trainingId, step = 1) {
+  /**
+   * Abre o assistente. mode 'cadastro': só a identificação (etapa 1) e as cidades convidadas (etapa 3), usado no
+   * cadastro inicial da capacitação; as demais etapas ficam para o Relatório final.
+   */
+  async openWizard(trainingId, step = 1, { mode = 'relatorio' } = {}) {
+    this.wizardMode = mode === 'cadastro' ? 'cadastro' : 'relatorio';
     if (window.CapacitaTE && !CapacitaTE.can('relatorio', 'view', trainingId)) {
       this.showToast('Você não tem permissão para abrir o Relatório.', 'warning');
       this.navigateTo('dashboard');
@@ -1189,8 +1194,51 @@ class CapacitaTEApp {
 
     this.activeView = 'wizard';
     this.navigateTo('wizard', false);
-    this.setWizardStep(step);
+    this.applyWizardMode();
+    this.setWizardStep(this.wizardMode === 'cadastro' && ![1, 3].includes(step) ? 1 : step);
     this.populateAllWizardForms();
+  }
+
+  /**
+   * Modo cadastro: esconde as etapas do relatório no seletor e ajusta os botões de avançar das etapas 1 e 3
+   */
+  applyWizardMode() {
+    const cadastro = this.wizardMode === 'cadastro';
+    document.body.classList.toggle('wizard-cadastro', cadastro);
+    document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
+      tab.style.display = cadastro && ![1, 3].includes(idx + 1) ? 'none' : '';
+      // No cadastro, as cidades convidadas aparecem como Etapa 2 (no relatório continuam na etapa 3)
+      const text = tab.querySelector('.step-tab-text');
+      if (idx + 1 === 3 && text) {
+        if (!text.dataset.original) text.dataset.original = text.textContent;
+        text.textContent = cadastro ? 'Cidades Convidadas' : text.dataset.original;
+        tab.dataset.displayNum = cadastro ? '2' : '';
+      }
+    });
+    const title3 = document.querySelector('#wizard-step-3 .wizard-card-title span');
+    if (title3) {
+      if (!title3.dataset.original) title3.dataset.original = title3.textContent;
+      title3.textContent = cadastro ? 'Etapa 2 do cadastro: Cidades Convidadas' : title3.dataset.original;
+    }
+    const title1 = document.querySelector('#wizard-step-1 .wizard-card-title span');
+    if (title1) {
+      if (!title1.dataset.original) title1.dataset.original = title1.textContent;
+      title1.textContent = cadastro ? 'Etapa 1 do cadastro: Identificação da Capacitação' : title1.dataset.original;
+    }
+    [1, 3].forEach(n => {
+      const section = document.getElementById(`wizard-step-${n}`);
+      const btn = section && [...section.querySelectorAll('button[onclick="app.wizardNext()"]')].pop();
+      if (!btn) return;
+      if (!btn.dataset.originalHtml) btn.dataset.originalHtml = btn.innerHTML;
+      btn.innerHTML = !cadastro ? btn.dataset.originalHtml
+        : (n === 1 ? 'Salvar e continuar (Cidades convidadas)' : 'Concluir cadastro');
+    });
+    const prev3 = document.querySelector('#wizard-step-3 button[onclick="app.wizardPrev()"]');
+    if (prev3) {
+      if (!prev3.dataset.originalHtml) prev3.dataset.originalHtml = prev3.innerHTML;
+      prev3.innerHTML = cadastro ? 'Voltar (Identificação)' : prev3.dataset.originalHtml;
+    }
+    if (typeof this.moveStepperIndicator === 'function') requestAnimationFrame(() => this.moveStepperIndicator(true));
   }
 
   /**
@@ -1210,7 +1258,8 @@ class CapacitaTEApp {
       num.classList.remove('check-pop', 'num-return');
       tab.classList.remove('just-completed');
       // A etapa mantém sempre o número (concluída: círculo verde)
-      if (num.textContent.trim() !== String(s) || num.querySelector('svg')) num.textContent = String(s);
+      const shown = tab.dataset.displayNum || String(s);
+      if (num.textContent.trim() !== shown || num.querySelector('svg')) num.textContent = shown;
       if (isCompleted) {
         if (!wasCompleted) {
           // Etapas recém-concluídas surgem uma após a outra
@@ -1477,15 +1526,19 @@ class CapacitaTEApp {
     return true;
   }
 
-  setWizardStep(stepNumber) {
+  setWizardStep(stepNumber, { onlyCurrent = false } = {}) {
     let targetStep = Math.max(1, Math.min(this.totalSteps, stepNumber));
+    if (this.wizardMode === 'cadastro') {
+      if (![1, 3].includes(targetStep)) return;
+      onlyCurrent = true;
+    }
 
     // Se estiver tentando avançar para uma etapa posterior, salvar e validar a etapa atual e as intermediárias
     if (this.currentStep < 1) {
       // Capacitação recém-aberta: o formulário ainda não foi preenchido com os dados dela, nada a salvar/validar
     } else if (targetStep > this.currentStep) {
       this.saveCurrentStepData();
-      for (let s = this.currentStep; s < targetStep; s++) {
+      for (let s = this.currentStep; s < (onlyCurrent ? this.currentStep + 1 : targetStep); s++) {
         if (!this.validateCurrentStep(s)) {
           if (s === this.currentStep) return; // Impede avançar se não preencheu todos os itens!
           // Etapa intermediária pendente (ex.: clique direto numa aba adiante): leva o usuário até ela
@@ -1585,6 +1638,20 @@ class CapacitaTEApp {
     if (!this.validateCurrentStep()) {
       return; // Bloqueado se não preencheu todos os itens!
     }
+    if (this.wizardMode === 'cadastro') {
+      if (this.currentStep === 1) {
+        this.setWizardStep(3, { onlyCurrent: true });
+        this.scrollToTop();
+      } else {
+        // Cadastro concluído: volta para a capacitação (etapa 1: formulário de inscrição)
+        const id = this.currentTraining && this.currentTraining.id;
+        this.wizardMode = 'relatorio';
+        this.applyWizardMode();
+        this.showToast('Cadastro da capacitação salvo.', 'success');
+        if (id) window.location.hash = `capacitacao/${encodeURIComponent(id)}/1`;
+      }
+      return;
+    }
     if (this.currentStep < this.totalSteps) {
       this.setWizardStep(this.currentStep + 1);
       this.scrollToTop();
@@ -1593,6 +1660,10 @@ class CapacitaTEApp {
 
   wizardPrev() {
     this.saveCurrentStepData();
+    if (this.wizardMode === 'cadastro') {
+      if (this.currentStep === 3) { this.setWizardStep(1); this.scrollToTop(); }
+      return;
+    }
     if (this.currentStep > 1) {
       this.setWizardStep(this.currentStep - 1);
       this.scrollToTop();

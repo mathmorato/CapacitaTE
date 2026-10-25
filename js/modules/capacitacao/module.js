@@ -4,7 +4,7 @@
  *   2. Presença e avaliação (sessões de presença e avaliação com QR Code; exportação em Excel)
  *   3. Relatório final (assistente de 12 etapas que já existia)
  * Rota: #capacitacao/<id>[/<etapa>]
- * Versão: v.3.9.0
+ * Versão: v.3.9.1
  */
 
 (function () {
@@ -24,8 +24,8 @@
     return el('div', { class: 'glass-card forms-section' }, [
       el('div', { class: 'forms-toolbar' }, [
         el('h3', { class: 'forms-section-title', text: 'Dados da capacitação' }),
-        canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Editar dados', onclick: () => window.app.openWizard(training.id, 1) }) : null,
-        canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Cidades convidadas', onclick: () => window.app.openWizard(training.id, 3) }) : null
+        canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Editar dados', onclick: () => window.app.openWizard(training.id, 1, { mode: 'cadastro' }) }) : null,
+        canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm', text: 'Cidades convidadas', onclick: () => window.app.openWizard(training.id, 3, { mode: 'cadastro' }) }) : null
       ]),
       el('div', { class: 'cap-summary' }, [
         item('Polo', `${training.polo || ''}${training.uf ? ` (${training.uf})` : ''}`),
@@ -35,7 +35,7 @@
         item('Cidades convidadas', muns.length ? String(muns.length) : 'nenhuma ainda')
       ]),
       !muns.length ? el('p', { class: 'forms-warn', text: 'Cadastre as cidades convidadas antes de criar o formulário de inscrição: elas formam a lista "Município que representa".' }) : null,
-      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: 'Para cadastrar a capacitação: preencha os dados e as cidades convidadas. As cidades podem ser alteradas mesmo depois de gerar o link: o formulário avisa e atualiza a lista sem trocar o link nem o QR Code.' })
+      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: 'O cadastro da capacitação tem só a identificação e as cidades convidadas; as demais informações são preenchidas no Relatório final. As cidades podem ser alteradas mesmo depois de gerar o link: o formulário avisa e atualiza a lista sem trocar o link nem o QR Code.' })
     ]);
   }
 

@@ -4,7 +4,7 @@
 > `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.0** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.1** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -76,7 +76,10 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
   2. **Presença e avaliação:** sessões de presença (uma por dia, criadas pelas datas, ou avulsas) + avaliação +
      cartão "Exportar em Excel" (botões desativados até a Fase 4).
   3. **Relatório final:** progresso e atalhos para o assistente de 12 etapas.
-  Cadastro inicial = dados + cidades convidadas (assistente, etapas 1 e 3). As cidades podem mudar depois do
+  **Cadastro inicial (v.3.9.1)** = só a identificação + as cidades convidadas: `app.openWizard(id, passo, { mode: 'cadastro' })`
+  mostra apenas as etapas 1 e 3 do assistente (exibidas como "Etapa 1/2 do cadastro"), avança 1 → 3 sem exigir as
+  etapas do relatório e "Concluir cadastro" leva a `#capacitacao/<id>/1`. "Nova Capacitação" já abre nesse modo.
+  O restante (equipe, estrutura, fotos etc.) fica no Relatório final (modo normal, 12 etapas, numeração original). As cidades podem mudar depois do
   link gerado: o cartão do formulário mostra um aviso em destaque e atualiza a lista sem trocar link nem QR.
   Menu: Dashboard, Capacitações, **Relatórios** (abas Equipe Técnica | Estrutura do Curso), Administração,
   Configurações. Inscrição/Presença/Avaliação não têm item próprio no menu (registro com `menu: []`), mas
