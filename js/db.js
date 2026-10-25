@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerenciador de Banco de Dados Local (IndexedDB) & Sincronização em Nuvem (Supabase)
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 const SUPABASE_CONFIG = {
@@ -196,7 +196,6 @@ class TrainingDB {
       this.updateCloudIndicator(true);
 
       if (cloudTrainings && cloudTrainings.length > 0) {
-        const cloudIds = new Set(cloudTrainings.map(r => r.id));
 
         // 1. Atualizar ou inserir registros vindos da nuvem
         for (const row of cloudTrainings) {
@@ -205,20 +204,23 @@ class TrainingDB {
             const cloudDate = new Date(row.updated_at || row.created_at || 0).getTime();
             const localDate = new Date(local?.updatedAt || local?.createdAt || 0).getTime();
 
-            if (!local || cloudDate >= localDate) {
+            if (!local || cloudDate > localDate) {
               await this.saveTrainingFull(row.data, 'Sincronização da Nuvem (Supabase)', false);
             }
           }
         }
 
-        // 2. Limpar do IndexedDB local capacitações que foram deletadas da nuvem
-        const allLocal = await this.getAll('trainings');
-        for (const loc of allLocal) {
-          if (loc.isHistorical || (parseInt(loc.number) >= 6 && parseInt(loc.number) <= 14)) continue;
-          if (!cloudIds.has(loc.id)) {
-            console.log(`Capacitação ${loc.id} foi excluída na nuvem. Limpando do banco local...`);
-            await this.deleteTraining(loc.id, false);
-          }
+      }
+
+      // 2. Capacitações que existem só neste computador (criadas offline ou cujo envio falhou) são enviadas
+      // para a nuvem; nunca são apagadas automaticamente
+      const cloudIds = new Set((cloudTrainings || []).map(r => r.id));
+      const allLocal = await this.getAll('trainings');
+      for (const loc of allLocal) {
+        if (loc.isHistorical || (parseInt(loc.number) >= 6 && parseInt(loc.number) <= 14)) continue;
+        if (!cloudIds.has(loc.id)) {
+          const full = await this.getTrainingFull(loc.id);
+          if (full) await this.uploadTrainingToCloud(full);
         }
       }
 
@@ -245,7 +247,7 @@ class TrainingDB {
   async uploadTrainingToCloud(fullData) {
     if (!this.supabase || !fullData || !fullData.id) return;
     try {
-      await this.supabase.from('trainings').upsert({
+      const { error } = await this.supabase.from('trainings').upsert({
         id: fullData.id,
         number: (fullData.number !== undefined && fullData.number !== null && fullData.number !== '') ? parseInt(fullData.number) : null,
         polo: fullData.polo || '',
@@ -253,12 +255,15 @@ class TrainingDB {
         status: fullData.status || 'in_progress',
         is_historical: !!fullData.isHistorical,
         data: fullData,
-        updated_at: new Date().toISOString()
+        // Mesma data do registro local, para que a sincronização não considere a nuvem mais nova sem motivo
+        updated_at: fullData.updatedAt || new Date().toISOString()
       });
+      if (error) throw error;
       this.updateCloudIndicator(true);
       console.log(`Capacitação sincronizada na nuvem: ${fullData.polo || fullData.id}`);
     } catch (err) {
       console.warn('Erro ao subir dados para a nuvem:', err);
+      this.updateCloudIndicator(false);
     }
   }
 
@@ -268,7 +273,8 @@ class TrainingDB {
   async deleteTrainingFromCloud(trainingId) {
     if (!this.supabase || !trainingId) return;
     try {
-      await this.supabase.from('trainings').delete().eq('id', trainingId);
+      const { error } = await this.supabase.from('trainings').delete().eq('id', trainingId);
+      if (error) throw error;
       console.log(`Capacitação excluída da nuvem: ${trainingId}`);
     } catch (err) {
       console.warn('Erro ao deletar na nuvem:', err);
@@ -594,7 +600,7 @@ class TrainingDB {
           municipality: ev.municipality || '',
           ibgeCode: ev.ibgeCode || '',
           representation: ev.representation || 'Gestão municipal',
-          ratings: ev.ratings || [5, 5, 5, 5, 5, 5, 5],
+          ratings: Array.isArray(ev.ratings) ? ev.ratings : [],
           likedAspects: ev.likedAspects || '',
           improveAspects: ev.improveAspects || '',
           institution: ev.institution || '',

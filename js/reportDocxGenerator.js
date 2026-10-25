@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 class ReportDocxGenerator {
@@ -524,15 +524,16 @@ class ReportDocxGenerator {
         const dayPart = slotId.split('_day_')[1];
         p = allPhotos.find(ph => ph.slotId && ph.slotId.endsWith(`_day_${dayPart}`));
       }
-      if (p && !used.has(p.id || p.slotId)) {
-        used.add(p.id || p.slotId);
+      // Controle pela própria referência do objeto (fotos antigas podem não ter id nem slotId)
+      if (p && !used.has(p)) {
+        used.add(p);
         ordered.push(p);
       }
     });
 
     allPhotos.forEach(p => {
-      if (!used.has(p.id || p.slotId)) {
-        used.add(p.id || p.slotId);
+      if (!used.has(p)) {
+        used.add(p);
         ordered.push(p);
       }
     });
@@ -699,11 +700,18 @@ class ReportDocxGenerator {
     const pConsideracoes = addElement(880, false);
     addElement(textBlockHeight(1000), true);
 
+    // Cada página de documento anexado ocupa praticamente uma página inteira do relatório
+    const addAppendixDoc = (d) => {
+      const pages = (d.pageImages && d.pageImages.length > 0) ? d.pageImages.length : (d.blob?.startsWith('data:image/') ? 1 : 0);
+      if (pages === 0) { addElement(350, true); return; }
+      for (let i = 0; i < pages; i++) addElement(11500, false);
+    };
+
     // APÊNDICES
     if (currentDxa > 0) { page++; currentDxa = 0; }
     const pApendice1 = addElement(880, false);
     if (fndeDocs.length > 0) {
-      fndeDocs.forEach(() => addElement(7500, false));
+      fndeDocs.forEach(addAppendixDoc);
     } else {
       addElement(350, true);
     }
@@ -711,7 +719,7 @@ class ReportDocxGenerator {
     if (currentDxa > 0) { page++; currentDxa = 0; }
     const pApendice2 = addElement(880, false);
     if (cecateDocs.length > 0) {
-      cecateDocs.forEach(() => addElement(7500, false));
+      cecateDocs.forEach(addAppendixDoc);
     } else {
       addElement(350, true);
     }
@@ -2959,7 +2967,8 @@ class ReportDocxGenerator {
           );
           if (pages.length > 0) {
             pages.forEach((pgImg, pgIdx) => {
-              const cap = pages.length > 1 ? `${d.fileName} - Página ${pgIdx + 1}` : d.fileName;
+              const docName = d.fileName || 'Documento anexado';
+              const cap = pages.length > 1 ? `${docName} - Página ${pgIdx + 1}` : docName;
               const imgNodes = this.createImageParagraph(pgImg, 500, 700, cap, docxDeps, null, 'Fonte: FNDE.');
               if (imgNodes) docChildren.push(...imgNodes);
             });
@@ -3016,7 +3025,8 @@ class ReportDocxGenerator {
           );
           if (pages.length > 0) {
             pages.forEach((pgImg, pgIdx) => {
-              const cap = pages.length > 1 ? `${d.fileName} - Página ${pgIdx + 1}` : d.fileName;
+              const docName = d.fileName || 'Documento anexado';
+              const cap = pages.length > 1 ? `${docName} - Página ${pgIdx + 1}` : docName;
               const imgNodes = this.createImageParagraph(pgImg, 500, 700, cap, docxDeps, null, 'Fonte: CECATE-CO.');
               if (imgNodes) docChildren.push(...imgNodes);
             });

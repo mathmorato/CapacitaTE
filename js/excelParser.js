@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Processador e Analisador de Planilhas Excel
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 class ExcelParser {
@@ -426,10 +426,9 @@ class ExcelParser {
       if (colMap.ratings && colMap.ratings.length > 0) {
         colMap.ratings.forEach(ratingItem => {
           const parsed = extractRating(row[ratingItem.index]);
-          ratings.push(parsed !== null ? parsed : 5);
+          // Nota em branco ou inválida fica nula e é ignorada nas médias e percentuais
+          ratings.push(parsed);
         });
-      } else {
-        for (let i = 0; i < 7; i++) ratings.push(5);
       }
 
       const likedAspects = colMap.likedAspects !== -1 && row[colMap.likedAspects] ? String(row[colMap.likedAspects]).trim() : '';

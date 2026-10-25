@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Motor de Estatísticas e Análise de Dados
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 class StatsEngine {
@@ -770,7 +770,7 @@ class StatsEngine {
       }
 
       const statsGen = this.calculateEvaluationStats(evals);
-      const pctHigh = statsGen.highRatingPercent ? Math.round(statsGen.highRatingPercent) : 90;
+      const pctHigh = Math.round(statsGen.highRatingPercent || 0);
       const criterionLowerShare = (statsGen.criterionDistributionPercent || []).map((p, idx) => ({
         idx,
         name: critLabels[idx] || this.criteriaLabels[idx],
@@ -901,7 +901,7 @@ class StatsEngine {
           id: 'detalhado',
           name: 'Diagnóstico de Fortalecimento Colegiado',
           badge: 'Análise Descritiva',
-          text: `Entre os representantes do CACS-FUNDEB, a taxa média de satisfação superior atingiu cerca de ${statsCacs.highRatingPercent ? Math.round(statsCacs.highRatingPercent) : 90}%. As variações marginais limitaram-se a avaliações intermediárias no quesito de ${lowName}, reiterando o sucesso das oficinas na capacitação dos membros colegiados para a análise de prestação de contas do FUNDEB.`
+          text: `Entre os representantes do CACS-FUNDEB, a taxa média de satisfação superior atingiu cerca de ${Math.round(statsCacs.highRatingPercent || 0)}%. As variações marginais limitaram-se a avaliações intermediárias no quesito de ${lowName}, reiterando o sucesso das oficinas na capacitação dos membros colegiados para a análise de prestação de contas do FUNDEB.`
         }
       };
     }
@@ -921,11 +921,11 @@ class StatsEngine {
       }
 
       const statsGest = this.calculateEvaluationStats(evalsGest);
-      const gestHighPct = statsGest.highRatingPercent ? Math.round(statsGest.highRatingPercent) : 85;
+      const gestHighPct = Math.round(statsGest.highRatingPercent || 0);
       const gestPcts = (statsGest.criterionDistributionPercent || []).map(p => ((p[0] || 0) + (p[1] || 0) + (p[2] || 0)));
       const validPcts = gestPcts.filter(p => p > 0);
-      const minP = validPcts.length > 0 ? Math.min(...validPcts).toFixed(1).replace('.', ',') : '5,6';
-      const maxP = validPcts.length > 0 ? Math.max(...validPcts).toFixed(1).replace('.', ',') : '27,8';
+      const minP = validPcts.length > 0 ? Math.min(...validPcts).toFixed(1).replace('.', ',') : '0,0';
+      const maxP = validPcts.length > 0 ? Math.max(...validPcts).toFixed(1).replace('.', ',') : '0,0';
       const gestCritLow = (statsGest.criterionDistributionPercent || []).map((p, idx) => ({
         idx,
         name: critLabels[idx] || this.criteriaLabels[idx],

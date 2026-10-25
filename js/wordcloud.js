@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Nuvens de Palavras Qualitativas Artísticas
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 class WordCloudEngine {
@@ -174,6 +174,18 @@ class WordCloudEngine {
   }
 
   /**
+   * Verifica stopwords ignorando acentos (respostas digitadas sem acento: "nao", "voce", "tambem")
+   */
+  isStopword(word) {
+    const strip = (w) => String(w).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (!this._unaccentedStopwords || this._unaccentedStopwordsSize !== this.defaultStopwords.size + this.customStopwords.size) {
+      this._unaccentedStopwords = new Set([...this.defaultStopwords, ...this.customStopwords].map(strip));
+      this._unaccentedStopwordsSize = this.defaultStopwords.size + this.customStopwords.size;
+    }
+    return this.defaultStopwords.has(word) || this.customStopwords.has(word) || this._unaccentedStopwords.has(strip(word));
+  }
+
+  /**
    * Processa uma lista de respostas textuais e retorna a contagem ponderada de palavras
    */
   processTextList(texts = []) {
@@ -187,7 +199,7 @@ class WordCloudEngine {
 
       tokens.forEach(rawToken => {
         const word = this.normalizeWord(rawToken);
-        if (word.length >= 3 && !this.defaultStopwords.has(word) && !this.customStopwords.has(word)) {
+        if (word.length >= 3 && !this.isStopword(word)) {
           wordCounts[word] = (wordCounts[word] || 0) + 1;
         }
       });

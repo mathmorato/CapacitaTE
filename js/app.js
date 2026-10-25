@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.11
+ * Versão: v.3.4.12
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.11';
+    this.version = 'v.3.4.12';
   }
 
   /**
@@ -303,7 +303,7 @@ class AutoReportApp {
                 <div>
                   <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.2rem;">
                     <h4 style="font-size:1.05rem; font-weight:700; color:var(--text-primary); margin:0;">
-                      Capacitação Nº ${t.number} - ${t.polo || 'Polo Regional'} (${t.uf || 'MT'})
+                      Capacitação Nº ${t.number} - ${this.escapeHtml(t.polo || 'Polo Regional')} (${t.uf || 'MT'})
                     </h4>
                     ${statusBadge}
                   </div>
@@ -311,7 +311,7 @@ class AutoReportApp {
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${t.datesFormatted || t.startDate || 'Data a definir'}</span>
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${t.locationVenue || 'Auditório Local'}</span>
                     <span><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${t.workload || '16h'}</span>
-                    ${t.dataSourceMap?.documentOrigin ? `<span title="${t.dataSourceMap.documentOrigin}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Fonte: ${t.dataSourceMap.documentOrigin.split('/').pop()}</span>` : ''}
+                    ${t.dataSourceMap?.documentOrigin ? `<span title="${this.escapeHtml(t.dataSourceMap.documentOrigin)}"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg> Fonte: ${this.escapeHtml(t.dataSourceMap.documentOrigin.split('/').pop())}</span>` : ''}
                   </div>
                 </div>
               </div>
@@ -362,7 +362,7 @@ class AutoReportApp {
     const sorted = [...this.trainingList].sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
     select.innerHTML = sorted.map(t => {
       const isHist = t.status === 'historico' || t.isHistorical;
-      return `<option value="${t.id}" ${t.id === defaultSourceId ? 'selected' : ''}>Capacitação Nº ${t.number} - ${t.polo || 'Polo Regional'} (${t.uf || 'MT'}) ${isHist ? ' [HISTÓRICO]' : ''}</option>`;
+      return `<option value="${t.id}" ${t.id === defaultSourceId ? 'selected' : ''}>Capacitação Nº ${t.number} - ${this.escapeHtml(t.polo || 'Polo Regional')} (${t.uf || 'MT'}) ${isHist ? ' [HISTÓRICO]' : ''}</option>`;
     }).join('');
 
     modal.style.display = 'block';
@@ -658,7 +658,7 @@ class AutoReportApp {
             <span class="font-mono" style="font-weight:700; color:var(--accent-blue-text); font-size:0.92rem;">${r.ibgeCode}</span>
           </td>
           <td>
-            <strong style="color:var(--text-primary); font-size:0.92rem;">${r.name}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(r.name)}</strong>
             ${r.isSede ? '<span class="nav-badge badge-amber" style="font-size:0.7rem; padding:0.1rem 0.4rem; margin-left:0.4rem; font-weight:700;">Sede</span>' : ''}
             ${r.diffText ? `<div style="font-size:0.75rem; color:var(--accent-amber-text); margin-top:2px;">↳ ${r.diffText}</div>` : ''}
           </td>
@@ -948,7 +948,7 @@ class AutoReportApp {
             <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:0.4rem 0.6rem; font-size:0.78rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.25rem;">
               <span style="font-weight:700; color:var(--text-primary); display:inline-flex; align-items:center;">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                ${m.name} (${m.uf || poloUf})
+                ${this.escapeHtml(m.name)} (${m.uf || poloUf})
               </span>
               <span style="font-family:monospace; color:var(--accent-secondary); font-size:0.72rem;">IBGE: ${m.code || 'N/A'}</span>
               <div style="display:flex; align-items:center; gap:0.2rem;">
@@ -1367,9 +1367,9 @@ class AutoReportApp {
     const titleEl = document.getElementById('wizard-header-title');
     if (titleEl) {
       if (t.isHistorical) {
-        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:#f59e0b;">${t.polo || 'Polo'} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
+        titleEl.innerHTML = `Capacitação Nº ${t.number} • <span style="color:#f59e0b;">${this.escapeHtml(t.polo || 'Polo')} (${t.uf || 'MT'}) [HISTÓRICO PRESERVADO]</span>`;
       } else {
-        const poloText = t.polo ? `${t.polo} (${t.uf || 'UF'})` : 'Nova Capacitação em Branco';
+        const poloText = t.polo ? `${this.escapeHtml(t.polo)} (${t.uf || 'UF'})` : 'Nova Capacitação em Branco';
         titleEl.innerHTML = `Capacitação Nº ${t.number || 16} • <span style="color:var(--accent-secondary);">${poloText}</span>`;
       }
     }
@@ -1605,7 +1605,7 @@ class AutoReportApp {
           <div>
             <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.25rem;">
               <span class="nav-badge ${toolBadge}" style="font-weight:700; font-size:0.75rem;">${toolName}</span>
-              <strong style="font-size:0.92rem; color:var(--text-primary);">${fig.title}</strong>
+              <strong style="font-size:0.92rem; color:var(--text-primary);">${this.escapeHtml(fig.title)}</strong>
             </div>
             <div style="font-size:0.75rem; color:var(--text-muted);">
               ${isKahoot ? 'Questionários dinâmicos com smartphones dos participantes.' : 'Leitura óptica de cartões com QR Code.'}
@@ -1679,7 +1679,7 @@ class AutoReportApp {
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <strong style="font-size:0.92rem; color:var(--text-primary); display:flex; align-items:center; gap:0.4rem;">
             <span class="nav-badge badge-blue">Figura Extra ${idx + 1}</span>
-            <span>${fig.title || 'Ferramenta Adicional'}</span>
+            <span>${this.escapeHtml(fig.title || 'Ferramenta Adicional')}</span>
           </strong>
           <button type="button" class="btn btn-secondary btn-sm" onclick="app.removeExtraEduTechFigure('${fig.id}')" style="color:var(--accent-rose, #ef4444); padding:0.2rem 0.5rem; font-size:0.75rem;" title="Excluir esta figura">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1736,13 +1736,13 @@ class AutoReportApp {
         figuresHtml += `
           <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
-              ${fig.caption || 'Figura. Avaliação via ferramenta pedagógica.'}
+              ${this.escapeHtml(fig.caption || 'Figura. Avaliação via ferramenta pedagógica.')}
             </p>
             <div style="text-align:center;">
               <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
-              ${fig.source || 'Fonte: Elaborada pelos autores.'}
+              ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
             </p>
           </div>
         `;
@@ -1754,13 +1754,13 @@ class AutoReportApp {
         figuresHtml += `
           <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
             <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
-              ${fig.caption || 'Figura. Atividade com tecnologia educacional.'}
+              ${this.escapeHtml(fig.caption || 'Figura. Atividade com tecnologia educacional.')}
             </p>
             <div style="text-align:center;">
               <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
-              ${fig.source || 'Fonte: Elaborada pelos autores.'}
+              ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
             </p>
           </div>
         `;
@@ -3194,15 +3194,15 @@ class AutoReportApp {
 
               return `
                 <tr>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.pronoun || '-'}</span></td>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.title || '-'}</span></td>
-                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${item.name || ''}</strong></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.pronoun || '-')}</span></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.title || '-')}</span></td>
+                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${this.escapeHtml(item.name || '')}</strong></td>
                   <td style="text-align:center;">
                     <span class="nav-badge ${isUfg ? 'badge-amber' : 'badge-blue'}">
                       ${item.institution || 'UFG'}
                     </span>
                   </td>
-                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${item.role || 'Equipe Técnica'}</span></td>
+                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${this.escapeHtml(item.role || 'Equipe Técnica')}</span></td>
                 </tr>
               `;
             }).join('')}
@@ -3302,15 +3302,15 @@ class AutoReportApp {
 
               return `
                 <tr>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.pronoun || '-'}</span></td>
-                  <td><span style="color:var(--text-secondary); font-weight:600;">${item.title || '-'}</span></td>
-                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${item.name || ''}</strong></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.pronoun || '-')}</span></td>
+                  <td><span style="color:var(--text-secondary); font-weight:600;">${this.escapeHtml(item.title || '-')}</span></td>
+                  <td><strong style="color:var(--text-primary); font-size:0.9rem;">${this.escapeHtml(item.name || '')}</strong></td>
                   <td style="text-align:center;">
                     <span class="nav-badge ${isUfg ? 'badge-amber' : 'badge-blue'}">
                       ${item.institution || 'UFG'}
                     </span>
                   </td>
-                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${item.role || 'Equipe Técnica'}</span></td>
+                  <td><span style="color:var(--text-secondary); font-size:0.85rem;">${this.escapeHtml(item.role || 'Equipe Técnica')}</span></td>
                   <td style="text-align:center; white-space:nowrap;">
                     <div style="display:inline-flex; gap:0.4rem; justify-content:center; align-items:center;">
                       <button type="button" class="btn btn-secondary btn-sm btn-action-edit" onclick="app.openTeamMemberEditor('master', ${idx})" style="font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center;" title="Editar este integrante">${window.icons.edit} Editar</button>
@@ -3702,7 +3702,7 @@ class AutoReportApp {
 
     const calcDesc = document.getElementById('wiz-participants-calc-desc');
     if (calcDesc) {
-      calcDesc.innerHTML = `Calculado automaticamente: <strong>4 participantes × ${muns.length} municípios</strong> (incluindo o município sede/polo <em>${poloName}</em>) = <strong>${autoExpected} participantes previstos</strong>.`;
+      calcDesc.innerHTML = `Calculado automaticamente: <strong>4 participantes × ${muns.length} municípios</strong> (incluindo o município sede/polo <em>${this.escapeHtml(poloName)}</em>) = <strong>${autoExpected} participantes previstos</strong>.`;
     }
 
     const bulkContainer = document.getElementById('mun-bulk-actions-container');
@@ -3761,7 +3761,7 @@ class AutoReportApp {
             <span class="font-mono" style="font-weight:700; color:var(--accent-blue-text); font-size:0.92rem;">${m.ibgeCode || '-'}</span>
           </td>
           <td style="text-align:left;">
-            <strong style="color:var(--text-primary); font-size:0.92rem;">${m.name || ''}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(m.name || '')}</strong>
           </td>
           <td style="text-align:center;">
             <span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; padding:0.15rem 0.5rem;">${m.uf || poloUf}</span>
@@ -3815,11 +3815,11 @@ class AutoReportApp {
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; flex-wrap:wrap; gap:0.5rem;">
-        <button class="btn btn-secondary btn-sm" onclick="app.recalculateAllDistancesToPolo()" title="Recalcular distância de todos os municípios em relação ao Polo Capacitador (${poloName})" style="display:inline-flex; align-items:center; gap:0.35rem;">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Recalcular Distâncias pelo Polo (${poloName})
+        <button class="btn btn-secondary btn-sm" onclick="app.recalculateAllDistancesToPolo()" title="Recalcular distância de todos os municípios em relação ao Polo Capacitador (${this.escapeHtml(poloName)})" style="display:inline-flex; align-items:center; gap:0.35rem;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Recalcular Distâncias pelo Polo (${this.escapeHtml(poloName)})
         </button>
         <div style="font-size:0.82rem; color:var(--text-secondary);">
-          Total de <strong>${muns.length}</strong> município(s) cadastrado(s) na Tabela 1 (incluindo o Polo <em>${poloName}</em>).
+          Total de <strong>${muns.length}</strong> município(s) cadastrado(s) na Tabela 1 (incluindo o Polo <em>${this.escapeHtml(poloName)}</em>).
         </div>
       </div>
     `;
@@ -4938,7 +4938,7 @@ class AutoReportApp {
     } else {
       select.disabled = false;
       select.innerHTML = otherTrainings.map(t => `
-        <option value="${t.id}">${t.title || 'Capacitação sem título'} (${t.polo || 'Sem polo'}, ${t.year || '2026'})</option>
+        <option value="${t.id}">${this.escapeHtml(t.title || 'Capacitação sem título')} (${this.escapeHtml(t.polo || 'Sem polo')}, ${t.year || '2026'})</option>
       `).join('');
 
       this.onCopyCourseSourceChange(otherTrainings[0].id);
@@ -5082,7 +5082,7 @@ class AutoReportApp {
           </td>
           <td style="text-align:left; vertical-align:middle;">
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-              <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">${t.name || 'Sem nome'}</span>
+              <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">${this.escapeHtml(t.name || 'Sem nome')}</span>
               ${!isProtected ? `
                 <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); app.openRenameCourseTemplateModal('${t.id}')" style="padding:0.18rem 0.45rem; font-weight:600; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.2rem;" title="Renomear nome e descrição desta estrutura">
                   <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.5" width="16" height="12" rx="2.5"></rect><circle cx="6.5" cy="13" r="1.8"></circle><path d="M8.3 11.2v3.6"></path><path d="M10.3 9.2v5.6"></path><circle cx="12.3" cy="13" r="1.8"></circle><line x1="18" y1="2.5" x2="18" y2="21.5"></line><path d="M16 2.5h4"></path><path d="M16 21.5h4"></path></svg> Renomear
@@ -5369,10 +5369,10 @@ class AutoReportApp {
         <input type="radio" name="select-training-template-radio" value="${t.id}" ${t.isDefault || idx === 0 ? 'checked' : ''} style="margin-top:0.25rem;">
         <div style="flex:1;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
-            <strong style="color:var(--text-primary); font-size:0.92rem; display:inline-flex; align-items:center;">${t.isProtected ? window.icons.lock : ''}${t.name}</strong>
+            <strong style="color:var(--text-primary); font-size:0.92rem; display:inline-flex; align-items:center;">${t.isProtected ? window.icons.lock : ''}${this.escapeHtml(t.name)}</strong>
             ${t.isDefault ? '<span class="nav-badge badge-emerald font-bold" style="font-size:0.72rem;">Modelo Padrão Ativo</span>' : ''}
           </div>
-          <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.35;">${t.description || 'Estrutura com ' + (t.modules || []).length + ' módulos'}</div>
+          <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.35;">${this.escapeHtml(t.description || 'Estrutura com ' + (t.modules || []).length + ' módulos')}</div>
         </div>
       </label>
     `).join('');
@@ -5436,7 +5436,7 @@ class AutoReportApp {
     const bannerEl = document.getElementById('active-template-protection-banner');
 
     if (titleEl && activeTpl) {
-      titleEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> <span>Estrutura Selecionada: ${activeTpl.name}</span> ${activeTpl.isProtected ? '<span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Modelo Padrão Protegido</span>' : ''}`;
+      titleEl.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg> <span>Estrutura Selecionada: ${this.escapeHtml(activeTpl.name)}</span> ${activeTpl.isProtected ? '<span class="nav-badge badge-blue font-bold" style="font-size:0.75rem; margin-left:0.5rem; display:inline-flex; align-items:center; gap:0.25rem;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Modelo Padrão Protegido</span>' : ''}`;
     }
     if (descEl && activeTpl) {
       descEl.textContent = activeTpl.description || 'Estrutura de curso cadastrada no sistema';
@@ -6942,11 +6942,11 @@ class AutoReportApp {
       const munTd = isUnmappedMun ? `
         <select class="participant-table-select unmapped" style="min-width:150px;" onchange="app.updateParticipantField('${p.id}', 'municipality', this.value)">
           <option value="">-- Selecionar Município --</option>
-          ${invitedMunOptions.map(m => `<option value="${m}">${m}</option>`).join('')}
+          ${invitedMunOptions.map(m => `<option value="${this.escapeHtml(m)}">${this.escapeHtml(m)}</option>`).join('')}
         </select>
       ` : `
         <div style="display:inline-flex; align-items:center; gap:0.35rem;">
-          <span style="font-weight:600; color:var(--text-primary);">${p.municipality}</span>
+          <span style="font-weight:600; color:var(--text-primary);">${this.escapeHtml(p.municipality)}</span>
           ${p.isManualMunicipality ? `<button type="button" class="btn btn-sm btn-ghost text-muted" onclick="app.clearManualParticipantField('${p.id}', 'municipality')" title="Alterar município selecionado manualmente" style="padding:0 0.2rem; font-size:0.7rem; line-height:1;">${window.icons.edit}</button>` : ''}
         </div>
       `;
@@ -6961,7 +6961,7 @@ class AutoReportApp {
       ` : `
         <div style="display:inline-flex; align-items:center; gap:0.35rem;">
           <span class="nav-badge ${p.representation === 'CACS-FUNDEB' ? 'badge-emerald' : 'badge-blue'}" style="font-size:0.78rem; font-weight:600; white-space:nowrap;">
-            ${p.representation}
+            ${this.escapeHtml(p.representation)}
           </span>
           ${p.isManualRepresentation ? `<button type="button" class="btn btn-sm btn-ghost text-muted" onclick="app.clearManualParticipantField('${p.id}', 'representation')" title="Alterar vínculo selecionado manualmente" style="padding:0 0.2rem; font-size:0.7rem; line-height:1;">${window.icons.edit}</button>` : ''}
         </div>
@@ -6972,9 +6972,9 @@ class AutoReportApp {
 
       return `
         <tr style="${isRowIncomplete ? 'background: rgba(245, 158, 11, 0.05);' : ''}">
-          <td style="vertical-align:middle;"><strong>${p.name || 'Não informado'}</strong></td>
+          <td style="vertical-align:middle;"><strong>${this.escapeHtml(p.name || 'Não informado')}</strong></td>
           <td style="font-family:monospace; vertical-align:middle; white-space:nowrap;">
-            ${p.cpf || '-'}
+            ${this.escapeHtml(p.cpf || '-')}
             ${showCpfCheck ? '<span class="nav-badge badge-emerald" style="font-size:0.7rem; margin-left:0.35rem; padding:0.15rem 0.3rem; display:inline-flex; align-items:center;" title="CPF validado com município e vínculo confirmados"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' : ''}
           </td>
           <td style="vertical-align:middle; text-align:center;">${statusBadge}</td>
@@ -7096,6 +7096,8 @@ class AutoReportApp {
         return;
       }
 
+      // Comentários padrão das figuras foram gerados com os dados antigos: descarta para regenerar
+      this.resetDefaultFigureComments();
       this.currentTraining.evaluations = parsed;
       this.renderEvaluationStep();
       this.renderEvaluationCharts();
@@ -7125,6 +7127,7 @@ class AutoReportApp {
   executeClearEvaluationData() {
     if (!this.currentTraining) return;
 
+    this.resetDefaultFigureComments();
     this.currentTraining.evaluations = [];
     const inputEval = document.getElementById('file-input-evaluation');
     if (inputEval) inputEval.value = '';
@@ -7228,12 +7231,8 @@ class AutoReportApp {
       const expectedDefaultText = currentTemplateObj.text || '';
 
       const savedComment = this.currentTraining.evaluationComments[key];
-      const hasOldBug = savedComment && (savedComment.includes('"0", "1", "2"') || savedComment.includes('"0", "1"') || savedComment.includes('"0"'));
 
-      // Verificar se o texto salvo coincide com algum template padrão conhecido
-      const isKnownDefault = Object.values(allTemplates).some(t => t && t.text && t.text.trim() === String(savedComment || '').trim());
-
-      if (savedComment !== undefined && savedComment !== null && savedComment.trim() !== '' && !hasOldBug && !isKnownDefault) {
+      if (this.isFigureCommentCustom(key, allTemplates)) {
         // Usuário digitou um texto manual customizado
         textarea.value = savedComment;
         if (badge) {
@@ -7255,6 +7254,41 @@ class AutoReportApp {
   }
 
   /**
+   * Indica se o comentário da figura foi escrito pelo usuário (true) ou é uma sugestão padrão gerada
+   * a partir dos dados (false), que deve ser regenerada quando as avaliações mudam.
+   */
+  isFigureCommentCustom(key, allTemplates = null) {
+    const t = this.currentTraining;
+    if (!t) return false;
+    const saved = t.evaluationComments ? t.evaluationComments[key] : undefined;
+    if (saved === undefined || saved === null || String(saved).trim() === '') return false;
+    if (t.evaluationCommentCustom && typeof t.evaluationCommentCustom[key] === 'boolean') {
+      return t.evaluationCommentCustom[key];
+    }
+    // Dados de versões anteriores (sem a marcação): texto do bug antigo de notas "0" ou igual a um modelo = padrão
+    if (saved.includes('"0", "1"')) return false;
+    const templates = allTemplates || (window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(key, t) : {});
+    return !Object.values(templates).some(tp => tp && tp.text && tp.text.trim() === String(saved).trim());
+  }
+
+  setFigureCommentCustom(key, isCustom) {
+    if (!this.currentTraining) return;
+    if (!this.currentTraining.evaluationCommentCustom) this.currentTraining.evaluationCommentCustom = {};
+    this.currentTraining.evaluationCommentCustom[key] = isCustom;
+  }
+
+  /**
+   * Descarta os comentários padrão (não personalizados) das Figuras 3 a 8 para que sejam regenerados com os dados atuais
+   */
+  resetDefaultFigureComments() {
+    const t = this.currentTraining;
+    if (!t || !t.evaluationComments) return;
+    ['fig3', 'fig4', 'fig5', 'fig6', 'fig7', 'fig8'].forEach(key => {
+      if (!this.isFigureCommentCustom(key)) delete t.evaluationComments[key];
+    });
+  }
+
+  /**
    * Altera o modelo de análise padrão de uma figura da Etapa 8 (Análise de Conteúdo, Síntese Oficial ou Descritiva)
    */
   changeFigureCommentTemplate(figKey, templateId) {
@@ -7267,6 +7301,7 @@ class AutoReportApp {
     }
 
     this.currentTraining.evaluationCommentTemplates[figKey] = templateId;
+    this.setFigureCommentCustom(figKey, false);
 
     const allTemplates = window.statsEngine ? window.statsEngine.getEvaluationCommentTemplates(figKey, this.currentTraining) : {};
     const selectedTemplate = allTemplates[templateId] || allTemplates.categorial;
@@ -7308,6 +7343,8 @@ class AutoReportApp {
     const defaultComment = currentTemplateObj ? currentTemplateObj.text : '';
 
     const badge = document.getElementById(`eval-comment-${figKey}-badge`);
+    this.setFigureCommentCustom(figKey, value.trim() !== '' && value.trim() !== defaultComment.trim());
+
     if (badge) {
       if (value.trim() === defaultComment.trim()) {
         badge.textContent = `Sugestão Padrão: ${currentTemplateObj?.badge || 'Análise de Conteúdo'}`;
@@ -7345,6 +7382,7 @@ class AutoReportApp {
     const defaultComment = selectedTemplate ? selectedTemplate.text : '';
 
     this.currentTraining.evaluationComments[figKey] = defaultComment;
+    this.setFigureCommentCustom(figKey, false);
 
     const textarea = document.getElementById(`eval-comment-${figKey}`);
     if (textarea) {
@@ -7483,7 +7521,7 @@ class AutoReportApp {
     }
     const fig7TitlePreview = document.getElementById('wordcloud-fig7-title-preview');
     if (fig7TitlePreview) {
-      fig7TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(7, fig7CleanTitle)}</strong>`;
+      fig7TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(7, fig7CleanTitle))}</strong>`;
     }
 
     // 3. Figura 7 - Fonte
@@ -7504,7 +7542,7 @@ class AutoReportApp {
     }
     const fig7SourcePreview = document.getElementById('wordcloud-fig7-source-preview');
     if (fig7SourcePreview) {
-      fig7SourcePreview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(fig7CleanSource)}</em>`;
+      fig7SourcePreview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(fig7CleanSource))}</em>`;
     }
 
     // 4. Figura 8 - Título
@@ -7525,7 +7563,7 @@ class AutoReportApp {
     }
     const fig8TitlePreview = document.getElementById('wordcloud-fig8-title-preview');
     if (fig8TitlePreview) {
-      fig8TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(8, fig8CleanTitle)}</strong>`;
+      fig8TitlePreview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(8, fig8CleanTitle))}</strong>`;
     }
 
     // 5. Figura 8 - Fonte
@@ -7546,7 +7584,7 @@ class AutoReportApp {
     }
     const fig8SourcePreview = document.getElementById('wordcloud-fig8-source-preview');
     if (fig8SourcePreview) {
-      fig8SourcePreview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(fig8CleanSource)}</em>`;
+      fig8SourcePreview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(fig8CleanSource))}</em>`;
     }
   }
 
@@ -7591,7 +7629,7 @@ class AutoReportApp {
     }
     const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
     if (preview) {
-      preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, clean)}</strong>`;
+      preview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(figNum, clean))}</strong>`;
     }
     this.saveCurrentStepData();
   }
@@ -7618,7 +7656,7 @@ class AutoReportApp {
     }
     const preview = document.getElementById(`wordcloud-${figKey}-title-preview`);
     if (preview) {
-      preview.innerHTML = `Legenda no relatório: <strong>${this.formatFigureCaption(figNum, defaultTitle)}</strong>`;
+      preview.innerHTML = `Legenda no relatório: <strong>${this.escapeHtml(this.formatFigureCaption(figNum, defaultTitle))}</strong>`;
     }
     this.saveCurrentStepData();
   }
@@ -7644,7 +7682,7 @@ class AutoReportApp {
     }
     const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
     if (preview) {
-      preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(clean)}</em>`;
+      preview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(clean))}</em>`;
     }
     this.saveCurrentStepData();
   }
@@ -7670,7 +7708,7 @@ class AutoReportApp {
     }
     const preview = document.getElementById(`wordcloud-${figKey}-source-preview`);
     if (preview) {
-      preview.innerHTML = `Fonte no relatório: <em>${this.formatFigureSource(defaultSource)}</em>`;
+      preview.innerHTML = `Fonte no relatório: <em>${this.escapeHtml(this.formatFigureSource(defaultSource))}</em>`;
     }
     this.saveCurrentStepData();
   }
@@ -7905,16 +7943,36 @@ class AutoReportApp {
       });
     }
 
-    const start = this.getPhotoFigureStart();
-    return baseSlots.map((slot, idx) => ({
-      ...slot,
-      figNum: start + idx,
-      defaultCaption: `Figura ${start + idx}. ${slot.defaultTitle}`
-    }));
+    // Mesma regra do relatório Word: só slots com foto consomem número; um slot vazio exibe o número
+    // que a foto receberá ao ser anexada
+    const photos = (this.currentTraining?.media || []).filter(m => m.type === 'photo' && m.blob);
+    const used = new Set();
+    let next = this.getPhotoFigureStart();
+    const slots = baseSlots.map(slot => {
+      let photo = photos.find(p => p.slotId === slot.slotId);
+      if (!photo && slot.slotId.includes('_day_')) {
+        const dayPart = slot.slotId.split('_day_')[1];
+        photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
+      }
+      const filled = Boolean(photo && !used.has(photo));
+      if (filled) used.add(photo);
+      const figNum = filled ? next++ : next;
+      return { ...slot, figNum, defaultCaption: `Figura ${figNum}. ${slot.defaultTitle}` };
+    });
+    this.extraPhotoFigureStart = next;
+    return slots;
+  }
+
+  /**
+   * Número da primeira foto complementar (logo após as fotos dos slots padrão efetivamente preenchidos)
+   */
+  getExtraPhotoFigureStart() {
+    this.getStandardPhotoSlots();
+    return this.extraPhotoFigureStart;
   }
 
   escapeHtml(str) {
-    if (!str) return '';
+    if (str === null || str === undefined) return '';
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -8350,7 +8408,7 @@ class AutoReportApp {
       } else {
         // Próximo número após os slots padrão e as fotos extras já existentes
         const existingExtras = this.currentTraining.media.filter(m => m.type === 'photo' && !isPhotoInSlots(m)).length;
-        const extraFigNum = (slots.length > 0 ? slots[0].figNum : this.getPhotoFigureStart()) + slots.length + existingExtras;
+        const extraFigNum = this.getExtraPhotoFigureStart() + existingExtras;
         targetSlotId = `fig_extra_${Date.now()}_${i}`;
         targetCaption = `Figura ${extraFigNum}. Registro complementar da capacitação.`;
         targetTitle = `Registro complementar da capacitação.`;
@@ -8620,7 +8678,7 @@ class AutoReportApp {
 
     // Exibir fotos extras não pertencentes aos slots padronizados
     const extraPhotos = photos.filter(p => !slots.some(s => s.slotId === p.slotId));
-    const extraStart = slots.length > 0 ? slots[0].figNum + slots.length : this.getPhotoFigureStart();
+    const extraStart = this.getExtraPhotoFigureStart();
     extraPhotos.forEach((photo, idx) => {
       const extraFigNum = extraStart + idx;
       const cleanTitle = this.cleanFigureTitle(extraFigNum, photo.title || photo.caption || `Registro complementar #${idx + 1}.`, `Registro complementar #${idx + 1}.`);
@@ -8846,8 +8904,8 @@ class AutoReportApp {
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
             <polyline points="14 2 14 8 20 8"></polyline>
           </svg>
-          <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.fileName}">
-            ${d.fileName}
+          <span style="font-weight:600; font-size:0.86rem; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${this.escapeHtml(d.fileName)}">
+            ${this.escapeHtml(d.fileName)}
           </span>
         </div>
         <div style="display:flex; justify-content:flex-end; width:100%; border-top:1px solid var(--border-color); padding-top:0.45rem;">
@@ -9255,7 +9313,7 @@ class AutoReportApp {
         equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">Coordenador do Projeto</p>`;
         ufgCoords.forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.35rem 0; color: #000000;">${name}</p>`;
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.35rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       }
 
@@ -9263,7 +9321,7 @@ class AutoReportApp {
         equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.6rem 0 0.15rem 0; color: #000000;">Equipe de Técnica</p>`;
         ufgTech.forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${name}</p>`;
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       }
 
@@ -9295,7 +9353,7 @@ class AutoReportApp {
         equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">${r}</p>`;
         fndeByRole.get(r).forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${name}</p>`;
+          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       });
 
@@ -9482,7 +9540,7 @@ class AutoReportApp {
     const extraPhotos = photos.filter(ph => !slots.some(s => s.slotId === ph.slotId));
     extraPhotos.forEach((ph, idx) => {
       if (ph.blob) {
-        const extraFigNum = (slots.length > 0 ? slots[0].figNum : this.getPhotoFigureStart()) + slots.length + idx;
+        const extraFigNum = this.getExtraPhotoFigureStart() + idx;
         const captionToDisplay = numberedCaption(photoKey(ph), ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.'));
         const cleanExtraSource = this.cleanFigureSource(ph.customSource || ph.source || 'Elaborada pelos autores.');
         const sourceToDisplay = this.formatFigureSource(cleanExtraSource);
@@ -9516,7 +9574,7 @@ class AutoReportApp {
       if (pages.length > 0) {
         visualHtml = pages.map((pg, idx) => `
           <div style="margin: 1.25rem 0; text-align: center; page-break-inside: avoid;">
-            <img src="${pg}" alt="${d.fileName} - Pág ${idx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
+            <img src="${pg}" alt="${this.escapeHtml(d.fileName)} - Pág ${idx + 1}" style="max-width: 100%; height: auto; max-height: 850px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); box-shadow: 0 4px 14px rgba(0,0,0,0.08); display: inline-block;">
             ${pages.length > 1 ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem; font-style: italic;">Página ${idx + 1} de ${pages.length}</p>` : ''}
           </div>
         `).join('');
@@ -9526,9 +9584,9 @@ class AutoReportApp {
           <div style="display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.9rem; background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-sm); margin-bottom:0.75rem;">
             <div style="display:inline-flex; align-items:center; gap:0.5rem; min-width:0;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-secondary); flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${d.fileName}</span>
+              <span style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">${this.escapeHtml(d.fileName)}</span>
             </div>
-            ${d.blob ? `<a href="${d.blob}" download="${d.fileName}" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.55rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">Baixar Arquivo</a>` : ''}
+            ${d.blob ? `<a href="${d.blob}" download="${this.escapeHtml(d.fileName)}" class="btn btn-secondary btn-sm" style="padding:0.2rem 0.55rem; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem;">Baixar Arquivo</a>` : ''}
           </div>
           ${visualHtml}
         </div>
@@ -9565,10 +9623,10 @@ class AutoReportApp {
               ${evalList.map(ev => `
                 <tr>
                   <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.ibgeCode || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color); font-weight:600;">${ev.municipality || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.representation || 'Gestão municipal'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.likedAspects || '-'}</td>
-                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${ev.improveAspects || '-'}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color); font-weight:600;">${this.escapeHtml(ev.municipality || '-')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.representation || 'Gestão municipal')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.likedAspects || '-')}</td>
+                  <td style="padding:0.5rem; border:1px solid var(--border-color);">${this.escapeHtml(ev.improveAspects || '-')}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -9688,13 +9746,13 @@ class AutoReportApp {
                 <!-- 1. INTRODUÇÃO -->
         <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
-        <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:'Times New Roman', serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${t.polo || 'Município Polo'}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
+        <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:'Times New Roman', serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${this.escapeHtml(t.polo || 'Município Polo')}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
 
         <!-- 2. DADOS BÁSICOS DO CURSO & TABELAS 1 E 2 -->
         <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${t.polo || 'Município Polo'}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${this.escapeHtml(t.polo || 'Município Polo')}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
         
         <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 1. Municípios convocados.</p>
         ${window.statsEngine.generateTable1Html(t.municipalities || [])}
@@ -9784,18 +9842,18 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig7Comment}</p>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin:2rem 0; page-break-inside:avoid;">
           <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${fig7Title}</p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig7Source}</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig7Source)}</p>
           </div>
           <div style="text-align:center;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${fig8Title}</p>
+            <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
             <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
               <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
             </div>
-            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig8Source}</p>
+            <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(fig8Source)}</p>
           </div>
         </div>
         <p style="text-align:justify; line-height:1.6; margin-top:0.5rem; margin-bottom:1.5rem;">${fig8Comment}</p>
@@ -9807,7 +9865,7 @@ class AutoReportApp {
 
         <!-- 7. CONSIDERAÇÕES FINAIS -->
         <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${t.polo || 'Município Polo'}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${this.escapeHtml(t.polo || 'Município Polo')}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Salienta-se que, de forma geral, o curso atendeu plenamente ao objetivo primordial de aprimorar os conhecimentos e habilidades técnicas de gestores municipais e conselheiros do CACS-FUNDEB, conforme atestado nos elevados índices de satisfação apurados na pesquisa avaliativa. Por outro lado, pôde-se comprovar que reforçar a convocação mediante a articulação multicanal do CECATE Centro-Oeste — combinando correspondências oficiais, contatos telefônicos diretos e mensagens em canais institucionais — revelou-se determinante para assegurar expressivo comparecimento dos entes federados convocados.</p>
         <p style="text-align:justify; line-height:1.5;">Ficou igualmente evidente que a abordagem de diálogo permanente adotada consolida-se como canal imprescindível para atender às demandas de qualificação técnica continuada. Para finalizar, ressalta-se a suma importância de o processo formativo estar inserido em um ambiente que possibilite a livre e qualificada interação entre os cursistas e os formadores, proporcionando um rico espaço de compartilhamento de vivências territoriais, esclarecimento de dúvidas operacionais e retroalimentação contínua de todas as dimensões da política de transporte escolar no Brasil.</p>
 
@@ -10794,7 +10852,7 @@ class AutoReportApp {
               return `
                 <tr>
                   <td style="text-align:center; font-weight:800; font-size:1.05rem; color:var(--accent-secondary);">${t.number}</td>
-                  <td><strong>${t.polo || 'Polo Regional'}</strong></td>
+                  <td><strong>${this.escapeHtml(t.polo || 'Polo Regional')}</strong></td>
                   <td><span class="nav-badge">${t.uf || 'MT'}</span></td>
                   <td style="font-size:0.85rem;">${t.datesFormatted || t.startDate || '-'}</td>
                   <td style="font-size:0.85rem;">${t.workload || '16h'}</td>
