@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.3.9.8
+ * Versão: v.3.9.9
  */
 
 (function () {
@@ -83,8 +83,9 @@
               r.answers && r.answers.email_sent_at ? el('span', { class: 'admin-chip', title: `E-mail de confirmação enviado em ${c.fmtDateTime(r.answers.email_sent_at)}`, text: 'e-mail enviado' }) : null,
               r.status === 'cancelada' ? el('span', { class: 'admin-chip', text: 'cancelada' }) : null
             ]),
+            el('td', { class: 'perm-col' }, canEdit ? c.deleteButton('registrations', r, 'inscrição') : null),
           ]));
-        listBox.append(c.table(['Nome', 'CPF', 'Município', 'Categoria', 'Cargo', 'Telefone', 'Enviada em', ''], rows, term ? 'Nada encontrado.' : 'Nenhuma inscrição ainda.'));
+        listBox.append(c.table(['Nome', 'CPF', 'Município', 'Categoria', 'Cargo', 'Telefone', 'Enviada em', '', ''], rows, term ? 'Nada encontrado.' : 'Nenhuma inscrição ainda.'));
       };
       body.append(el('div', { class: 'glass-card forms-section' }, [
         el('div', { class: 'forms-toolbar' }, [
@@ -94,6 +95,8 @@
         listBox
       ]));
       draw();
+      const trash = await c.trashSection('registrations', 'inscrições');
+      if (trash) body.append(trash);
     }
   });
 })();

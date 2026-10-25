@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.3.9.8
+ * Versão: v.3.9.9
  */
 
 (function () {
@@ -318,6 +318,47 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     return input;
   }
 
+  // ---------- excluir e lixeira ----------
+  // Excluir copia a resposta para public.deleted_responses (0004g) e remove da tabela; restaurar faz o caminho inverso.
+  function deleteButton(ctx, tableName, row, what) {
+    return el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir', onclick: () => window.app.openConfirmModal({
+      title: `Excluir ${what}?`, msg: `${what[0].toUpperCase() + what.slice(1)} de ${row.full_name || 'esta pessoa'} sai da lista e vai para a Lixeira, de onde pode ser restaurada.`, btnText: 'Sim, excluir',
+      successTitle: 'Movida para a Lixeira', successMsg: 'Você pode restaurar pela seção Lixeira.',
+      onConfirm: async () => {
+        const { error } = await client().rpc('staff_delete_response', { p_table: tableName, p_id: row.id });
+        if (error) return toast(errMsg(error), 'error');
+        ctx.rerender();
+      }
+    }) });
+  }
+
+  async function trashSection(ctx, tableName, whatPlural) {
+    const { data, error } = await client().from('deleted_responses').select('*').eq('training_id', ctx.training.id).eq('table_name', tableName).order('deleted_at', { ascending: false });
+    if (error) return null; // migração 0004g ainda não aplicada: não mostra a lixeira
+    const items = data || [];
+    const canEdit = can(ctx.mod, 'edit', ctx.training.id);
+    const rows = items.map(d => {
+      const r = d.record || {};
+      return el('tr', {}, [
+        el('td', { text: r.full_name || '—' }),
+        el('td', { text: maskCpf(r.cpf) }),
+        el('td', { text: r.session_key && tableName === 'attendance' ? r.session_key : (r.municipality || '—') }),
+        el('td', { text: fmtDateTime(d.deleted_at) }),
+        el('td', { class: 'perm-col' }, canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Restaurar', onclick: async (e) => {
+          e.currentTarget.disabled = true;
+          const { error: err } = await client().rpc('staff_restore_response', { p_deleted: d.id });
+          if (err) { toast(errMsg(err), 'error'); e.currentTarget.disabled = false; return; }
+          toast('Restaurada.', 'success'); ctx.rerender();
+        } }) : null)
+      ]);
+    });
+    return el('details', { class: 'glass-card forms-section forms-config' }, [
+      el('summary', { text: `Lixeira (${items.length})` }),
+      el('p', { class: 'admin-muted', text: `${whatPlural[0].toUpperCase() + whatPlural.slice(1)} excluídas ficam aqui e podem ser restauradas.` }),
+      table(['Nome', 'CPF', tableName === 'attendance' ? 'Dia' : 'Município', 'Excluída em', ''], rows, 'A lixeira está vazia.')
+    ]);
+  }
+
   // ---------- páginas ----------
   function header(def, training) {
     return el('div', { class: 'forms-header' }, [
@@ -347,7 +388,10 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
     try {
       const forms = await loadForms(def.key, training.id);
       body.textContent = '';
-      await def.render(body, { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, maskCpf, fmtPhone, fmtDateTime, trainingTitle });
+      const ctxRef = {};
+      const ctx = { mod: def.key, training, forms, rerender, el, toast, client, can, errMsg, audit, table, searchBox, formCard, createForm, deleteButton: (tbl, row, what) => deleteButton(ctxRef, tbl, row, what), trashSection: (tbl, plural) => trashSection(ctxRef, tbl, plural), maskCpf, fmtPhone, fmtDateTime, trainingTitle };
+      Object.assign(ctxRef, ctx);
+      await def.render(body, ctx);
     } catch (err) {
       body.textContent = '';
       body.append(el('p', { class: 'auth-message-error', text: errMsg(err) }));

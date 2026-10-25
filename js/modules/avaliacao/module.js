@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Avaliação (formulário, taxa de resposta, médias por item e respostas)
- * Versão: v.3.9.8
+ * Versão: v.3.9.9
  */
 
 (function () {
@@ -84,16 +84,7 @@
             el('td', { class: 'perm-col', text: String((e.ratings && e.ratings.geral) || '—') }),
             el('td', { text: e.institution_name || '—' }),
             el('td', { text: c.fmtDateTime(e.submitted_at) }),
-            el('td', { class: 'perm-col' }, canEdit ? el('button', { type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir', onclick: () => window.app.openConfirmModal({
-              title: 'Excluir avaliação?', msg: `A avaliação de ${e.full_name || 'esta pessoa'} será removida.`, btnText: 'Sim, excluir',
-              successTitle: 'Avaliação excluída', successMsg: 'A prévia será atualizada.',
-              onConfirm: async () => {
-                const { error } = await c.client().from('evaluations').delete().eq('id', e.id);
-                if (error) return c.toast(c.errMsg(error), 'error');
-                await c.audit('submission.delete', 'avaliacao', training.id, c.maskCpf(e.cpf));
-                c.rerender();
-              }
-            }) }) : null)
+            el('td', { class: 'perm-col' }, canEdit ? c.deleteButton('evaluations', e, 'avaliação') : null)
           ]));
         listBox.append(c.table(['Nome', 'CPF', 'Município', 'Categoria', 'Nota geral', 'Instituição', 'Enviada em', ''], rs, term ? 'Nada encontrado.' : 'Nenhuma avaliação ainda.'));
       };
@@ -102,6 +93,8 @@
         listBox
       ]));
       draw();
+      const trash = await c.trashSection('evaluations', 'avaliações');
+      if (trash) body.append(trash);
     }
   });
 })();
