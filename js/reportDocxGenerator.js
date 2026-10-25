@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.6.8
+ * Versão: v.3.6.9
  */
 
 // Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
@@ -1315,9 +1315,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_intro',
-                  children: [new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -1359,9 +1359,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_dados_basicos',
-                  children: [new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -1860,9 +1860,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_contato',
-                  children: [new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -2206,9 +2206,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_desenv',
-                  children: [new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -2715,9 +2715,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_avaliacao',
-                  children: [new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -2856,9 +2856,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_fotos',
-                  children: [new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -2910,9 +2910,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_consideracoes',
-                  children: [new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -2968,9 +2968,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_1',
-                  children: [new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         })
       );
@@ -3026,9 +3026,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_2',
-                  children: [new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         })
       );
@@ -3084,9 +3084,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_3',
-                  children: [new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })]
                 })
-              : new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '000000' })
           ]
         }),
         new Paragraph({
@@ -3615,7 +3615,7 @@ class ReportDocxGenerator {
       // 1.2 MONTAGEM DA PÁGINA 3: EQUIPE PARTICIPANTE (Seção 3 Oficial)
       const equipeChildren = [];
 
-      // Título superior centralizado em azul escuro (#1F4E79)
+      // Título superior centralizado em preto (#000000)
       equipeChildren.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
@@ -3626,7 +3626,7 @@ class ReportDocxGenerator {
               font: REPORT_DOC_FONT,
               bold: true,
               size: 36, // 18pt
-              color: '1F4E79'
+              color: '000000'
             })
           ]
         })
@@ -3833,7 +3833,7 @@ class ReportDocxGenerator {
 
       const indicesChildren = [];
 
-      // Título oficial do Índice de Figuras: Centralizado, Times New Roman, 16pt, Negrito, Azul #1F4E79
+      // Título oficial do Índice de Figuras: Centralizado, fonte do documento, 16pt, Negrito, Preto #000000
       indicesChildren.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
@@ -3844,7 +3844,7 @@ class ReportDocxGenerator {
               font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
-              color: '1F4E79'
+              color: '000000'
             })
           ]
         })
@@ -3959,7 +3959,7 @@ class ReportDocxGenerator {
         });
       }
 
-      // Título oficial do Índice de Tabelas: Centralizado, Times New Roman, 16pt, Negrito, Azul #1F4E79
+      // Título oficial do Índice de Tabelas: Centralizado, fonte do documento, 16pt, Negrito, Preto #000000
       indicesChildren.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
@@ -3970,7 +3970,7 @@ class ReportDocxGenerator {
               font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
-              color: '1F4E79'
+              color: '000000'
             })
           ]
         })
@@ -4093,7 +4093,7 @@ class ReportDocxGenerator {
         }
 
         // 2. Título oficial "SUMÁRIO":
-        // Centralizado, azul institucional (#1F4E79), tamanho 16pt (32 dxa), negrito, estilo TOCHeading / CabealhodoSumrio
+        // Centralizado, preto (#000000), tamanho 16pt (32 dxa), negrito, estilo TOCHeading / CabealhodoSumrio
         const tocHeadingPara = new Paragraph({
           style: 'TOCHeading',
           alignment: AlignmentType.CENTER,
@@ -4104,7 +4104,7 @@ class ReportDocxGenerator {
               font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
-              color: '1F4E79'
+              color: '000000'
             })
           ]
         });
@@ -4170,7 +4170,7 @@ class ReportDocxGenerator {
                 font: REPORT_DOC_FONT,
                 bold: true,
                 size: 32,
-                color: '1F4E79'
+                color: '000000'
               })
             ]
           })
@@ -4242,7 +4242,7 @@ class ReportDocxGenerator {
                 font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
-                color: '1F4E79'
+                color: '000000'
               },
               paragraph: {
                 spacing: { before: 240, after: 240, lineRule: LineRuleType.AUTO },
@@ -4261,7 +4261,7 @@ class ReportDocxGenerator {
                 font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
-                color: "1F4E79"
+                color: "000000"
               },
               paragraph: {
                 alignment: AlignmentType.CENTER,
@@ -4279,7 +4279,7 @@ class ReportDocxGenerator {
                 font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
-                color: "1F4E79"
+                color: "000000"
               },
               paragraph: {
                 alignment: AlignmentType.CENTER,
@@ -4594,7 +4594,7 @@ class ReportDocxGenerator {
           }
           .content-page h2 {
             font-size: 16pt;
-            color: #1F4E79;
+            color: #000000;
             font-weight: bold;
             margin-top: 2rem;
             margin-bottom: 0.75rem;
@@ -4655,7 +4655,7 @@ class ReportDocxGenerator {
         <!-- PÁGINA 3: EQUIPE PARTICIPANTE OFICIAL -->
         <div class="equipe-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding: 2.5cm; box-sizing: border-box;">
           <div>
-            <h2 style="text-align: center; color: #1F4E79; font-size: 18pt; font-weight: bold; margin-bottom: 2rem;">RELATÓRIO DE ATIVIDADES Nº ${training.number || '16'}</h2>
+            <h2 style="text-align: center; color: #000000; font-size: 18pt; font-weight: bold; margin-bottom: 2rem;">RELATÓRIO DE ATIVIDADES Nº ${training.number || '16'}</h2>
             <h3 style="font-size: 14pt; font-weight: bold; color: #000000; margin-bottom: 1.5rem;">EQUIPE PARTICIPANTE</h3>
             <div style="margin-left: 1.25cm; margin-bottom: 1.5rem;">
               <h4 style="font-size: 12pt; font-weight: bold; margin-bottom: 0.5rem;">UNIVERSIDADE FEDERAL DE GOIÁS – UFG</h4>
@@ -4697,11 +4697,11 @@ class ReportDocxGenerator {
         <!-- PÁGINA 4: ÍNDICE DE FIGURAS E ÍNDICE DE TABELAS -->
         <div class="indices-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding: 2.5cm; box-sizing: border-box;">
           <div>
-            <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem;">ÍNDICE DE FIGURAS</h2>
+            <h2 style="text-align: center; color: #000000; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem;">ÍNDICE DE FIGURAS</h2>
             <div style="font-size: 12pt; line-height: 1.8;">
               ${figuresList.map(fig => `<div style="display: flex; justify-content: space-between;"><span>${fig.label}</span><span>${fig.page}</span></div>`).join('')}
             </div>
-            <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 1.2rem;">ÍNDICE DE TABELAS</h2>
+            <h2 style="text-align: center; color: #000000; font-size: 16pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 1.2rem;">ÍNDICE DE TABELAS</h2>
             <div style="font-size: 12pt; line-height: 1.8;">
               ${tablesList.map(tab => `<div style="display: flex; justify-content: space-between;"><span>${tab.label}</span><span>${tab.page}</span></div>`).join('')}
             </div>
@@ -4716,7 +4716,7 @@ class ReportDocxGenerator {
         <!-- PÁGINA 5: SUMÁRIO -->
         <div class="sumario-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding: 2.5cm; box-sizing: border-box;">
           <div>
-            <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: '${REPORT_DOC_FONT}', serif;">SUMÁRIO</h2>
+            <h2 style="text-align: center; color: #000000; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: '${REPORT_DOC_FONT}', serif;">SUMÁRIO</h2>
             <div style="font-size: 12pt; line-height: 2;">
               ${sumarioList.map(item => `<div style="display: flex; justify-content: space-between;"><span>${item.label}</span><span>${item.page}</span></div>`).join('')}
             </div>

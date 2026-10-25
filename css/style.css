@@ -2441,8 +2441,8 @@ body.light-theme .report-doc-preview-wrapper {
 }
 
 .report-doc-page h1, .report-doc-page h2, .report-doc-page h3, .report-doc-page h4 {
-  font-family: 'Times New Roman', serif;
-  color: #1f4e79;
+  font-family: var(--report-font, 'Times New Roman'), serif;
+  color: #000000;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -2450,7 +2450,7 @@ body.light-theme .report-doc-preview-wrapper {
 .report-doc-page h3 {
   font-size: 16pt;
   font-weight: 700;
-  color: #1f4e79;
+  color: #000000;
 }
 
 /* Paged Table Header and Footer */
