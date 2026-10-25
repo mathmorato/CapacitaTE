@@ -5,6 +5,7 @@ Antes de qualquer alteração neste projeto, leia e siga as regras em:
 - `.agents/rules/guidelines.md` — regras gerais, **versionamento `v.X.Y.Z`**, persistência, identidade visual e commits.
 - `.agents/rules/AGENTSparaword` — padrões visuais do relatório Word.
 - [`.agents/specs/capacitate-modular.md`](.agents/specs/capacitate-modular.md) — especificação da plataforma modular CapacitaTE (executar fase por fase, seção 14; PDFs de referência em `.agents/specs/referencias/`).
+- [`.agents/specs/formularios.md`](.agents/specs/formularios.md) — **estrutura oficial, passo a passo, dos 3 formulários públicos** (vale sobre os PDFs).
 
 ## Versionamento (resumo obrigatório)
 

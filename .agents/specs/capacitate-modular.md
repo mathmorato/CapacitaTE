@@ -483,7 +483,7 @@ Busca por CPF, nome ou município; histórico de participação da pessoa (capac
 
 ## 8. Módulo A — Formulário de inscrição
 
-Referência: `.agents/specs/referencias/Formulario_de_inscricao.pdf` e a planilha "2026_16_CTE_Formulario (respostas)".
+Estrutura oficial: `.agents/specs/formularios.md` (seção 1). Referência visual: `.agents/specs/referencias/Formulario_de_inscricao.pdf` e a planilha "2026_16_CTE_Formulario (respostas)".
 
 ### 8.1 Configuração (`forms.config`, editável por quem tem `inscricao.edit`)
 
@@ -537,7 +537,7 @@ Seção final:
 
 ## 9. Módulo B — Lista de presença
 
-Referência: `Lista_de_Presenca.pdf` e a planilha "16CTE - Lista de presença (respostas)".
+Estrutura oficial: `.agents/specs/formularios.md` (seção 2). Referência visual: `Lista_de_Presenca.pdf` e a planilha "16CTE - Lista de presença (respostas)".
 
 ### 9.1 Sessões
 
@@ -565,7 +565,7 @@ Opcional (desligado por padrão): `requireGeolocation` com raio em metros a part
 
 ## 10. Módulo C — Avaliação da capacitação
 
-Referência: `Avaliacao_da_capacitacao.pdf` e a planilha "16CTE - Avaliação (respostas)".
+Estrutura oficial: `.agents/specs/formularios.md` (seção 3). Referência visual: `Avaliacao_da_capacitacao.pdf` e a planilha "16CTE - Avaliação (respostas)".
 
 ### 10.1 Configuração
 

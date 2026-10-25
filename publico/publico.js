@@ -1,20 +1,22 @@
 /**
  * CapacitaTE - Motor dos Formulários Públicos (inscrição, presença e avaliação; sem login)
- * Versão: v.3.9.6
+ * Lê o esquema de js/core/formSchema.js (fonte: .agents/specs/formularios.md) e desenha as telas.
+ * Versão: v.3.9.7
  */
 
 (function () {
-  const VERSION = 'v.3.9.6';
+  const VERSION = 'v.3.9.7';
   const MODULE = document.body.dataset.module; // inscricao | presenca | avaliacao
   const RPC_SUBMIT = { inscricao: 'public_submit_registration', presenca: 'public_submit_attendance', avaliacao: 'public_submit_evaluation' };
   const MODULE_TITLES = { inscricao: 'Formulário de Inscrição', presenca: 'Lista de Presença', avaliacao: 'Avaliação da Capacitação' };
-  const schema = CapacitaTE.formSchema;
+  const NETWORK_ERROR = 'Não foi possível enviar. Verifique sua conexão e tente novamente.';
+  const schemaLib = CapacitaTE.formSchema;
   const cpfLib = CapacitaTE.cpf;
   const fmt = CapacitaTE.formats;
 
   const token = new URLSearchParams(window.location.search).get('t') || '';
   const app = document.getElementById('pub-app');
-  const state = { form: null, config: null, training: null, lookup: null, data: {}, steps: [], step: 0, sending: false };
+  const state = { form: null, config: null, training: {}, vars: {}, lookup: null, data: {}, schema: null, step: 0, sending: false, cpf: '' };
 
   // ---------- utilidades ----------
   function el(tag, attrs = {}, children = []) {
@@ -45,41 +47,42 @@
     try { sessionStorage.removeItem(draftKey()); } catch (e) { /* sem sessionStorage */ }
   }
 
-  function client() {
-    return CapacitaTE.supabaseClient.get();
-  }
-
   /**
-   * Chama uma função pública. Distingue erro de rede (mantém os dados) de erro de validação do servidor.
+   * Chama uma função pública. Erro de rede mantém os dados na tela; erro do servidor traz a mensagem dele.
    */
   async function rpc(name, params) {
     let res;
     try {
-      res = await client().rpc(name, params);
+      res = await CapacitaTE.supabaseClient.get().rpc(name, params);
     } catch (e) {
-      throw Object.assign(new Error('Sem conexão com o servidor. Seus dados continuam aqui: verifique a internet e tente novamente.'), { network: true });
+      throw Object.assign(new Error(NETWORK_ERROR), { network: true });
     }
     if (res.error) {
       const msg = res.error.message || '';
-      if (/fetch|network|Failed to/i.test(msg)) {
-        throw Object.assign(new Error('Sem conexão com o servidor. Seus dados continuam aqui: verifique a internet e tente novamente.'), { network: true });
-      }
+      if (/fetch|network|Failed to/i.test(msg)) throw Object.assign(new Error(NETWORK_ERROR), { network: true });
       throw new Error(msg || 'Não foi possível concluir. Tente novamente.');
     }
     return res.data;
   }
 
-  function trainingLabel() {
+  // Variáveis {numero}, {sigla}, {polo}... usadas nos textos do esquema
+  function buildVars() {
     const t = state.training || {};
-    const parts = [];
-    if (t.number) parts.push(`${t.number}ª CTE`);
-    if (t.polo) parts.push(`${t.polo}${t.uf ? ` (${t.uf})` : ''}`);
-    return parts.join(' – ');
+    state.vars = {
+      numero: t.number || '',
+      sigla: t.number ? `${t.number}CTE` : 'CTE',
+      polo: t.polo || '',
+      uf: t.uf || '',
+      datas_extenso: t.datesFormatted || '',
+      local: t.locationVenue || '',
+      // Formulário de presença único: a sessão é o dia do envio
+      sessao_label: (state.config && state.config.label) || fmt.formatDate(new Date())
+    };
   }
 
-  function sessionLabel() {
-    if (MODULE !== 'presenca') return '';
-    return state.config.label || '';
+  function trainingLabel() {
+    const t = state.training || {};
+    return [t.number ? `${t.number}ª CTE` : null, t.polo ? `${t.polo}${t.uf ? ` (${t.uf})` : ''}` : null].filter(Boolean).join(' – ');
   }
 
   function render(...nodes) {
@@ -88,36 +91,39 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function card(children) {
-    return el('section', { class: 'pub-card' }, children);
-  }
+  const card = (children) => el('section', { class: 'pub-card' }, children);
+  const alertBox = (text, type = 'error') => el('div', { class: `pub-alert pub-alert-${type}`, role: type === 'error' ? 'alert' : 'status', text });
 
-  // Cabeçalho no desenho de cada formulário do Google usado pelo CECATE
   function header() {
-    const t = state.training || {};
-    const title = el('h1', { class: 'pub-title', text: state.config.title || MODULE_TITLES[MODULE] });
+    const v = state.vars;
+    const base = schemaLib.FORM_SCHEMAS[MODULE === 'presenca' ? 'presenca_inscrito' : MODULE];
+    const title = el('h1', { class: 'pub-title', text: state.config.title || schemaLib.fill(base.title, v) || MODULE_TITLES[MODULE] });
     if (MODULE === 'presenca') {
-      return [
-        title,
-        el('p', { class: 'pub-subtitle pub-subtitle-strong', text: [t.polo, t.uf].filter(Boolean).join(' - ') }),
-        el('p', { class: 'pub-subtitle pub-subtitle-strong', text: [t.datesFormatted, sessionLabel()].filter(Boolean).join(' · ') })
-      ];
+      return [title, el('p', { class: 'pub-subtitle pub-subtitle-strong', text: [[v.polo, v.uf].filter(Boolean).join(' - '), v.datas_extenso, `Sessão: ${v.sessao_label}`].filter(Boolean).join(' · ') })];
     }
     if (MODULE === 'avaliacao') {
-      const sub = state.config.subtitle || `${[t.number ? `${t.number} CTE` : '', t.polo ? `${t.polo}${t.uf ? ` (${t.uf})` : ''}` : ''].filter(Boolean).join(' - ')} ${t.datesFormatted || ''}`.trim();
+      const sub = state.config.subtitle || `${[v.numero ? `${v.numero} CTE` : '', v.polo ? `${v.polo}${v.uf ? ` (${v.uf})` : ''}` : ''].filter(Boolean).join(' - ')} ${v.datas_extenso}`.trim();
       return [title, el('p', { class: 'pub-subtitle pub-subtitle-strong', text: sub })];
     }
-    return [title, el('p', { class: 'pub-subtitle', text: [trainingLabel(), t.datesFormatted].filter(Boolean).join(' · ') })];
+    return [title, el('p', { class: 'pub-subtitle', text: [trainingLabel(), v.datas_extenso].filter(Boolean).join(' · ') })];
   }
 
-  // Texto de apresentação: o da configuração ou, na presença, o texto de boas-vindas padrão
   function introText() {
-    if (state.config.intro) return state.config.intro;
-    return MODULE === 'presenca' ? schema.DEFAULTS.attendanceWelcome : '';
+    if (state.config.intro) return schemaLib.fill(state.config.intro, state.vars);
+    return MODULE === 'presenca' ? state.config.attendanceWelcome : '';
   }
 
-  function alertBox(text, type = 'error') {
-    return el('div', { class: `pub-alert pub-alert-${type}`, role: type === 'error' ? 'alert' : 'status', text });
+  // "CPF: ***.794.758-** — trocar" no topo das telas depois do CPF
+  function cpfBanner() {
+    return el('div', { class: 'pub-cpf-banner' }, [
+      el('span', { text: `CPF: ${cpfLib.mask(state.cpf)}` }),
+      el('button', { type: 'button', class: 'pub-link-btn', text: 'trocar', onclick: () => { clearDraft(); state.cpf = ''; state.data = {}; state.lookup = null; showCpf(); } })
+    ]);
+  }
+
+  function contactsLine() {
+    const c = (state.config && state.config.contacts) || schemaLib.DEFAULTS.contacts;
+    return el('p', { class: 'pub-help', text: `Dúvidas: WhatsApp ${c.whatsapp} · Instagram ${c.instagram} · ${c.site}` });
   }
 
   // ---------- telas ----------
@@ -126,26 +132,24 @@
   }
 
   function showFatal(message) {
-    const c = schema.DEFAULTS.contacts;
-    render(card([
-      el('h1', { class: 'pub-title', text: MODULE_TITLES[MODULE] || 'Formulário' }),
-      alertBox(message),
-      el('p', { class: 'pub-help', text: `Dúvidas: WhatsApp ${c.whatsapp} · ${c.instagram} · ${c.site}` })
-    ]));
+    render(card([el('h1', { class: 'pub-title', text: MODULE_TITLES[MODULE] || 'Formulário' }), alertBox(message), contactsLine()]));
   }
 
   function showClosed() {
-    const c = state.config.contacts || schema.DEFAULTS.contacts;
-    const msgs = {
-      rascunho: 'Este formulário ainda não está disponível.',
-      agendado: `Este formulário abre em ${fmt.formatDateTime(state.form.opens_at).slice(0, 16).replace(' ', ' às ')}.`,
-      encerrado: 'Este formulário está encerrado e não recebe mais respostas.'
-    };
+    const f = state.form;
+    const when = (iso) => fmt.formatDateTime(iso).slice(0, 16).replace(' ', ' às ');
+    const hours = f.opens_at || f.closes_at ? `Horário: ${f.opens_at ? `de ${when(f.opens_at)}` : ''}${f.closes_at ? ` até ${when(f.closes_at)}` : ''}.` : '';
+    let msg;
+    if (f.state === 'rascunho') msg = 'Este formulário ainda não está disponível.';
+    else if (MODULE === 'presenca') msg = `A lista de presença desta sessão não está aberta agora. ${hours}`.trim();
+    else if (f.state === 'agendado') msg = `Este formulário abre em ${when(f.opens_at)}.`;
+    else msg = 'Este formulário está encerrado e não recebe mais respostas.';
+    const t = state.training || {};
     render(card([
       ...header(),
-      alertBox(msgs[state.form.state] || 'Este formulário não está disponível.', 'info'),
-      state.training && state.training.datesFormatted ? el('p', { class: 'pub-help', text: `Capacitação: ${state.training.datesFormatted}${state.training.locationVenue ? ` – ${state.training.locationVenue}` : ''}` }) : null,
-      el('p', { class: 'pub-help', text: `Dúvidas: WhatsApp ${c.whatsapp} · Instagram ${c.instagram} · ${c.site}` })
+      alertBox(msg, 'info'),
+      t.datesFormatted ? el('p', { class: 'pub-help', text: `Capacitação: ${t.datesFormatted}${t.locationVenue ? ` – ${t.locationVenue}` : ''}` }) : null,
+      contactsLine()
     ]));
   }
 
@@ -176,6 +180,7 @@
       btn.disabled = true;
       btn.textContent = 'Consultando...';
       try {
+        if (digits !== state.cpf) state.data = {};
         state.cpf = digits;
         state.lookup = await rpc('public_lookup_cpf', { p_token: token, p_cpf: digits });
         afterLookup();
@@ -199,14 +204,10 @@
     const lk = state.lookup;
     if (lk.already_submitted) {
       if (MODULE === 'presenca') return showAttendanceOk({ already: true, submitted_at: lk.submitted_at });
-      if (!lk.allow_edit) {
-        return render(card([
-          ...header(),
-          alertBox(`Você já respondeu este formulário em ${lk.submitted_when}.`, 'info'),
-          el('p', { class: 'pub-help', text: 'Se precisar corrigir algum dado, fale com a equipe do CECATE.' }),
-          el('div', { class: 'pub-actions' }, el('button', { type: 'button', class: 'pub-btn', text: 'Usar outro CPF', onclick: () => { state.cpf = ''; showCpf(); } }))
-        ]));
-      }
+      const actions = lk.allow_edit
+        ? el('div', { class: 'pub-actions' }, el('button', { type: 'button', class: 'pub-btn pub-btn-primary', text: 'Atualizar minha resposta', onclick: () => (lk.exists ? showSecondFactor() : startSteps()) }))
+        : el('p', { class: 'pub-help', text: 'Se precisar corrigir algum dado, fale com a equipe do CECATE.' });
+      return render(card([...header(), cpfBanner(), alertBox(`Você já respondeu este formulário em ${lk.submitted_when}.`, 'info'), actions, contactsLine()]));
     }
     if (lk.exists) return showSecondFactor();
     startSteps();
@@ -220,16 +221,14 @@
       : el('input', { class: 'pub-input', id: 'f-factor', type: 'email', autocomplete: 'email', 'aria-describedby': 'f-factor-error' });
     const err = el('span', { class: 'pub-error', id: 'f-factor-error', role: 'alert', text: errorText });
     const btn = el('button', { type: 'submit', class: 'pub-btn pub-btn-primary', text: 'Confirmar' });
-    const intro = lk.already_submitted
-      ? `Você já respondeu em ${lk.submitted_when}. Para atualizar a sua resposta, confirme`
-      : `Encontramos um cadastro em nome de ${lk.masked_name}. Para carregar seus dados, confirme`;
+    const what = byBirth ? 'sua data de nascimento' : `o seu e-mail completo (${lk.masked_email})`;
     const form = el('form', { novalidate: true }, [
-      el('p', { class: 'pub-intro', text: `${intro} ${byBirth ? 'sua data de nascimento' : `o seu e-mail completo (${lk.masked_email})`}.` }),
+      el('p', { class: 'pub-intro' }, ['Encontramos um cadastro em nome de ', el('strong', { text: lk.masked_name }), `. Para carregar seus dados, confirme ${what}.`]),
       el('div', { class: `pub-field${errorText ? ' has-error' : ''}` }, [
         el('label', { class: 'pub-label', for: 'f-factor', text: byBirth ? 'Data de nascimento' : 'E-mail' }), input, err
       ]),
       el('div', { class: 'pub-actions' }, btn),
-      el('button', { type: 'button', class: 'pub-link-btn', text: 'Não sou eu / preencher manualmente', onclick: () => startSteps() })
+      el('button', { type: 'button', class: 'pub-link-btn', text: 'Não sou eu, preencher manualmente', onclick: () => startSteps() })
     ]);
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -242,7 +241,7 @@
         });
         if (!res || res.ok === false) {
           btn.disabled = false;
-          err.textContent = (res && res.message) || 'Os dados não conferem.';
+          err.textContent = 'Os dados não conferem. Confira ou preencha manualmente.';
           input.closest('.pub-field').classList.add('has-error');
           return;
         }
@@ -251,9 +250,10 @@
       } catch (ex) {
         btn.disabled = false;
         err.textContent = ex.message;
+        input.closest('.pub-field').classList.add('has-error');
       }
     });
-    render(card([...header(), form]));
+    render(card([...header(), cpfBanner(), form]));
     setTimeout(() => input.focus(), 50);
   }
 
@@ -265,10 +265,9 @@
     if (MODULE === 'inscricao') put('email_confirm', p.email);
     put('birth_date', p.birth_date);
     put('phone', p.phone ? fmt.formatPhone(p.phone) : '');
-    const muns = schema.optionsOf({ optionsFrom: 'municipalities' }, state.config);
-    if (p.municipality && muns.some(m => m.toLowerCase() === String(p.municipality).toLowerCase())) {
-      put('municipality', muns.find(m => m.toLowerCase() === String(p.municipality).toLowerCase()));
-    }
+    const muns = schemaLib.optionsOf({ optionsFrom: 'municipalities' }, state.config);
+    const mun = p.municipality && muns.find(m => m.toLowerCase() === String(p.municipality).toLowerCase());
+    if (mun) put('municipality', mun);
     put('category', p.category);
     put('role_gestao', p.role_gestao);
     put('role_cacs', p.role_cacs);
@@ -276,22 +275,29 @@
     saveDraft();
   }
 
-  function stepsForModule() {
-    if (MODULE === 'presenca') return state.lookup && state.lookup.has_registration ? schema.STEPS.presenca_inscrito : schema.STEPS.presenca_nao_inscrito;
-    return schema.STEPS[MODULE];
+  function schemaForModule() {
+    if (MODULE === 'presenca') return schemaLib.FORM_SCHEMAS[state.lookup && state.lookup.has_registration ? 'presenca_inscrito' : 'presenca_nao_inscrito'];
+    return schemaLib.FORM_SCHEMAS[MODULE];
   }
 
-  // Etapas visíveis: some a etapa cujos campos ficaram todos ocultos pelas condições
-  function visibleSteps() {
-    return state.steps.filter(s => (!s.when || s.when(state.data)) && s.fields.some(f => !f.when || f.when(state.data)));
+  // Seções visíveis: condição atendida e ao menos um campo
+  function visibleSections() {
+    return state.schema.sections.filter(s => schemaLib.isVisible(s, state.data) && s.fields.length);
+  }
+
+  // Campos das seções que deixaram de valer (ex.: trocou a categoria) são limpos
+  function clearHiddenSections() {
+    state.schema.sections.forEach(s => {
+      if (!schemaLib.isVisible(s, state.data)) s.fields.forEach(f => { delete state.data[f.id]; });
+    });
   }
 
   function startSteps() {
-    state.steps = stepsForModule();
+    state.schema = schemaForModule();
     const draft = loadDraft();
     if (draft && draft.cpf === state.cpf) {
       state.data = Object.assign({}, draft.data, state.data);
-      state.step = Math.min(draft.step || 0, visibleSteps().length - 1);
+      state.step = Math.min(draft.step || 0, visibleSections().length - 1);
     } else {
       state.step = 0;
     }
@@ -301,90 +307,105 @@
   // ---------- campos ----------
   function fieldNode(field) {
     const cfg = state.config;
-    const id = `f-${field.name}`;
+    const id = `f-${field.id}`;
     const errId = `${id}-error`;
-    const value = state.data[field.name];
-    const label = schema.labelOf(field, cfg);
-    const set = (v) => { state.data[field.name] = v; saveDraft(); };
-    const reqMark = field.required ? el('span', { class: 'pub-req', 'aria-hidden': 'true', text: '*' }) : null;
-    const wrap = el('div', { class: 'pub-field', 'data-field': field.name });
+    const value = state.data[field.id];
+    const label = schemaLib.fill(schemaLib.labelOf(field, cfg), state.vars);
+    const set = (v) => { state.data[field.id] = v; saveDraft(); };
+    const req = field.required ? el('span', { class: 'pub-req', 'aria-hidden': 'true', text: '*' }) : null;
+    const wrap = el('div', { class: 'pub-field', 'data-field': field.id });
     const err = el('span', { class: 'pub-error', id: errId, role: 'alert' });
+    const htmlType = { texto: 'text', email: 'email', telefone: 'tel', data: 'date' }[field.type];
 
-    if (['text', 'email', 'tel', 'date'].includes(field.type)) {
+    if (htmlType) {
       const input = el('input', {
-        class: 'pub-input', id, type: field.type, value: value || '', autocomplete: field.autocomplete || null,
-        inputmode: field.type === 'tel' ? 'tel' : null, required: field.required, 'aria-describedby': errId,
-        maxlength: field.type === 'tel' ? '14' : null, placeholder: field.type === 'tel' ? '(65)99999-1234' : null
+        class: 'pub-input', id, type: htmlType, value: value || '', autocomplete: field.autocomplete || null,
+        inputmode: field.type === 'telefone' ? 'tel' : null, 'aria-describedby': errId,
+        maxlength: field.type === 'telefone' ? '14' : null,
+        placeholder: field.type === 'telefone' ? '(65)99999-1234' : (field.placeholder ? schemaLib.fill(field.placeholder, state.vars) : null)
       });
       input.addEventListener('input', () => {
-        if (field.type === 'tel') {
+        if (field.type === 'telefone') {
           const d = input.value.replace(/\D/g, '').slice(0, 11);
           input.value = d.length > 2 ? `(${d.slice(0, 2)})${d.length > 7 ? `${d.slice(2, d.length - 4)}-${d.slice(-4)}` : d.slice(2)}` : d;
         }
         set(input.value);
       });
-      wrap.append(el('label', { class: 'pub-label', for: id }, [label, reqMark]), input, err);
-    } else if (field.type === 'textarea') {
-      const ta = el('textarea', { class: 'pub-textarea', id, required: field.required, 'aria-describedby': errId });
+      wrap.append(el('label', { class: 'pub-label', for: id }, [label, req]), input, err);
+    } else if (field.type === 'texto_longo') {
+      const ta = el('textarea', { class: 'pub-textarea', id, maxlength: '2000', 'aria-describedby': errId });
       ta.value = value || '';
       ta.addEventListener('input', () => set(ta.value));
-      wrap.append(el('label', { class: 'pub-label', for: id }, [label, reqMark]), ta, err);
-    } else if (field.type === 'select') {
-      const opts = schema.optionsOf(field, cfg).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      const sel = el('select', { class: 'pub-select', id, required: field.required, 'aria-describedby': errId }, [
+      wrap.append(el('label', { class: 'pub-label', for: id }, [label, req]), ta, err);
+    } else if (field.type === 'lista') {
+      const opts = schemaLib.optionsOf(field, cfg).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const sel = el('select', { class: 'pub-select', id, 'aria-describedby': errId }, [
         el('option', { value: '', text: 'Selecione...' }),
         ...opts.map((o, i) => el('option', { value: o, text: `${i + 1}. ${o}` }))
       ]);
       sel.value = value || '';
       sel.addEventListener('change', () => set(sel.value));
-      wrap.append(el('label', { class: 'pub-label', for: id }, [label, reqMark]), sel, err);
-    } else if (field.type === 'radio') {
-      const opts = schema.optionsOf(field, cfg);
+      wrap.append(el('label', { class: 'pub-label', for: id }, [label, req]), sel, err);
+    } else if (field.type === 'escolha_unica') {
+      const opts = schemaLib.optionsOf(field, cfg);
       const group = el('div', { class: 'pub-options', role: 'radiogroup', 'aria-labelledby': `${id}-label`, 'aria-describedby': errId },
         opts.map((o, i) => {
           const input = el('input', { type: 'radio', name: id, id: `${id}-${i}`, value: o, checked: value === o });
-          input.addEventListener('change', () => { set(o); if (field.name === 'category') showStep(true); });
-          return el('label', { class: 'pub-option', for: `${id}-${i}` }, [input, el('span', { text: o })]);
+          input.addEventListener('change', () => {
+            set(o);
+            if (field.id === 'category') { clearHiddenSections(); saveDraft(); showStep(true); }
+          });
+          return el('label', { class: 'pub-option', for: `${id}-${i}` }, [input, el('span', { text: field.hideSemicolon ? o.replace(/;\s*$/, '') : o })]);
         }));
-      wrap.append(el('span', { class: 'pub-label', id: `${id}-label` }, [label, reqMark]), group, err);
-    } else if (field.type === 'checkbox') {
+      wrap.append(el('span', { class: 'pub-label', id: `${id}-label` }, [label, req]), group, err);
+    } else if (field.type === 'aceite') {
       const input = el('input', { type: 'checkbox', id, checked: !!value, 'aria-describedby': errId });
       input.addEventListener('change', () => set(input.checked));
-      wrap.append(el('label', { class: 'pub-option', for: id }, [input, el('span', {}, [label, reqMark])]), err);
-    } else if (field.type === 'checkboxes') {
-      const opts = schema.optionsOf(field, cfg);
+      wrap.append(el('label', { class: 'pub-option', for: id }, [input, el('span', {}, [label, req])]), err);
+    } else if (field.type === 'multipla_escolha') {
+      const opts = schemaLib.optionsOf(field, cfg);
       const selected = Array.isArray(value) ? value : [];
       const group = el('div', { class: 'pub-options', role: 'group', 'aria-labelledby': `${id}-label`, 'aria-describedby': errId },
         opts.map((o, i) => {
           const input = el('input', { type: 'checkbox', id: `${id}-${i}`, value: o, checked: selected.includes(o) });
           input.addEventListener('change', () => {
-            const cur = new Set(Array.isArray(state.data[field.name]) ? state.data[field.name] : []);
+            const cur = new Set(Array.isArray(state.data[field.id]) ? state.data[field.id] : []);
             if (input.checked) cur.add(o); else cur.delete(o);
             set(opts.filter(x => cur.has(x)));
           });
           return el('label', { class: 'pub-option', for: `${id}-${i}` }, [input, el('span', { text: o })]);
         }));
-      wrap.append(el('span', { class: 'pub-label', id: `${id}-label` }, [label, reqMark]), group);
-      if (cfg[field.otherFrom]) {
-        const other = el('input', { class: 'pub-input', id: `${id}-other`, type: 'text', value: state.data[field.otherName] || '', placeholder: 'Outro (descreva)' });
-        other.addEventListener('input', () => { state.data[field.otherName] = other.value; saveDraft(); });
-        wrap.append(el('label', { class: 'visually-hidden', for: `${id}-other`, text: 'Outro' }), el('div', { style: 'margin-top:0.5rem;' }, other));
+      wrap.append(el('span', { class: 'pub-label', id: `${id}-label` }, [label, req]), group);
+      if (cfg[field.otherFrom] && field.otherId) {
+        const onKey = `${field.otherId}_on`;
+        const otherText = el('input', { class: 'pub-input', id: `${id}-other`, type: 'text', value: state.data[field.otherId] || '', placeholder: 'Descreva', 'aria-label': 'Outro (descreva)' });
+        otherText.style.display = state.data[onKey] ? '' : 'none';
+        otherText.addEventListener('input', () => { state.data[field.otherId] = otherText.value; saveDraft(); });
+        const otherBox = el('input', { type: 'checkbox', id: `${id}-otherbox`, checked: !!state.data[onKey] });
+        otherBox.addEventListener('change', () => {
+          state.data[onKey] = otherBox.checked;
+          if (!otherBox.checked) state.data[field.otherId] = '';
+          otherText.style.display = otherBox.checked ? '' : 'none';
+          if (otherBox.checked) otherText.focus();
+          saveDraft();
+        });
+        group.append(el('label', { class: 'pub-option', for: `${id}-otherbox` }, [otherBox, el('span', { text: 'Outro:' })]), otherText);
       }
       wrap.append(err);
-    } else if (field.type === 'rating') {
+    } else if (field.type === 'nota_1a5') {
       const items = cfg[field.itemsFrom] || [];
       const cur = Object.assign({}, value || {});
-      wrap.append(el('p', { class: 'pub-rating-help', id: `${id}-label`, text: label }));
+      wrap.append(el('p', { class: 'pub-rating-help', id: `${id}-label` }, [label, req]));
       items.forEach(it => {
         const name = `${id}-${it.key}`;
         wrap.append(el('div', { class: 'pub-rating-item' }, el('fieldset', {}, [
-          el('legend', {}, [it.label, reqMark ? el('span', { class: 'pub-req', 'aria-hidden': 'true', text: '*' }) : null]),
+          el('legend', { text: it.label }),
           el('div', { class: 'pub-rating-row' }, [1, 2, 3, 4, 5].map(n => {
             const input = el('input', { type: 'radio', name, value: String(n), checked: cur[it.key] === n, 'aria-label': `${it.label}: nota ${n}` });
             input.addEventListener('change', () => { cur[it.key] = n; set(Object.assign({}, cur)); });
             return el('label', {}, [input, el('span', { text: String(n), 'aria-hidden': 'true' })]);
           })),
-          el('div', { class: 'pub-rating-scale', 'aria-hidden': 'true' }, [el('span', { text: 'ruim' }), el('span', { text: 'excelente' })])
+          el('div', { class: 'pub-rating-scale', 'aria-hidden': 'true' }, [el('span', { text: '1 = ruim' }), el('span', { text: '5 = excelente' })])
         ])));
       });
       wrap.append(err);
@@ -392,56 +413,83 @@
     return wrap;
   }
 
+  // Resumo antes do envio (inscrição): rótulo e valor de cada campo preenchido, com "editar" por seção
+  function reviewNode(sections) {
+    const cfg = state.config;
+    const show = (f) => {
+      const v = state.data[f.id];
+      if (f.type === 'aceite' || v === undefined || v === null || v === '') return null;
+      if (f.type === 'data') return fmt.formatDate(v);
+      return String(v);
+    };
+    return el('div', { class: 'pub-review' }, [
+      el('h2', { class: 'pub-review-title', text: 'Confira seus dados antes de enviar' }),
+      ...sections.map((s, idx) => el('div', { class: 'pub-review-section' }, [
+        el('div', { class: 'pub-review-head' }, [
+          el('strong', { text: s.title }),
+          el('button', { type: 'button', class: 'pub-link-btn', text: 'editar', onclick: () => { state.step = idx; saveDraft(); showStep(); } })
+        ]),
+        el('dl', {}, s.fields.filter(f => f.id !== 'email_confirm' && show(f) !== null).flatMap(f => [
+          el('dt', { text: schemaLib.labelOf(f, cfg) }), el('dd', { text: show(f) })
+        ]))
+      ]))
+    ]);
+  }
+
   // ---------- etapas ----------
   function showStep(keepScroll = false) {
-    const steps = visibleSteps();
-    state.step = Math.max(0, Math.min(state.step, steps.length - 1));
-    const step = steps[state.step];
-    const isLast = state.step === steps.length - 1;
-    const pct = Math.round(((state.step + 1) / steps.length) * 100);
+    const sections = visibleSections();
+    state.step = Math.max(0, Math.min(state.step, sections.length - 1));
+    const section = sections[state.step];
+    const isLast = state.step === sections.length - 1;
+    const pct = Math.round(((state.step + 1) / sections.length) * 100);
     const errorBox = el('div', { id: 'pub-step-error' });
-    const fields = step.fields.filter(f => !f.when || f.when(state.data));
 
     const back = el('button', { type: 'button', class: 'pub-btn', text: 'Voltar' });
     back.addEventListener('click', () => {
       if (state.step === 0) { showCpf(); return; }
       state.step -= 1; saveDraft(); showStep();
     });
-    const next = el('button', { type: 'submit', class: 'pub-btn pub-btn-primary', text: isLast ? 'Enviar' : 'Continuar' });
+    const next = el('button', { type: 'submit', class: 'pub-btn pub-btn-primary', text: isLast ? state.schema.submitLabel : 'Continuar' });
 
     const form = el('form', { novalidate: true }, [
       el('div', { class: 'pub-progress' }, [
-        el('div', { class: 'pub-progress-label' }, [el('span', { text: step.title }), el('span', { text: `Etapa ${state.step + 1} de ${steps.length}` })]),
+        el('div', { class: 'pub-progress-label' }, [el('span', { text: section.title }), el('span', { text: `Etapa ${state.step + 1} de ${sections.length}` })]),
         el('div', { class: 'pub-progress-track', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) },
           el('div', { class: 'pub-progress-bar', style: `width:${pct}%` }))
       ]),
+      section.noticeFrom ? alertBox(state.config[section.noticeFrom], 'info') : null,
+      isLast && state.schema.review ? reviewNode(sections.slice(0, -1)) : null,
       errorBox,
-      el('div', { class: 'pub-field' }, [
-        el('label', { class: 'pub-label', for: 'f-cpf-locked', text: 'CPF' }),
-        el('input', { class: 'pub-input', id: 'f-cpf-locked', type: 'text', value: cpfLib.format(state.cpf), readOnly: true })
-      ]),
-      ...fields.map(fieldNode),
+      ...section.fields.map(fieldNode),
       el('div', { class: 'pub-actions' }, [back, next])
     ]);
-    // O CPF travado só aparece na primeira etapa
-    if (state.step > 0) form.querySelector('#f-cpf-locked').closest('.pub-field').remove();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!validateStep(form, fields)) return;
+      if (!validateStep(form, section.fields)) return;
       if (!isLast) { state.step += 1; saveDraft(); showStep(); return; }
       await submit(next, errorBox);
     });
-    render(card([...header(), form]));
-    if (!keepScroll) setTimeout(() => { const first = form.querySelector('input:not([readonly]), select, textarea'); if (first) first.focus(); }, 50);
+    render(card([...header(), cpfBanner(), form]));
+    if (!keepScroll) setTimeout(() => { const first = form.querySelector('input:not([type=radio]):not([type=checkbox]), select, textarea'); if (first) first.focus(); }, 50);
+  }
+
+  function showFieldError(form, fieldId, msg) {
+    const wrap = form && form.querySelector(`[data-field="${fieldId}"]`);
+    if (!wrap) return null;
+    wrap.classList.add('has-error');
+    const err = wrap.querySelector('.pub-error');
+    if (err) err.textContent = msg;
+    return wrap;
   }
 
   function validateStep(form, fields) {
     let firstBad = null;
     fields.forEach(f => {
-      const msg = schema.validateField(f, state.data, state.config);
-      const wrap = form.querySelector(`[data-field="${f.name}"]`);
+      const wrap = form.querySelector(`[data-field="${f.id}"]`);
       if (!wrap) return;
+      const msg = schemaLib.validateField(f, state.data, state.config);
       wrap.classList.toggle('has-error', !!msg);
       const err = wrap.querySelector('.pub-error');
       if (err) err.textContent = msg;
@@ -458,8 +506,30 @@
 
   function payload() {
     const d = Object.assign({}, state.data, { cpf: state.cpf });
-    if (d.phone) d.phone = String(d.phone).replace(/\D/g, '');
+    ['phone', 'phone2'].forEach(k => { if (d[k]) d[k] = String(d[k]).replace(/\D/g, ''); });
+    if (!d.heard_other_on) delete d.heard_other;
+    Object.keys(d).forEach(k => { if (k.endsWith('_on')) delete d[k]; });
     return d;
+  }
+
+  // Erro de validação do servidor: leva à seção do campo com problema
+  const SERVER_FIELD_HINTS = [
+    [/nome completo/i, 'full_name'], [/e-mails informados|e-mail válido/i, 'email'], [/telefone/i, 'phone'],
+    [/nascimento/i, 'birth_date'], [/município/i, 'municipality'], [/CACS-FUNDEB ou da Gestão/i, 'category'],
+    [/gestão municipal\.$/i, 'role_gestao'], [/no CACS-FUNDEB\.$/i, 'role_cacs'], [/nota de 1 a 5/i, 'ratings'],
+    [/mais gostou/i, 'liked'], [/melhorados/i, 'improve'], [/instituição vinculada/i, 'institution_name'],
+    [/ficou sabendo/i, 'heard_from'], [/LGPD/i, 'consent'], [/veracidade/i, 'truth_confirmed']
+  ];
+  function goToServerError(message) {
+    const hit = SERVER_FIELD_HINTS.find(([re]) => re.test(message));
+    if (!hit) return false;
+    const idx = visibleSections().findIndex(s => s.fields.some(f => f.id === hit[1]));
+    if (idx < 0) return false;
+    state.step = idx;
+    showStep();
+    const wrap = showFieldError(app.querySelector('form'), hit[1], message);
+    if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
   }
 
   async function submit(btn, errorBox) {
@@ -473,6 +543,7 @@
       clearDraft();
       if (MODULE === 'presenca') showAttendanceOk(res); else showReceipt(res);
     } catch (ex) {
+      if (!ex.network && goToServerError(ex.message)) return;
       errorBox.appendChild(alertBox(ex.message));
       errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       btn.textContent = 'Tentar novamente';
@@ -486,62 +557,93 @@
   function receiptLines(res) {
     const t = state.training || {};
     return [
-      ['Protocolo', res.protocolo],
       ['Nome', res.full_name],
       ['Capacitação', trainingLabel()],
       ['Data', t.datesFormatted || ''],
       ['Local', [t.locationVenue, t.locationAddress].filter(Boolean).join(' – ')],
-      ['Enviado em', fmt.formatDateTime(res.submitted_at)]
+      ['Enviado em', fmt.formatDateTime(res.submitted_at)],
+      ['Protocolo', res.protocolo]
     ].filter(([, v]) => v);
   }
 
-  function savePng(res) {
-    const lines = receiptLines(res);
-    const canvas = document.createElement('canvas');
-    const w = 900;
-    canvas.width = w;
-    canvas.height = 260 + lines.length * 56;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, canvas.height);
-    ctx.fillStyle = '#F6A800'; ctx.fillRect(0, 0, w, 14);
-    ctx.fillStyle = '#202020'; ctx.font = 'bold 40px Arial';
-    ctx.fillText(state.config.title || MODULE_TITLES[MODULE], 48, 90);
-    ctx.fillStyle = '#4D4D4D'; ctx.font = '24px Arial';
-    ctx.fillText('Comprovante – CECATE Centro-Oeste', 48, 134);
-    lines.forEach(([k, v], i) => {
-      const y = 200 + i * 56;
-      ctx.fillStyle = '#757575'; ctx.font = '22px Arial'; ctx.fillText(k, 48, y);
-      ctx.fillStyle = '#202020'; ctx.font = 'bold 26px Arial'; ctx.fillText(String(v).slice(0, 52), 260, y);
+  /**
+   * PDF de uma página gerado no próprio navegador (sem biblioteca): Helvetica com acentos (WinAnsiEncoding)
+   */
+  function buildPdf(title, lines, footer) {
+    const latin = (s) => String(s || '').replace(/[–—]/g, '-').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/·/g, '-').replace(/[^\x20-\xFF]/g, '?');
+    const esc = (s) => latin(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    const wrap = (s, max) => {
+      const words = latin(s).split(/\s+/); const out = []; let cur = '';
+      words.forEach(w => { if ((cur + ' ' + w).trim().length > max) { if (cur) out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); });
+      if (cur) out.push(cur);
+      return out.length ? out : [''];
+    };
+    const ops = ['0.965 0.659 0 rg 40 790 515 6 re f', '0.13 0.13 0.13 rg'];
+    let y = 760;
+    const text = (font, size, x, str) => { ops.push(`BT /${font} ${size} Tf ${x} ${y} Td (${esc(str)}) Tj ET`); };
+    text('F1', 10, 40, 'CECATE Centro-Oeste - Comprovante');
+    y -= 26; text('F2', 18, 40, title);
+    y -= 30;
+    lines.forEach(([k, v]) => {
+      const rows = wrap(v, 62);
+      text('F1', 11, 40, k);
+      rows.forEach((r, i) => { if (i) y -= 15; text('F2', 11, 150, r); });
+      y -= 22;
     });
-    ctx.fillStyle = '#757575'; ctx.font = '20px Arial';
-    ctx.fillText('Guarde este comprovante.', 48, canvas.height - 36);
-    const a = el('a', { href: canvas.toDataURL('image/png'), download: `comprovante-${res.protocolo}.png` });
+    y -= 6;
+    wrap(footer, 90).forEach(r => { text('F1', 10, 40, r); y -= 14; });
+    y = 60; text('F1', 8, 40, 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste - UFG / FNDE');
+    const content = ops.join('\n');
+    const objs = [
+      '<< /Type /Catalog /Pages 2 0 R >>',
+      '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+      '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>',
+      `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+      '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'
+    ];
+    let pdf = '%PDF-1.4\n';
+    const offsets = [];
+    objs.forEach((o, i) => { offsets.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+    const xref = pdf.length;
+    pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offsets.map(o => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`;
+    pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const bytes = new Uint8Array(pdf.length);
+    for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xFF;
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
+  function savePdf(title, res) {
+    const blob = buildPdf(title, receiptLines(res), 'Guarde este comprovante. Em caso de dúvida, fale com a equipe do CECATE pelo WhatsApp (62) 3209-6723 ou pelo Instagram @cecate.co.');
+    const url = URL.createObjectURL(blob);
+    const a = el('a', { href: url, download: `comprovante-${res.protocolo || 'capacitate'}.pdf` });
     document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   function showReceipt(res) {
-    const lines = receiptLines(res);
+    const sch = state.schema;
+    const title = res.waitlist && sch.waitlistTitle ? sch.waitlistTitle : (res.updated ? 'Resposta atualizada!' : sch.receiptTitle);
     render(card(el('div', { class: 'pub-receipt' }, [
       el('div', { class: 'pub-receipt-icon', 'aria-hidden': 'true' }, svgCheck(36)),
-      el('h2', { text: res.updated ? 'Resposta atualizada!' : (MODULE === 'inscricao' ? 'Inscrição recebida!' : 'Avaliação recebida!') }),
+      el('h2', { text: title }),
       res.waitlist ? alertBox('As vagas do seu município nesta categoria já foram preenchidas. Sua inscrição ficou em lista de espera e a equipe do CECATE entrará em contato.', 'info') : null,
-      el('dl', {}, lines.flatMap(([k, v]) => [el('dt', { text: k }), el('dd', { text: v })])),
+      el('dl', {}, receiptLines(res).flatMap(([k, v]) => [el('dt', { text: k }), el('dd', { text: v })])),
       el('p', { class: 'pub-help', text: 'Guarde este comprovante.' }),
-      el('div', { class: 'pub-actions' }, el('button', { type: 'button', class: 'pub-btn pub-btn-primary', text: 'Salvar comprovante (imagem)', onclick: () => savePng(res) }))
+      el('div', { class: 'pub-actions' }, el('button', { type: 'button', class: 'pub-btn pub-btn-primary', text: 'Salvar comprovante (PDF)', onclick: () => savePdf(title, res) }))
     ])));
   }
 
   function showAttendanceOk(res) {
     const when = res.submitted_at ? new Date(res.submitted_at) : new Date();
-    const date = fmt.formatDate(when);
     const time = fmt.formatDateTime(when).slice(11, 16);
     render(el('section', { class: 'pub-attendance-ok', role: 'status' }, [
       svgCheck(64),
       el('h2', { text: res.already ? 'Presença já registrada' : 'Presença registrada' }),
-      el('div', { class: 'pub-attendance-time', text: `${date} ${time}` }),
-      res.full_name ? el('p', { text: res.full_name }) : null,
-      el('p', { text: [trainingLabel(), sessionLabel()].filter(Boolean).join(' · ') }),
-      res.already ? el('p', { text: 'Não é preciso registrar de novo.' }) : null
+      res.full_name ? el('p', { class: 'pub-attendance-name', text: res.full_name }) : null,
+      el('div', { class: 'pub-attendance-time', text: `${fmt.formatDate(when)} · ${time}` }),
+      el('p', { text: [trainingLabel(), `Sessão: ${state.vars.sessao_label}`].filter(Boolean).join(' · ') }),
+      res.already ? el('p', { text: `Presença já registrada em ${state.vars.sessao_label} às ${time}. Não é preciso registrar de novo.` }) : null
     ]));
   }
 
@@ -566,8 +668,9 @@
       const form = await rpc('public_get_form', { p_token: token });
       if (form.module_key !== MODULE) return showFatal('Este link pertence a outro formulário. Confira o QR Code.');
       state.form = form;
-      state.config = schema.withDefaults(form.config);
+      state.config = schemaLib.withDefaults(form.config);
       state.training = form.training || {};
+      buildVars();
       document.title = `${state.config.title || MODULE_TITLES[MODULE]} – CapacitaTE`;
       if (form.state !== 'aberto') return showClosed();
       const draft = loadDraft();
@@ -577,6 +680,9 @@
       showFatal(ex.message);
     }
   }
+
+  // Exposto para os testes automáticos
+  window.CapacitaTEPublic = { buildPdf, state };
 
   document.addEventListener('DOMContentLoaded', start);
 })();
