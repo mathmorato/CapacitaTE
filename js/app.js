@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.22
+ * Versão: v.3.4.23
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.22';
+    this.version = 'v.3.4.23';
   }
 
   /**
@@ -1794,13 +1794,13 @@ class AutoReportApp {
       if (fig.image) {
         figuresHtml += `
           <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
-            <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
               ${this.escapeHtml(fig.caption || 'Figura. Avaliação via ferramenta pedagógica.')}
             </p>
             <div style="text-align:center;">
               <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
-            <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
               ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
             </p>
           </div>
@@ -1812,13 +1812,13 @@ class AutoReportApp {
       if (fig.image) {
         figuresHtml += `
           <div style="margin: 1.5rem 0; text-align: center; page-break-inside: avoid;">
-            <p style="font-family:'Times New Roman', Times, serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; font-weight:bold; color:var(--text-primary); margin-bottom:6px; text-align:center;">
               ${this.escapeHtml(fig.caption || 'Figura. Atividade com tecnologia educacional.')}
             </p>
             <div style="text-align:center;">
               <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
-            <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
               ${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}
             </p>
           </div>
@@ -1835,7 +1835,7 @@ class AutoReportApp {
     }
 
     previewEl.innerHTML = `
-      <div style="font-family:'Times New Roman', Times, serif; color:var(--text-primary); font-size:12pt; line-height:1.5;">
+      <div style="font-family:var(--report-font, 'Times New Roman'), serif; color:var(--text-primary); font-size:12pt; line-height:1.5;">
         <p style="text-align:justify; margin-bottom:1rem; text-indent:1.25cm;">
           ${text}
         </p>
@@ -7684,23 +7684,43 @@ class AutoReportApp {
   }
 
   /**
-   * Tipografia das figuras: uma fonte padrão (figureFontFamily) vale para os gráficos (Figuras 3 a 6) e para as
-   * nuvens de palavras (Figuras 7 e 8). Com separateFigureFonts, cada grupo usa a sua fonte (chartFontFamily e
-   * customWordCloudFont). Capacitações antigas usam a fonte já escolhida para a nuvem como fonte padrão.
+   * Tipografia do relatório: com "todas as fontes iguais" (padrão), o texto do documento Word, os gráficos
+   * (Figuras 3 a 6) e as nuvens de palavras (Figuras 7 e 8) usam a fonte padrão (figureFontFamily, padrão Times New Roman).
+   * Com separateFigureFonts, cada um usa a sua fonte: documentFontFamily, chartFontFamily e customWordCloudFont.
+   * Capacitações em que o usuário já tinha escolhido a fonte das figuras ficam com fontes diferentes, mantendo
+   * o documento em Times New Roman e as figuras como estavam.
    */
+  isSeparateFonts() {
+    const t = this.currentTraining || {};
+    if (typeof t.separateFigureFonts === 'boolean') return t.separateFigureFonts;
+    return Boolean(t.figureFontFamily || t.customWordCloudFont);
+  }
+
   getFigureFont() {
     const t = this.currentTraining || {};
-    return t.figureFontFamily || t.customWordCloudFont || t.wordCloudFontFamily || 'Plus Jakarta Sans';
+    return t.figureFontFamily || 'Times New Roman';
+  }
+
+  getDocumentFont() {
+    const t = this.currentTraining || {};
+    return this.isSeparateFonts() ? (t.documentFontFamily || 'Times New Roman') : this.getFigureFont();
   }
 
   getChartFont() {
     const t = this.currentTraining || {};
-    return (t.separateFigureFonts && t.chartFontFamily) || this.getFigureFont();
+    return this.isSeparateFonts() ? (t.chartFontFamily || t.figureFontFamily || 'Plus Jakarta Sans') : this.getFigureFont();
   }
 
   getWordCloudFont() {
     const t = this.currentTraining || {};
-    return (t.separateFigureFonts && t.customWordCloudFont) || this.getFigureFont();
+    return this.isSeparateFonts() ? (t.customWordCloudFont || t.figureFontFamily || 'Plus Jakarta Sans') : this.getFigureFont();
+  }
+
+  /**
+   * Aplica a fonte do documento à prévia do relatório e às legendas exibidas na tela (variável CSS --report-font)
+   */
+  applyDocumentFont() {
+    document.documentElement.style.setProperty('--report-font', `'${this.getDocumentFont()}'`);
   }
 
   /**
@@ -7709,17 +7729,23 @@ class AutoReportApp {
   syncFigureFontControls() {
     const t = this.currentTraining;
     if (!t) return;
-    const separate = Boolean(t.separateFigureFonts);
+    // Fixa a decisão (iguais ou diferentes) na capacitação: a regra de compatibilidade só vale até a primeira exibição
+    if (typeof t.separateFigureFonts !== 'boolean') t.separateFigureFonts = this.isSeparateFonts();
+    const separate = t.separateFigureFonts;
     const set = (id, value) => { const el = document.getElementById(id); if (el && el.value !== value) el.value = value; };
     set('figure-font-select', this.getFigureFont());
+    set('document-font-select', this.getDocumentFont());
     set('chart-font-select', this.getChartFont());
     set('wordcloud-font-select', this.getWordCloudFont());
     const check = document.getElementById('figure-font-separate');
     if (check) check.checked = separate;
-    const chartRow = document.getElementById('chart-font-separate-row');
-    if (chartRow) chartRow.style.display = separate ? 'flex' : 'none';
-    const cloudCard = document.getElementById('wordcloud-font-card');
-    if (cloudCard) cloudCard.style.display = separate ? 'flex' : 'none';
+    const separateRow = document.getElementById('chart-font-separate-row');
+    if (separateRow) separateRow.style.display = separate ? 'grid' : 'none';
+    const defaultRow = document.getElementById('figure-font-default-row');
+    if (defaultRow) defaultRow.style.opacity = separate ? '0.5' : '1';
+    const defaultSelect = document.getElementById('figure-font-select');
+    if (defaultSelect) defaultSelect.disabled = separate;
+    this.applyDocumentFont();
   }
 
   /**
@@ -7741,27 +7767,37 @@ class AutoReportApp {
 
   handleFigureFontChange(fontName) {
     if (!this.currentTraining) return;
-    this.currentTraining.figureFontFamily = fontName || 'Plus Jakarta Sans';
+    this.currentTraining.figureFontFamily = fontName || 'Times New Roman';
     this.rerenderFigureFonts();
   }
 
   restoreFigureFont() {
-    this.handleFigureFontChange('Plus Jakarta Sans');
+    this.handleFigureFontChange('Times New Roman');
   }
 
   toggleSeparateFigureFonts(separate) {
     if (!this.currentTraining) return;
     const t = this.currentTraining;
-    const base = this.getFigureFont();
     if (separate) {
-      // Ao separar, gráficos e nuvens começam com a fonte padrão vigente
+      // Ao separar, documento, gráficos e nuvens começam com a fonte padrão vigente
+      const base = this.getFigureFont();
+      t.documentFontFamily = base;
       t.chartFontFamily = base;
       t.customWordCloudFont = base;
       t.wordCloudFontFamily = base;
+    } else {
+      // Ao unificar, todas passam a usar a fonte que o documento estava usando
+      t.figureFontFamily = this.getDocumentFont();
     }
-    t.figureFontFamily = base;
     t.separateFigureFonts = Boolean(separate);
     this.rerenderFigureFonts();
+  }
+
+  handleDocumentFontChange(fontName) {
+    if (!this.currentTraining) return;
+    this.currentTraining.documentFontFamily = fontName || 'Times New Roman';
+    this.syncFigureFontControls();
+    this.saveCurrentStepData();
   }
 
   handleChartFontChange(fontName) {
@@ -8725,7 +8761,7 @@ class AutoReportApp {
                        onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
               </div>
               <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
               </div>
             </div>
 
@@ -8750,7 +8786,7 @@ class AutoReportApp {
                        onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
               </div>
               <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
               </div>
             </div>
 
@@ -8818,7 +8854,7 @@ class AutoReportApp {
                        onchange="app.updatePhotoTitle('${slot.slotId}', ${slot.figNum}, this.value)">
               </div>
               <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
+                <span>Legenda no relatório: <strong id="photo-caption-preview-${slot.slotId}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif;">${this.escapeHtml(slotInfo.caption)}</strong></span>
               </div>
             </div>
 
@@ -8843,7 +8879,7 @@ class AutoReportApp {
                        onchange="app.updatePhotoSource('${slot.slotId}', ${slot.figNum}, this.value)">
               </div>
               <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem; display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap;">
-                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
+                <span>Fonte no relatório: <strong id="photo-source-preview-${slot.slotId}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif; font-style:italic;">${this.escapeHtml(slotInfo.sourceFormatted)}</strong></span>
               </div>
             </div>
           </div>
@@ -8898,7 +8934,7 @@ class AutoReportApp {
                      onchange="app.updatePhotoTitle('${photo.id}', ${extraFigNum}, this.value)">
             </div>
             <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
-              <span>Legenda: <strong id="photo-caption-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif;">${this.escapeHtml(fullCaption)}</strong></span>
+              <span>Legenda: <strong id="photo-caption-preview-${photo.id}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif;">${this.escapeHtml(fullCaption)}</strong></span>
             </div>
           </div>
 
@@ -8923,7 +8959,7 @@ class AutoReportApp {
                      onchange="app.updateExtraPhotoSource('${photo.id}', ${extraFigNum}, this.value)">
             </div>
             <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.15rem;">
-              <span>Fonte: <strong id="photo-source-preview-${photo.id}" style="color:var(--text-primary); font-family:'Times New Roman', serif; font-style:italic;">${this.escapeHtml(extraFullSource)}</strong></span>
+              <span>Fonte: <strong id="photo-source-preview-${photo.id}" style="color:var(--text-primary); font-family:var(--report-font, 'Times New Roman'), serif; font-style:italic;">${this.escapeHtml(extraFullSource)}</strong></span>
             </div>
           </div>
         </div>
@@ -9368,6 +9404,7 @@ class AutoReportApp {
   async renderReportPreviewStep() {
     const container = document.getElementById('wizard-report-preview-document');
     if (!container || !this.currentTraining || !window.statsEngine) return;
+    this.applyDocumentFont();
 
     const t = this.currentTraining;
 
@@ -9431,30 +9468,30 @@ class AutoReportApp {
       <div class="report-doc-page report-contra-capa-page" style="padding-bottom: 0.5rem !important;">
         <!-- TOPO: IDENTIFICAÇÃO DO PROJETO COM BORDA SUPERIOR -->
         <div style="border-top: 1.5px solid #595959; padding-top: 0.8rem; text-align: center;">
-          <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: #000000; margin: 0; line-height: 1.4; text-transform: uppercase;">
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; color: #000000; margin: 0; line-height: 1.4; text-transform: uppercase;">
             Projeto: FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS<br>DE TRANSPORTE ESCOLAR DO BRASIL
           </p>
         </div>
 
         <!-- CENTRO: IDENTIFICAÇÃO DO RELATÓRIO E TÍTULO -->
         <div style="margin-top: 14rem; margin-bottom: auto; text-align: center; padding: 1rem 0;">
-          <p style="font-family: 'Times New Roman', serif; font-size: 14pt; color: #000000; margin: 0 0 1rem 0;">
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 14pt; color: #000000; margin: 0 0 1rem 0;">
             Relatório de Atividades Nº ${coverInfo.numPadded}
           </p>
-          <h2 style="font-family: 'Times New Roman', serif; font-size: 18pt; font-weight: bold; color: #000000; margin: 0 0 1rem 0; letter-spacing: 0.5px;">
+          <h2 style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 18pt; font-weight: bold; color: #000000; margin: 0 0 1rem 0; letter-spacing: 0.5px;">
             CAPACITAÇÃO EM TRANSPORTE ESCOLAR
           </h2>
-          <p style="font-family: 'Times New Roman', serif; font-size: 14pt; font-weight: bold; color: #000000; margin: 0;">
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 14pt; font-weight: bold; color: #000000; margin: 0;">
             ${coverInfo.infoLine}
           </p>
         </div>
 
         <!-- BASE: LOCALIZAÇÃO, DATA E LOGOMARCAS COM BORDA SUPERIOR -->
         <div style="text-align: center; margin-top: auto; padding-bottom: 0;">
-          <p style="font-family: 'Times New Roman', serif; font-size: 12pt; color: #000000; margin: 0 0 0.35rem 0;">
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 12pt; color: #000000; margin: 0 0 0.35rem 0;">
             Aparecida de Goiânia
           </p>
-          <p style="font-family: 'Times New Roman', serif; font-size: 12pt; color: #000000; margin: 0 0 1.25rem 0;">
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 12pt; color: #000000; margin: 0 0 1.25rem 0;">
             ${contraCapaMonthYear}
           </p>
           <div style="border-top: 1.5px solid #595959; padding-top: 0.85rem; display: flex; justify-content: space-around; align-items: center;">
@@ -9480,25 +9517,25 @@ class AutoReportApp {
     if (ufgMembers.length > 0) {
       equipeMembersHtml += `
         <div style="margin-left: 1.25cm; margin-bottom: 1.5rem;">
-          <h4 style="font-family: 'Times New Roman', serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">UNIVERSIDADE FEDERAL DE GOIÁS – UFG</h4>
+          <h4 style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">UNIVERSIDADE FEDERAL DE GOIÁS – UFG</h4>
           <div style="margin-left: 1.25cm;">
       `;
       const ufgCoords = ufgMembers.filter(m => (m.role && m.role.toLowerCase().includes('coordenador')) || m.type === 'coordenacao');
       const ufgTech = ufgMembers.filter(m => !ufgCoords.includes(m));
 
       if (ufgCoords.length > 0) {
-        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">Coordenador do Projeto</p>`;
+        equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">Coordenador do Projeto</p>`;
         ufgCoords.forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.35rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+          equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; margin: 0 0 0.35rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       }
 
       if (ufgTech.length > 0) {
-        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.6rem 0 0.15rem 0; color: #000000;">Equipe de Técnica</p>`;
+        equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; font-weight: bold; margin: 0.6rem 0 0.15rem 0; color: #000000;">Equipe de Técnica</p>`;
         ufgTech.forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+          equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       }
 
@@ -9511,7 +9548,7 @@ class AutoReportApp {
     if (fndeMembers.length > 0) {
       equipeMembersHtml += `
         <div style="margin-left: 1.25cm;">
-          <h4 style="font-family: 'Times New Roman', serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">FUNDO NACIONAL DE DESENVOLVIMENTO DA EDUCAÇÃO – FNDE</h4>
+          <h4 style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 12pt; font-weight: bold; color: #000000; margin: 0.5rem 0;">FUNDO NACIONAL DE DESENVOLVIMENTO DA EDUCAÇÃO – FNDE</h4>
           <div style="margin-left: 1.25cm;">
       `;
 
@@ -9527,10 +9564,10 @@ class AutoReportApp {
       });
 
       fndeRoles.forEach(r => {
-        equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">${r}</p>`;
+        equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; font-weight: bold; margin: 0.5rem 0 0.15rem 0; color: #000000;">${r}</p>`;
         fndeByRole.get(r).forEach(m => {
           const name = (window.formatTeamMemberFullName ? window.formatTeamMemberFullName(m) : m.fullName) || m.name || '';
-          equipeMembersHtml += `<p style="font-family: 'Times New Roman', serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
+          equipeMembersHtml += `<p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; margin: 0 0 0.25rem 0; color: #000000;">${this.escapeHtml(name)}</p>`;
         });
       });
 
@@ -9545,12 +9582,12 @@ class AutoReportApp {
       <div class="report-doc-page report-equipe-page">
         <div>
           <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="font-family: 'Times New Roman', serif; color: #1F4E79; font-size: 18pt; font-weight: bold; margin: 0;">
+            <h2 style="font-family:var(--report-font, 'Times New Roman'), serif; color: #1F4E79; font-size: 18pt; font-weight: bold; margin: 0;">
               RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}
             </h2>
           </div>
           <div style="margin-bottom: auto;">
-            <h3 style="font-family: 'Times New Roman', serif; font-size: 14pt; font-weight: bold; color: #000000; margin-bottom: 1.5rem; text-align: left;">
+            <h3 style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 14pt; font-weight: bold; color: #000000; margin-bottom: 1.5rem; text-align: left;">
               EQUIPE PARTICIPANTE
             </h3>
             ${equipeMembersHtml}
@@ -9562,7 +9599,7 @@ class AutoReportApp {
           <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
             <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
           </div>
-          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+          <div style="width: 36px; text-align: center; font-family:var(--report-font, 'Times New Roman'), serif; font-size: 10pt; color: #000; padding-left: 8px;">
             1
           </div>
         </div>
@@ -9597,7 +9634,7 @@ class AutoReportApp {
         </div>
 
         <div style="margin-bottom: auto; margin-top: 1rem;">
-          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem; font-family: 'Times New Roman', serif;">ÍNDICE DE FIGURAS</h2>
+          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE FIGURAS</h2>
           <div style="margin-bottom: 2rem;">
             ${figuresList.map(fig => `
               <div class="report-index-row">
@@ -9608,7 +9645,7 @@ class AutoReportApp {
             `).join('')}
           </div>
 
-          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-top: 2rem; margin-bottom: 1.2rem; font-family: 'Times New Roman', serif;">ÍNDICE DE TABELAS</h2>
+          <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-top: 2rem; margin-bottom: 1.2rem; font-family:var(--report-font, 'Times New Roman'), serif;">ÍNDICE DE TABELAS</h2>
           <div>
             ${tablesList.map(tab => `
               <div class="report-index-row">
@@ -9625,7 +9662,7 @@ class AutoReportApp {
           <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
             <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
           </div>
-          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+          <div style="width: 36px; text-align: center; font-family:var(--report-font, 'Times New Roman'), serif; font-size: 10pt; color: #000; padding-left: 8px;">
             2
           </div>
         </div>
@@ -9646,7 +9683,7 @@ class AutoReportApp {
         </div>
 
         <div style="margin-bottom: auto; margin-top: 1rem;">
-          <h2 style="text-align: left; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: 'Times New Roman', serif;">Sumário</h2>
+          <h2 style="text-align: left; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family:var(--report-font, 'Times New Roman'), serif;">Sumário</h2>
           <div style="line-height: 1.8;">
             ${sumarioList.map(item => `
               <div class="report-index-row" style="margin: 0.45rem 0;">
@@ -9663,7 +9700,7 @@ class AutoReportApp {
           <div style="flex: 1; text-align: center; border-right: 1px solid #4D4D4D; padding-right: 12px;">
             <img src="visualrelatorio/rodape/rodape_5logos.png" alt="Logomarcas Institucionais" class="report-footer-banner" onerror="if(window.coverAssets?.rodape5Logos) this.src=window.coverAssets.rodape5Logos">
           </div>
-          <div style="width: 36px; text-align: center; font-family: 'Times New Roman', serif; font-size: 10pt; color: #000; padding-left: 8px;">
+          <div style="width: 36px; text-align: center; font-family:var(--report-font, 'Times New Roman'), serif; font-size: 10pt; color: #000; padding-left: 8px;">
             3
           </div>
         </div>
@@ -9700,7 +9737,7 @@ class AutoReportApp {
         const sourceToDisplay = p.source || slotInfo.sourceFormatted || 'Fonte: Elaborada pelos autores.';
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
-            <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
               ${this.escapeHtml(captionToDisplay)}
             </p>
             <div style="text-align: center;">
@@ -9723,7 +9760,7 @@ class AutoReportApp {
         const sourceToDisplay = this.formatFigureSource(cleanExtraSource);
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
-            <p style="font-family: 'Times New Roman', serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
+            <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size: 11pt; color: var(--text-primary); margin-bottom: 0.5rem; text-align: center;">
               ${this.escapeHtml(captionToDisplay)}
             </p>
             <div style="text-align: center;">
@@ -9865,11 +9902,11 @@ class AutoReportApp {
     // Figuras removidas pelo usuário não entram no relatório; numeração idêntica à do documento Word
     const eduFigureHtml = (image, caption, source) => `
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${this.escapeHtml(caption)}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${this.escapeHtml(caption)}</p>
           <div style="text-align:center;">
             <img src="${image}" alt="${this.escapeHtml(caption)}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
           </div>
-          <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(source || 'Fonte: Elaborada pelos autores.')}</p>
+          <p style="font-size:10pt; font-family:var(--report-font, 'Times New Roman'), serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(source || 'Fonte: Elaborada pelos autores.')}</p>
         </div>
       `;
 
@@ -9921,37 +9958,37 @@ class AutoReportApp {
             <tr>
               <td style="border:none; padding:0;">
                 <!-- 1. INTRODUÇÃO -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
-        <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:'Times New Roman', serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${this.escapeHtml(t.polo || 'Município Polo')}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:1.5rem;">1. INTRODUÇÃO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Este relatório é referente às atividades desenvolvidas no âmbito do projeto intitulado <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> processo administrativo número 23070.068031/2023-34, desenvolvido pela Universidade Federal de Goiás (UFG), por meio do Centro Colaborador de Apoio ao Transporte Escolar do Centro-Oeste (CECATE Centro-Oeste), em parceria e com financiamento do Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
+        <p style="text-align:justify; line-height:1.5; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O presente relatório apresenta a descrição pormenorizada e a análise avaliativa do processo do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado para gestores municipais e conselheiros do CACS/FUNDEB de ${munCount} municípios do Estado de ${t.uf || 'GO'}, sediado no município polo de ${this.escapeHtml(t.polo || 'Município Polo')}, nas datas de ${t.datesFormatted || 'datas do curso'}.</p>
 
         <!-- 2. DADOS BÁSICOS DO CURSO & TABELAS 1 E 2 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${this.escapeHtml(t.polo || 'Município Polo')}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">2. DADOS BÁSICOS DO CURSO</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O curso de Capacitação em Transporte Escolar foi estruturado para alcançar o objetivo primordial de aprimorar os conhecimentos dos participantes sobre transporte escolar, apresentar os programas do governo federal, detalhar os principais aspectos de planejamento e regulação na área e capacitar tecnicamente para a utilização do Sistema Eletrônico de Gestão do Transporte Escolar (SETE).</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Após criteriosa avaliação pedagógica das edições anteriores, definiu-se que o curso seria realizado em formato presencial concentrado, integrando gestores e conselheiros CACS dos municípios, correspondendo a uma carga horária total de 08:00 horas. No período matutino, a capacitação foi conduzida em turma unificada, abordando fundamentos essenciais de planejamento, governança e regulação do transporte escolar. No período vespertino, a formação foi desdobrada em duas abordagens específicas conforme o público-alvo: a primeira voltada aos gestores municipais, focada no domínio prático e operacional do Sistema SETE para cadastro de rotas, alunos e escolas; e a segunda direcionada aos conselheiros do CACS/FUNDEB, orientada ao exercício das competências fiscalizatórias, controle social e emissão de relatórios de acompanhamento.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Dada a meta de entes federados a serem atendidos durante o projeto, estabeleceu-se a oferta de duas (02) vagas para gestores municipais e duas (02) vagas para conselheiros do CACS/FUNDEB por município. No ofício de convocação foi explicitada a preferência por servidores efetivos e de carreira, com a finalidade de mitigar a perda de conhecimento técnico decorrente da rotatividade das gestões. Como critério de seleção territorial, adotou-se a menor distância rodoviária até o polo de capacitação de ${this.escapeHtml(t.polo || 'Município Polo')}, priorizando os municípios mais próximos. Foram formalmente convocados ${metrics.totalSummonedMunicipalities} municípios, cuja distância média percorrida foi estimada em ${metrics.avgDistance} km. A relação completa dos entes federativos convocados é apresentada na Tabela 1:</p>
         
-        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 1. Municípios convocados.</p>
+        <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 1. Municípios convocados.</p>
         ${window.statsEngine.generateTable1Html(t.municipalities || [])}
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
-        <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">A estrutura curricular do curso contempla quatro (04) módulos sequenciais, sendo os três primeiros voltados aos fundamentos gerais, programas governamentais e normativas do transporte escolar. O quarto módulo é personalizado ao perfil do participante: para os gestores, o foco é integralmente direcionado à prática intensiva no Sistema SETE ("mãos na massa"); para os conselheiros CACS, a abordagem enfatiza as atribuições legais do conselho e a consulta analítica dos dados no sistema. A distribuição temática e as cargas horárias são detalhadas na Tabela 2:</p>
-        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 2. Estrutura do curso de capacitação em transporte escolar.</p>
+        <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">A estrutura curricular do curso contempla quatro (04) módulos sequenciais, sendo os três primeiros voltados aos fundamentos gerais, programas governamentais e normativas do transporte escolar. O quarto módulo é personalizado ao perfil do participante: para os gestores, o foco é integralmente direcionado à prática intensiva no Sistema SETE ("mãos na massa"); para os conselheiros CACS, a abordagem enfatiza as atribuições legais do conselho e a consulta analítica dos dados no sistema. A distribuição temática e as cargas horárias são detalhadas na Tabela 2:</p>
+        <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 2. Estrutura do curso de capacitação em transporte escolar.</p>
         ${window.statsEngine.generateTable2Html(t.courseModules || [])}
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 3. CONTATO COM OS MUNICÍPIOS & TABELA 3 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">O contato oficial com os municípios selecionados teve início mediante o encaminhamento de ofícios expedidos pela Coordenação-Geral da Política do Transporte Escolar (CGPTE) do FNDE, endereçados aos dirigentes das secretarias municipais de educação e aos representantes dos conselhos CACS/FUNDEB (Apêndice I). O expediente formal continha as diretrizes gerais da capacitação, orientações de participação e o formulário eletrônico de inscrições disponibilizado por link direto e QR Code institucional.</p>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">De modo suplementar, a equipe técnica do CECATE Centro-Oeste realizou ampla mobilização institucional (Apêndice II), utilizando canais oficiais das administrações municipais. Foram estabelecidos contatos complementares via correio eletrônico, chamadas telefônicas e mensagens institucionais para certificar o recebimento das convocações, esclarecer dúvidas e incentivar a homologação das inscrições.</p>
-        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:'Times New Roman', serif;">Ao todo, foram convocados ${metrics.totalSummonedMunicipalities} municípios com vistas a atingir a meta de ${metrics.targetParticipants || (metrics.totalSummonedMunicipalities * 4)} participantes, sendo ${metrics.targetGestores || (metrics.totalSummonedMunicipalities * 2)} gestores municipais e ${metrics.targetCACS || (metrics.totalSummonedMunicipalities * 2)} representantes do CACS. Destes, ${metrics.totalInscribedMunicipalities} municípios tiveram participantes inscritos no curso, dos quais ${metrics.bothCategoriesInscribedMunicipalities || 0} municípios inscreveram representantes de ambas as categorias, ${metrics.onlyCACSInscribedMunicipalities || 0} município(s) apenas CACS e ${metrics.onlyGestoresInscribedMunicipalities || 0} apenas gestores. No que se refere ao quantitativo de pessoas, foram inscritas ${metrics.totalInscribed} pessoas, sendo ${metrics.totalInscribedGestores} gestores e ${metrics.totalInscribedCACS} representantes do CACS. A relação dos municípios com o respectivo número de inscritos por categoria é apresentada na Tabela 3.</p>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">3. CONTATO COM OS MUNICÍPIOS</h3>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">O contato oficial com os municípios selecionados teve início mediante o encaminhamento de ofícios expedidos pela Coordenação-Geral da Política do Transporte Escolar (CGPTE) do FNDE, endereçados aos dirigentes das secretarias municipais de educação e aos representantes dos conselhos CACS/FUNDEB (Apêndice I). O expediente formal continha as diretrizes gerais da capacitação, orientações de participação e o formulário eletrônico de inscrições disponibilizado por link direto e QR Code institucional.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">De modo suplementar, a equipe técnica do CECATE Centro-Oeste realizou ampla mobilização institucional (Apêndice II), utilizando canais oficiais das administrações municipais. Foram estabelecidos contatos complementares via correio eletrônico, chamadas telefônicas e mensagens institucionais para certificar o recebimento das convocações, esclarecer dúvidas e incentivar a homologação das inscrições.</p>
+        <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem; font-size:11pt; font-family:var(--report-font, 'Times New Roman'), serif;">Ao todo, foram convocados ${metrics.totalSummonedMunicipalities} municípios com vistas a atingir a meta de ${metrics.targetParticipants || (metrics.totalSummonedMunicipalities * 4)} participantes, sendo ${metrics.targetGestores || (metrics.totalSummonedMunicipalities * 2)} gestores municipais e ${metrics.targetCACS || (metrics.totalSummonedMunicipalities * 2)} representantes do CACS. Destes, ${metrics.totalInscribedMunicipalities} municípios tiveram participantes inscritos no curso, dos quais ${metrics.bothCategoriesInscribedMunicipalities || 0} municípios inscreveram representantes de ambas as categorias, ${metrics.onlyCACSInscribedMunicipalities || 0} município(s) apenas CACS e ${metrics.onlyGestoresInscribedMunicipalities || 0} apenas gestores. No que se refere ao quantitativo de pessoas, foram inscritas ${metrics.totalInscribed} pessoas, sendo ${metrics.totalInscribedGestores} gestores e ${metrics.totalInscribedCACS} representantes do CACS. A relação dos municípios com o respectivo número de inscritos por categoria é apresentada na Tabela 3.</p>
 
-        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 3. Inscritos por município.</p>
+        <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 3. Inscritos por município.</p>
         ${window.statsEngine.generateTable3Html(t.municipalities || [], metrics)}
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <!-- 4. DESENVOLVIMENTO DO CURSO E PARTICIPAÇÃO & TABELA 4 & FIGURA 3 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">4. DESENVOLVIMENTO DO CURSO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Conforme estruturado na matriz formativa, o curso foi planejado e executado em quatro (04) módulos sequenciais, cumprindo rigorosamente os seguintes momentos pedagógicos:</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Primeiro momento:</strong> acolhimento dos participantes com credenciamento e entrega de material didático (pastas com caderno de anotações e caneta institucional), seguido de momento de integração com coffee break.</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.5rem;"><strong>Segundo momento:</strong> abertura oficial com pronunciamento da coordenação do CECATE Centro-Oeste e dos representantes da Coordenação-Geral da Política do Transporte Escolar (CGPTE/FNDE), apresentando a contextualização do projeto e as metas de aprimoramento da gestão pública.</p>
@@ -9965,20 +10002,20 @@ class AutoReportApp {
         ${eduTechFiguresHtml}
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">A participação final dos entes federados registrou ${metrics.totalPresentMunicipalities} municípios presentes dos ${metrics.totalInscribedMunicipalities} formalmente inscritos (${metrics.participationRateMunicipalities}%). No que tange ao público participante, compareceram ${metrics.totalPresent} pessoas dentre as ${metrics.totalInscribed} inscritas, representando uma taxa de participação global de ${metrics.participationRateGeneral}%. No segmento do CACS-FUNDEB, compareceram ${metrics.presentCACS} conselheiros (${metrics.participationRateCACS}%), ao passo que na Gestão Municipal participaram ${metrics.presentGestores} técnicos (${metrics.participationRateGestores}%). A distribuição da presença por município e segmento institucional é detalhada na Tabela 4 a seguir:</p>
 
-        <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 4. Participação por município.</p>
+        <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-top:1.25rem; margin-bottom:0.5rem;">Tabela 4. Participação por município.</p>
         ${window.statsEngine.generateTable4Html(t.municipalities || [], metrics)}
         <p style="font-size:0.82rem; font-style:italic; color:var(--text-muted); margin-top:0.35rem; margin-bottom:1.5rem; text-align:center;">Fonte: Elaborada pelos autores.</p>
 
         <p style="text-align:justify; line-height:1.5; margin-top:1.5rem; margin-bottom:1.5rem;">Ao término das atividades formativas, todos os certificados oficiais de capacitação (carga horária de 08 horas) foram devidamente emitidos e remetidos para o e-mail cadastrado de cada participante por intermédio da plataforma PLATEIA da Universidade Federal de Goiás (UFG), contando com código de verificação digital e QR Code para autenticação de veracidade.</p>
 
         <!-- 5. AVALIAÇÃO DA CAPACITAÇÃO & FIGURAS 3, 4, 5, 6, 7 E 8 -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2rem;">5. AVALIAÇÃO DA CAPACITAÇÃO</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Nesta edição do curso, aplicou-se o formulário padronizado de avaliação proposto pela equipe técnica do FNDE, que coleta percepções estruturadas dos cursistas. O instrumento é dividido em duas abordagens: primeiramente, uma escala psicométrica de Likert com cinco níveis qualitativos de percepção (1 - Ruim, 2 - Regular, 3 - Neutro, 4 - Muito Bom e 5 - Excelente) para avaliar os aspectos didáticos, pedagógicos, operacionais e de infraestrutura do evento; em seguida, duas perguntas dissertativas qualitativas, nas quais os participantes detalham livremente os aspectos que mais gostaram e os pontos com oportunidade de melhoria com base na experiência vivenciada.</p>
 
         <!-- FIGURA 3 (TÓPICO 5) -->
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">${fig3Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_3', 'Figura 3. Participação segundo o tipo de representação.'))}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_3', 'Figura 3. Participação segundo o tipo de representação.'))}</p>
           <div style="max-width:520px; height:280px; position:relative; margin:auto;">
             <canvas id="report-preview-fig3-canvas"></canvas>
           </div>
@@ -9988,7 +10025,7 @@ class AutoReportApp {
         <!-- FIGURA 4 -->
         <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">${fig4Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_4', 'Figura 4. Avaliação da capacitação de todos os participantes.'))}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_4', 'Figura 4. Avaliação da capacitação de todos os participantes.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig4-canvas"></canvas>
           </div>
@@ -9998,7 +10035,7 @@ class AutoReportApp {
         <!-- FIGURA 5 -->
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig5Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_5', 'Figura 5. Avaliação da capacitação dos conselheiros CACS.'))}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_5', 'Figura 5. Avaliação da capacitação dos conselheiros CACS.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig5-canvas"></canvas>
           </div>
@@ -10008,7 +10045,7 @@ class AutoReportApp {
         <!-- FIGURA 6 -->
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig6Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_6', 'Figura 6. Avaliação da capacitação dos gestores municipais.'))}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_6', 'Figura 6. Avaliação da capacitação dos gestores municipais.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig6-canvas"></canvas>
           </div>
@@ -10019,7 +10056,7 @@ class AutoReportApp {
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig7Comment}</p>
         <!-- Figuras 7 e 8 uma abaixo da outra, na mesma ordem do documento Word (comentário 7, Figura 7, comentário 8, Figura 8) -->
         <div style="max-width:600px; margin:2rem auto; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig7Title)}</p>
           <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
             <canvas id="report-preview-fig7-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
           </div>
@@ -10027,7 +10064,7 @@ class AutoReportApp {
         </div>
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig8Comment}</p>
         <div style="max-width:600px; margin:2rem auto; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
+          <p style="font-family:var(--report-font, 'Times New Roman'), serif; font-size:11pt; text-align:center; margin-bottom:0.5rem;">${this.escapeHtml(fig8Title)}</p>
           <div style="background:var(--bg-input); padding:0.75rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
             <canvas id="report-preview-fig8-canvas" width="550" height="320" style="max-width:100%; height:auto;"></canvas>
           </div>
@@ -10035,28 +10072,28 @@ class AutoReportApp {
         </div>
 
         <!-- 6. REGISTROS FOTOGRÁFICOS -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem;">6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Durante a realização da capacitação, foram registrados diversos momentos por meio de fotografias que ilustram a participação ativa dos representantes municipais e dos conselheiros do CACS-FUNDEB. As imagens capturam desde a ambientação do local, momentos de acolhimento e fala dos facilitadores, até as interações e práticas colaborativas durante as atividades formativas. Esses registros visuais não apenas documentam o evento, como também reforçam o compromisso institucional dos envolvidos com o contínuo aprimoramento da política de transporte escolar nos municípios. As fotografias servem como evidência do engajamento coletivo, memória institucional e prestação de contas das ações desenvolvidas perante o FNDE:</p>
         ${photosHtml}
 
         <!-- 7. CONSIDERAÇÕES FINAIS -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:1px solid #cbd5e1; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">7. CONSIDERAÇÕES FINAIS</h3>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">O presente relatório consubstanciou a execução técnica, operacional e pedagógica do curso de Capacitação em Transporte Escolar (Capacitação nº ${t.number || ''}), realizado no polo regional de ${this.escapeHtml(t.polo || 'Município Polo')}, Estado de ${t.uf || 'GO'}, cumprindo integralmente as metas e diretrizes estabelecidas no âmbito do projeto <em>"${(t.relatedProject || 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS DE TRANSPORTE ESCOLAR DO BRASIL').toUpperCase()}",</em> (Processo nº 23070.068031/2023-34), financiado pelo Fundo Nacional de Desenvolvimento da Educação (FNDE).</p>
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">Salienta-se que, de forma geral, o curso atendeu plenamente ao objetivo primordial de aprimorar os conhecimentos e habilidades técnicas de gestores municipais e conselheiros do CACS-FUNDEB, conforme atestado nos elevados índices de satisfação apurados na pesquisa avaliativa. Por outro lado, pôde-se comprovar que reforçar a convocação mediante a articulação multicanal do CECATE Centro-Oeste — combinando correspondências oficiais, contatos telefônicos diretos e mensagens em canais institucionais — revelou-se determinante para assegurar expressivo comparecimento dos entes federados convocados.</p>
         <p style="text-align:justify; line-height:1.5;">Ficou igualmente evidente que a abordagem de diálogo permanente adotada consolida-se como canal imprescindível para atender às demandas de qualificação técnica continuada. Para finalizar, ressalta-se a suma importância de o processo formativo estar inserido em um ambiente que possibilite a livre e qualificada interação entre os cursistas e os formadores, proporcionando um rico espaço de compartilhamento de vivências territoriais, esclarecimento de dúvidas operacionais e retroalimentação contínua de todas as dimensões da política de transporte escolar no Brasil.</p>
 
         <!-- APÊNDICE I: CONVOCAÇÕES DO FNDE -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:3rem; page-break-before:always;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:3rem; page-break-before:always;">APÊNDICE I: CONVOCAÇÕES DO FNDE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos ofícios e convocações oficiais emitidos pelo FNDE referentes a esta capacitação:</p>
         ${fndeHtml}
 
         <!-- APÊNDICE II: CONVOCAÇÕES DO CECATE -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE II: CONVOCAÇÕES DO CECATE</h3>
         <p style="text-align:justify; line-height:1.6;">Relação dos comunicados e e-mails de convocação emitidos pela equipe técnica do CECATE-CO referentes a esta capacitação:</p>
         ${cecateHtml}
 
         <!-- APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO -->
-        <h3 style="color:#1f4e79; font-size:16pt; font-family:'Times New Roman', serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
+        <h3 style="color:#1f4e79; font-size:16pt; font-family:var(--report-font, 'Times New Roman'), serif; font-weight:700; border-bottom:2px solid #1f4e79; padding-bottom:0.35rem; margin-top:2.5rem; page-break-before:always;">APÊNDICE III: RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO</h3>
         <p style="text-align:justify; line-height:1.6;">Relação completa das respostas dissertativas registradas pelos participantes no formulário de avaliação da formação, detalhando aspectos positivos e sugestões de aperfeiçoamento por município e representação institucional:</p>
         ${evalsHtml}
 
@@ -10309,6 +10346,7 @@ class AutoReportApp {
   <meta charset="UTF-8">
   <title>${docTitle}</title>
   <style>
+    :root { --report-font: '${this.getDocumentFont()}'; }
     @page {
       size: A4 portrait;
       margin: 0;
@@ -10323,7 +10361,7 @@ class AutoReportApp {
       padding: 0;
       background: #ffffff !important;
       color: #0f172a !important;
-      font-family: 'Times New Roman', serif;
+      font-family:var(--report-font, 'Times New Roman'), serif;
       font-size: 11pt;
       line-height: 1.5;
       width: 210mm;
@@ -10462,7 +10500,7 @@ class AutoReportApp {
       min-height: 297mm !important;
       box-sizing: border-box !important;
       position: relative !important;
-      font-family: 'Times New Roman', serif;
+      font-family:var(--report-font, 'Times New Roman'), serif;
       line-height: 1.5;
       font-size: 11pt;
       box-shadow: none !important;
@@ -10517,7 +10555,7 @@ class AutoReportApp {
       display: flex !important;
       align-items: baseline !important;
       margin: 0.35rem 0 !important;
-      font-family: 'Times New Roman', serif !important;
+      font-family:var(--report-font, 'Times New Roman'), serif !important;
       font-size: 11pt !important;
       color: #000000 !important;
       line-height: 1.35 !important;
@@ -10567,7 +10605,7 @@ class AutoReportApp {
       text-align: right !important;
     }
     .report-header-title {
-      font-family: 'Times New Roman', serif !important;
+      font-family:var(--report-font, 'Times New Roman'), serif !important;
       font-size: 10pt !important;
       font-weight: 700 !important;
       color: #000000 !important;
@@ -10610,7 +10648,7 @@ class AutoReportApp {
 
     /* TIPOGRAFIA E ELEMENTOS */
     h1, h2, h3, h4 {
-      font-family: 'Times New Roman', serif;
+      font-family:var(--report-font, 'Times New Roman'), serif;
       page-break-after: avoid;
       break-after: avoid;
     }
@@ -10624,7 +10662,7 @@ class AutoReportApp {
       text-align: justify;
       line-height: 1.5;
       font-size: 11pt;
-      font-family: 'Times New Roman', serif;
+      font-family:var(--report-font, 'Times New Roman'), serif;
       color: #000000;
     }
     .report-content-page p {
@@ -10663,7 +10701,7 @@ class AutoReportApp {
     .report-data-table {
       width: 100% !important;
       border-collapse: collapse !important;
-      font-family: 'Times New Roman', serif !important;
+      font-family:var(--report-font, 'Times New Roman'), serif !important;
       font-size: 10pt !important;
       color: #000000 !important;
     }
@@ -10688,7 +10726,7 @@ class AutoReportApp {
     .data-table {
       width: 100% !important;
       border-collapse: collapse !important;
-      font-family: 'Times New Roman', serif !important;
+      font-family:var(--report-font, 'Times New Roman'), serif !important;
       font-size: 10pt !important;
     }
     .data-table th {

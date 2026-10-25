@@ -38,7 +38,7 @@
     margin: 0 !important;
     padding: 0 !important;
     width: 210mm !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
   }
 
   .app-container, .main-wrapper, .content-area, .wizard-container, .step-panel {
@@ -198,7 +198,7 @@
     min-height: 297mm !important;
     box-sizing: border-box !important;
     position: relative !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     line-height: 1.6 !important;
     font-size: 11pt !important;
     box-shadow: none !important;
@@ -253,7 +253,7 @@
     display: flex !important;
     align-items: baseline !important;
     margin: 0.35rem 0 !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     font-size: 11pt !important;
     color: #000000 !important;
     line-height: 1.35 !important;
@@ -310,7 +310,7 @@
   }
 
   .report-header-title {
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     font-size: 10pt !important;
     font-weight: 700 !important;
     color: #000000 !important;
@@ -335,7 +335,7 @@
 
   /* TIPOGRAFIA E ELEMENTOS */
   h1, h2, h3, h4 {
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
   }
@@ -351,7 +351,7 @@
     text-align: justify !important;
     line-height: 1.6 !important;
     font-size: 11pt !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     color: #000000 !important;
   }
 
@@ -368,7 +368,7 @@
   .report-data-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     font-size: 10pt !important;
     color: #000000 !important;
   }
@@ -396,7 +396,7 @@
   .data-table {
     width: 100% !important;
     border-collapse: collapse !important;
-    font-family: 'Times New Roman', serif !important;
+    font-family: var(--report-font, 'Times New Roman'), serif !important;
     font-size: 10pt !important;
   }
 

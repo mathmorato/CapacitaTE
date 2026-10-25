@@ -1,7 +1,10 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.22
+ * Versão: v.3.4.23
  */
+
+// Fonte do texto do relatório Word (escolhida pelo usuário na Etapa 8; padrão institucional Times New Roman)
+let REPORT_DOC_FONT = 'Times New Roman';
 
 class ReportDocxGenerator {
   constructor() {
@@ -160,6 +163,19 @@ class ReportDocxGenerator {
       console.warn('Erro ao ler dimensões da imagem:', e);
     }
     return null;
+  }
+
+  /**
+   * Fonte do texto do relatório. Com "todas as fontes iguais", documento, gráficos e nuvens usam a fonte padrão
+   * (figureFontFamily); com fontes diferentes, o documento usa documentFontFamily. Padrão: Times New Roman.
+   */
+  getDocumentFont(training) {
+    if (window.app && typeof window.app.getDocumentFont === 'function' && window.app.currentTraining === training) {
+      return window.app.getDocumentFont();
+    }
+    const t = training || {};
+    const separate = typeof t.separateFigureFonts === 'boolean' ? t.separateFigureFonts : Boolean(t.figureFontFamily || t.customWordCloudFont);
+    return (separate ? t.documentFontFamily : t.figureFontFamily) || 'Times New Roman';
   }
 
   /**
@@ -463,14 +479,14 @@ class ReportDocxGenerator {
         captionRuns = [
           new TextRun({
             text: 'Figura ',
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             size: 22,
             color: '000000'
           }),
           new SimpleField('SEQ Figura \\* ARABIC', String(num)),
           new TextRun({
             text: sep + rest,
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             size: 22,
             color: '000000'
           })
@@ -479,7 +495,7 @@ class ReportDocxGenerator {
         captionRuns = [
           new TextRun({
             text: captionText,
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             size: 22,
             color: '000000'
           })
@@ -527,7 +543,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: sourceText || 'Fonte: Elaborada pelos autores.',
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             size: 20,
             italics: true,
             color: '000000'
@@ -864,6 +880,7 @@ class ReportDocxGenerator {
    */
   async generateDocxBlob(training, metrics, chartsData = {}) {
     chartsData = chartsData || {};
+    REPORT_DOC_FONT = this.getDocumentFont(training);
     if (!training) {
       alert('Selecione ou salve uma capacitação primeiro.');
       return null;
@@ -1018,7 +1035,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: coverInfo.numText,
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
               color: 'F9DB61'
@@ -1034,7 +1051,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'CAPACITAÇÃO EM TRANSPORTE ESCOLAR',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 40, // 20pt
               color: '000000'
@@ -1047,7 +1064,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: coverInfo.infoLine,
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
               color: '000000'
@@ -1063,14 +1080,14 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'Projeto:  FORTALECENDO E APRIMORANDO AS POLÍTICAS',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 30, // 15pt
               color: 'D9D9D9'
             }),
             new TextRun({
               text: 'PÚBLICAS DE TRANSPORTE ESCOLAR',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 30, // 15pt
               color: 'D9D9D9',
@@ -1078,7 +1095,7 @@ class ReportDocxGenerator {
             }),
             new TextRun({
               text: 'DO BRASIL',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 30, // 15pt
               color: 'D9D9D9',
@@ -1291,9 +1308,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_intro',
-                  children: [new TextRun({ text: '1. INTRODUÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '1. INTRODUÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '1. INTRODUÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -1335,9 +1352,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_dados_basicos',
-                  children: [new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '2. DADOS BÁSICOS DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -1380,14 +1397,14 @@ class ReportDocxGenerator {
                   children: [
                     new TextRun({
                       text: 'Tabela ',
-                      font: 'Times New Roman',
+                      font: REPORT_DOC_FONT,
                       size: 22,
                       color: '000000'
                     }),
                     new SimpleField('SEQ Tabela \\* ARABIC', '1'),
                     new TextRun({
                       text: '. Municípios convocados.',
-                      font: 'Times New Roman',
+                      font: REPORT_DOC_FONT,
                       size: 22,
                       color: '000000'
                     })
@@ -1395,7 +1412,7 @@ class ReportDocxGenerator {
                 })
               : new TextRun({
                   text: 'Tabela 1. Municípios convocados.',
-                  font: 'Times New Roman',
+                  font: REPORT_DOC_FONT,
                   size: 22,
                   color: '000000'
                 })
@@ -1454,21 +1471,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 28, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 8, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Distância (km)', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Distância (km)', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -1482,21 +1499,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 28, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 8, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Distância (km)', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Distância (km)', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -1517,17 +1534,17 @@ class ReportDocxGenerator {
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftDist, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftDist, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               // Espaçador Central
               new TableCell({
@@ -1538,17 +1555,17 @@ class ReportDocxGenerator {
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightDist, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightDist, font: REPORT_DOC_FONT, size: 20 })] })]
               })
             ]
           })
@@ -1568,7 +1585,7 @@ class ReportDocxGenerator {
           alignment: AlignmentType.CENTER,
           spacing: { before: 80, after: 180 },
           keepLines: true,
-          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: 'Times New Roman', size: 20, color: '000000' })]
+          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: REPORT_DOC_FONT, size: 20, color: '000000' })]
         })
       );
 
@@ -1594,12 +1611,12 @@ class ReportDocxGenerator {
               ? new Bookmark({
                   id: 'tab_2',
                   children: [
-                    new TextRun({ text: 'Tabela ', font: 'Times New Roman', size: 22, color: '000000' }),
+                    new TextRun({ text: 'Tabela ', font: REPORT_DOC_FONT, size: 22, color: '000000' }),
                     new SimpleField('SEQ Tabela \\* ARABIC', '2'),
-                    new TextRun({ text: '. Estrutura do curso de capacitação em transporte escolar.', font: 'Times New Roman', size: 22, color: '000000' })
+                    new TextRun({ text: '. Estrutura do curso de capacitação em transporte escolar.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
                   ]
                 })
-              : new TextRun({ text: 'Tabela 2. Estrutura do curso de capacitação em transporte escolar.', font: 'Times New Roman', size: 22, color: '000000' })
+              : new TextRun({ text: 'Tabela 2. Estrutura do curso de capacitação em transporte escolar.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
           ]
         })
       );
@@ -1616,7 +1633,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: t2CellBorders(true, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Módulo', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Módulo', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 2,
@@ -1624,7 +1641,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Temática', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Temática', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 2,
@@ -1632,7 +1649,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: t2CellBorders(false, true),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Carga horaria\n(horas)', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Carga horaria\n(horas)', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -1653,28 +1670,28 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 28, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 15, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 15, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: t2CellBorders(false, true),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -1702,26 +1719,26 @@ class ReportDocxGenerator {
                   width: { size: 14, type: WidthType.PERCENTAGE },
                   borders: t2CellBorders(true, false),
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: mod.moduleNumber || '01', font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: mod.moduleNumber || '01', font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   columnSpan: 2,
                   width: { size: 56, type: WidthType.PERCENTAGE },
                   borders: t2CellBorders(false, false),
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: topicText, font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: topicText, font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   width: { size: 15, type: WidthType.PERCENTAGE },
                   borders: t2CellBorders(false, false),
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: gHours, font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: gHours, font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   width: { size: 15, type: WidthType.PERCENTAGE },
                   borders: t2CellBorders(false, true),
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: cHours, font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: cHours, font: REPORT_DOC_FONT, size: 20 })] })]
                 })
               ]
             })
@@ -1740,7 +1757,7 @@ class ReportDocxGenerator {
               verticalMerge: maxRows > 1 ? 'restart' : undefined,
               borders: t2CellBorders(true, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: mod.moduleNumber || '04', font: 'Times New Roman', size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: mod.moduleNumber || '04', font: REPORT_DOC_FONT, size: 20 })] })]
             }) : new TableCell({
               width: { size: 14, type: WidthType.PERCENTAGE },
               verticalMerge: 'continue',
@@ -1758,14 +1775,14 @@ class ReportDocxGenerator {
               verticalMerge: (gestorSpans && isFirst) ? 'restart' : undefined,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: (gestorSpans ? gTopics[0]?.topic : g?.topic) || '-', font: 'Times New Roman', size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: (gestorSpans ? gTopics[0]?.topic : g?.topic) || '-', font: REPORT_DOC_FONT, size: 20 })] })]
             });
 
             const cacsTopicCell = new TableCell({
               width: { size: 28, type: WidthType.PERCENTAGE },
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: c ? c.topic : '-', font: 'Times New Roman', size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: c ? c.topic : '-', font: REPORT_DOC_FONT, size: 20 })] })]
             });
 
             const gestorHourCell = (gestorSpans && !isFirst) ? new TableCell({
@@ -1778,14 +1795,14 @@ class ReportDocxGenerator {
               verticalMerge: (gestorSpans && isFirst) ? 'restart' : undefined,
               borders: t2CellBorders(false, false),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: (gestorSpans ? String(gTopics[0]?.hours || 3).replace('.', ',') : (g ? String(g.hours).replace('.', ',') : '-')), font: 'Times New Roman', size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: (gestorSpans ? String(gTopics[0]?.hours || 3).replace('.', ',') : (g ? String(g.hours).replace('.', ',') : '-')), font: REPORT_DOC_FONT, size: 20 })] })]
             });
 
             const cacsHourCell = new TableCell({
               width: { size: 15, type: WidthType.PERCENTAGE },
               borders: t2CellBorders(false, true),
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: c ? String(c.hours).replace('.', ',') : '-', font: 'Times New Roman', size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: c ? String(c.hours).replace('.', ',') : '-', font: REPORT_DOC_FONT, size: 20 })] })]
             });
 
             modRows.push(
@@ -1811,7 +1828,7 @@ class ReportDocxGenerator {
           alignment: AlignmentType.CENTER,
           spacing: { before: 80, after: 180 },
           keepLines: true,
-          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: 'Times New Roman', size: 20, color: '000000' })]
+          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: REPORT_DOC_FONT, size: 20, color: '000000' })]
         })
       );
 
@@ -1836,9 +1853,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_contato',
-                  children: [new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '3. CONTATO COM OS MUNICÍPIOS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -1879,12 +1896,12 @@ class ReportDocxGenerator {
               ? new Bookmark({
                   id: 'tab_3',
                   children: [
-                    new TextRun({ text: 'Tabela ', font: 'Times New Roman', size: 22, color: '000000' }),
+                    new TextRun({ text: 'Tabela ', font: REPORT_DOC_FONT, size: 22, color: '000000' }),
                     new SimpleField('SEQ Tabela \\* ARABIC', '3'),
-                    new TextRun({ text: '. Inscritos por município.', font: 'Times New Roman', size: 22, color: '000000' })
+                    new TextRun({ text: '. Inscritos por município.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
                   ]
                 })
-              : new TextRun({ text: 'Tabela 3. Inscritos por município.', font: 'Times New Roman', size: 22, color: '000000' })
+              : new TextRun({ text: 'Tabela 3. Inscritos por município.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
           ]
         })
       );
@@ -1902,7 +1919,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 22, type: WidthType.PERCENTAGE },
@@ -1910,7 +1927,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 3,
@@ -1918,7 +1935,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Inscritos', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -1933,7 +1950,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 22, type: WidthType.PERCENTAGE },
@@ -1941,7 +1958,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 3,
@@ -1949,7 +1966,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Inscritos', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Número de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -1978,21 +1995,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -2020,21 +2037,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -2062,31 +2079,31 @@ class ReportDocxGenerator {
                 width: { size: 9, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 22, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftCacs, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftCacs, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftGestor, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftGestor, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftTotal, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftTotal, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               // Espaçador Central
               new TableCell({
@@ -2099,31 +2116,31 @@ class ReportDocxGenerator {
                 width: { size: 9, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 22, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightCacs, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightCacs, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightGestor, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightGestor, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightTotal, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightTotal, font: REPORT_DOC_FONT, size: 20 })] })]
               })
             ]
           })
@@ -2143,14 +2160,14 @@ class ReportDocxGenerator {
               width: { size: 37, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderTop,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios com inscritos', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios com inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 8,
               width: { size: 63, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderTop,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalInscribedMunicipalities || 0), font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalInscribedMunicipalities || 0), font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2162,14 +2179,14 @@ class ReportDocxGenerator {
               width: { size: 37, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderBottom,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 8,
               width: { size: 63, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderBottom,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalInscribed || 0} (${metrics?.totalInscribedCACS || 0} CACS + ${metrics?.totalInscribedGestores || 0} Gestores)`, font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalInscribed || 0} (${metrics?.totalInscribedCACS || 0} CACS + ${metrics?.totalInscribedGestores || 0} Gestores)`, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -2188,7 +2205,7 @@ class ReportDocxGenerator {
           alignment: AlignmentType.CENTER,
           spacing: { before: 80, after: 180 },
           keepLines: true,
-          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: 'Times New Roman', size: 20, color: '000000' })]
+          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: REPORT_DOC_FONT, size: 20, color: '000000' })]
         })
       );
 
@@ -2204,9 +2221,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_desenv',
-                  children: [new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '4. DESENVOLVIMENTO DO CURSO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -2368,12 +2385,12 @@ class ReportDocxGenerator {
               ? new Bookmark({
                   id: 'tab_4',
                   children: [
-                    new TextRun({ text: 'Tabela ', font: 'Times New Roman', size: 22, color: '000000' }),
+                    new TextRun({ text: 'Tabela ', font: REPORT_DOC_FONT, size: 22, color: '000000' }),
                     new SimpleField('SEQ Tabela \\* ARABIC', '4'),
-                    new TextRun({ text: '. Participação por município.', font: 'Times New Roman', size: 22, color: '000000' })
+                    new TextRun({ text: '. Participação por município.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
                   ]
                 })
-              : new TextRun({ text: 'Tabela 4. Participação por município.', font: 'Times New Roman', size: 22, color: '000000' })
+              : new TextRun({ text: 'Tabela 4. Participação por município.', font: REPORT_DOC_FONT, size: 22, color: '000000' })
           ]
         })
       );
@@ -2399,7 +2416,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 22, type: WidthType.PERCENTAGE },
@@ -2407,7 +2424,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 3,
@@ -2415,7 +2432,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -2430,7 +2447,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 22, type: WidthType.PERCENTAGE },
@@ -2438,7 +2455,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nome do Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 3,
@@ -2446,7 +2463,7 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Nº de Participantes\nNº de Inscritos', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2475,21 +2492,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             // Espaçador Central
             new TableCell({
@@ -2517,21 +2534,21 @@ class ReportDocxGenerator {
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'CACS', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Gestor', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               width: { size: 6, type: WidthType.PERCENTAGE },
               shading: tableHeaderShading,
               borders: abntHeaderBorders,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -2559,31 +2576,31 @@ class ReportDocxGenerator {
                 width: { size: 9, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: String(leftM.ibgeCode || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 22, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: leftM.name || '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftC, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftC, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftG, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftG, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftT, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: leftT, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               // Espaçador Central
               new TableCell({
@@ -2596,31 +2613,31 @@ class ReportDocxGenerator {
                 width: { size: 9, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? String(rightM.ibgeCode || '-') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 22, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: rightM ? (rightM.name || '') : '', font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightC, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightC, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightG, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightG, font: REPORT_DOC_FONT, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 6, type: WidthType.PERCENTAGE },
                 borders: abntDataBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightT, font: 'Times New Roman', size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: rightT, font: REPORT_DOC_FONT, size: 20 })] })]
               })
             ]
           })
@@ -2637,14 +2654,14 @@ class ReportDocxGenerator {
               width: { size: 37, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderTop,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios presentes', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de municípios presentes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 8,
               width: { size: 63, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderTop,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalPresentMunicipalities || 0), font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: String(metrics?.totalPresentMunicipalities || 0), font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         }),
@@ -2656,14 +2673,14 @@ class ReportDocxGenerator {
               width: { size: 37, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderBottom,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas presentes', font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.RIGHT, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Total de pessoas presentes', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             }),
             new TableCell({
               columnSpan: 8,
               width: { size: 63, type: WidthType.PERCENTAGE },
               borders: tab3FooterBorderBottom,
               verticalAlign: VerticalAlign.CENTER,
-              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalPresent || 0} (${metrics?.presentCACS || 0} CACS + ${metrics?.presentGestores || 0} Gestores)`, font: 'Times New Roman', bold: true, size: 20 })] })]
+              children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: true, keepLines: true, children: [new TextRun({ text: `${metrics?.totalPresent || 0} (${metrics?.presentCACS || 0} CACS + ${metrics?.presentGestores || 0} Gestores)`, font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
             })
           ]
         })
@@ -2682,7 +2699,7 @@ class ReportDocxGenerator {
           alignment: AlignmentType.CENTER,
           spacing: { before: 80, after: 180 },
           keepLines: true,
-          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: 'Times New Roman', size: 20, color: '000000' })]
+          children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: REPORT_DOC_FONT, size: 20, color: '000000' })]
         })
       );
 
@@ -2735,9 +2752,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_avaliacao',
-                  children: [new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '5. AVALIAÇÃO DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -2761,7 +2778,7 @@ class ReportDocxGenerator {
             new Paragraph({
               alignment: AlignmentType.JUSTIFIED,
               spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-              children: [new TextRun({ text: fig3Comment, font: 'Times New Roman', size: 22 })]
+              children: [new TextRun({ text: fig3Comment, font: REPORT_DOC_FONT, size: 22 })]
             })
           );
         }
@@ -2775,7 +2792,7 @@ class ReportDocxGenerator {
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-            children: [new TextRun({ text: fig4Comment, font: 'Times New Roman', size: 22 })]
+            children: [new TextRun({ text: fig4Comment, font: REPORT_DOC_FONT, size: 22 })]
           })
         );
       }
@@ -2790,7 +2807,7 @@ class ReportDocxGenerator {
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-            children: [new TextRun({ text: fig5Comment, font: 'Times New Roman', size: 22 })]
+            children: [new TextRun({ text: fig5Comment, font: REPORT_DOC_FONT, size: 22 })]
           })
         );
       }
@@ -2805,7 +2822,7 @@ class ReportDocxGenerator {
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-            children: [new TextRun({ text: fig6Comment, font: 'Times New Roman', size: 22 })]
+            children: [new TextRun({ text: fig6Comment, font: REPORT_DOC_FONT, size: 22 })]
           })
         );
       }
@@ -2820,7 +2837,7 @@ class ReportDocxGenerator {
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-            children: [new TextRun({ text: fig7Comment, font: 'Times New Roman', size: 22 })]
+            children: [new TextRun({ text: fig7Comment, font: REPORT_DOC_FONT, size: 22 })]
           })
         );
       }
@@ -2845,7 +2862,7 @@ class ReportDocxGenerator {
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             spacing: { before: 120, after: 0, line: 360, lineRule: LineRuleType.AUTO },
-            children: [new TextRun({ text: fig8Comment, font: 'Times New Roman', size: 22 })]
+            children: [new TextRun({ text: fig8Comment, font: REPORT_DOC_FONT, size: 22 })]
           })
         );
       }
@@ -2876,9 +2893,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_fotos',
-                  children: [new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '6. REGISTROS FOTOGRÁFICOS DA CAPACITAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -2930,9 +2947,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_consideracoes',
-                  children: [new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: '7. CONSIDERAÇÕES FINAIS', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -2988,9 +3005,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_1',
-                  children: [new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE I – CONVOCAÇÕES DO FNDE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         })
       );
@@ -3046,9 +3063,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_2',
-                  children: [new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE II – CONVOCAÇÕES DO CECATE', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         })
       );
@@ -3104,9 +3121,9 @@ class ReportDocxGenerator {
             Bookmark
               ? new Bookmark({
                   id: 'sec_apendice_3',
-                  children: [new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })]
+                  children: [new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })]
                 })
-              : new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: 'Times New Roman', bold: true, size: 32, color: '1F4E79' })
+              : new TextRun({ text: 'APÊNDICE III – RESPOSTAS DISSERTATIVAS DA AVALIAÇÃO', font: REPORT_DOC_FONT, bold: true, size: 32, color: '1F4E79' })
           ]
         }),
         new Paragraph({
@@ -3142,35 +3159,35 @@ class ReportDocxGenerator {
                 shading: tableHeaderShading,
                 borders: abntHeaderBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: 'Times New Roman', bold: true, size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Código IBGE', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 22, type: WidthType.PERCENTAGE },
                 shading: tableHeaderShading,
                 borders: abntHeaderBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Município', font: 'Times New Roman', bold: true, size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Município', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 15, type: WidthType.PERCENTAGE },
                 shading: tableHeaderShading,
                 borders: abntHeaderBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Representação', font: 'Times New Roman', bold: true, size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Representação', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 24, type: WidthType.PERCENTAGE },
                 shading: tableHeaderShading,
                 borders: abntHeaderBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Aspectos que mais gostou', font: 'Times New Roman', bold: true, size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Aspectos que mais gostou', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
               }),
               new TableCell({
                 width: { size: 24, type: WidthType.PERCENTAGE },
                 shading: tableHeaderShading,
                 borders: abntHeaderBorders,
                 verticalAlign: VerticalAlign.CENTER,
-                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Aspectos a serem melhorados', font: 'Times New Roman', bold: true, size: 20 })] })]
+                children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, keepLines: true, children: [new TextRun({ text: 'Aspectos a serem melhorados', font: REPORT_DOC_FONT, bold: true, size: 20 })] })]
               })
             ]
           })
@@ -3185,27 +3202,27 @@ class ReportDocxGenerator {
                 new TableCell({
                   borders: abntDataBorders,
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.ibgeCode || '-'), font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.ibgeCode || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   borders: abntDataBorders,
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.municipality || '-'), font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.municipality || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   borders: abntDataBorders,
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.representation || 'Gestão municipal'), font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.CENTER, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.representation || 'Gestão municipal'), font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   borders: abntDataBorders,
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.likedAspects || '-'), font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.likedAspects || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
                 }),
                 new TableCell({
                   borders: abntDataBorders,
                   verticalAlign: VerticalAlign.CENTER,
-                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.improveAspects || '-'), font: 'Times New Roman', size: 20 })] })]
+                  children: [new Paragraph({ alignment: AlignmentType.LEFT, keepNext: isNotLast && evalRespList.length <= 25, keepLines: true, children: [new TextRun({ text: String(ev.improveAspects || '-'), font: REPORT_DOC_FONT, size: 20 })] })]
                 })
               ]
             })
@@ -3225,7 +3242,7 @@ class ReportDocxGenerator {
             alignment: AlignmentType.CENTER,
             spacing: { before: 80, after: 180 },
             keepLines: true,
-            children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: 'Times New Roman', size: 20, color: '000000' })]
+            children: [new TextRun({ text: 'Fonte: Elaborada pelos autores.', font: REPORT_DOC_FONT, size: 20, color: '000000' })]
           })
         );
       }
@@ -3271,7 +3288,7 @@ class ReportDocxGenerator {
                     children: [
                       new TextRun({
                         text: 'CECATE CENTRO-OESTE',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         bold: true,
                         size: 20,
                         color: '4D4D4D'
@@ -3296,7 +3313,7 @@ class ReportDocxGenerator {
                     children: [
                       new TextRun({
                         text: `RELATÓRIO DE ATIVIDADES Nº ${coverInfo.numPadded}`,
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         size: 20,
                         color: '4D4D4D'
                       })
@@ -3347,7 +3364,7 @@ class ReportDocxGenerator {
                     ] : [
                       new TextRun({
                         text: 'CECATE Centro-Oeste • Engenharia de Transportes • FCT • UFG • FNDE',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         size: 16,
                         color: '4D4D4D'
                       })
@@ -3398,7 +3415,7 @@ class ReportDocxGenerator {
                     ] : [
                       new TextRun({
                         text: 'CECATE Centro-Oeste • Engenharia de Transportes • FCT • UFG • FNDE',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         size: 16,
                         color: '4D4D4D'
                       })
@@ -3423,7 +3440,7 @@ class ReportDocxGenerator {
                     children: [
                       new TextRun({
                         children: [PageNumber.CURRENT],
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         size: 20, // 10pt
                         color: '000000'
                       })
@@ -3463,21 +3480,21 @@ class ReportDocxGenerator {
                     children: [
                       new TextRun({
                         text: 'Projeto: ',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         bold: false,
                         size: 26, // 13pt
                         color: '000000'
                       }),
                       new TextRun({
                         text: 'FORTALECENDO E APRIMORANDO AS POLÍTICAS PÚBLICAS',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         bold: false,
                         size: 24, // 12pt
                         color: '000000'
                       }),
                       new TextRun({
                         text: 'DE TRANSPORTE ESCOLAR DO BRASIL',
-                        font: 'Times New Roman',
+                        font: REPORT_DOC_FONT,
                         bold: false,
                         size: 24, // 12pt
                         color: '000000',
@@ -3498,7 +3515,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: `Relatório de Atividades Nº ${training.number != null ? String(training.number).trim() : '16'}`,
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             bold: false,
             size: 28, // 14pt
             color: '000000'
@@ -3512,7 +3529,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: 'CAPACITAÇÃO EM TRANSPORTE ESCOLAR',
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             bold: true,
             size: 36, // 18pt
             color: '000000'
@@ -3526,7 +3543,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: coverInfo.infoLine,
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             bold: true,
             size: 28, // 14pt
             color: '000000'
@@ -3540,7 +3557,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: 'Aparecida de Goiânia',
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             bold: false,
             size: 24, // 12pt
             color: '000000'
@@ -3554,7 +3571,7 @@ class ReportDocxGenerator {
         children: [
           new TextRun({
             text: contraCapaMonthYear,
-            font: 'Times New Roman',
+            font: REPORT_DOC_FONT,
             bold: false,
             size: 24, // 12pt
             color: '000000'
@@ -3643,7 +3660,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: `RELATÓRIO DE ATIVIDADES Nº ${training.number != null ? String(training.number).trim() : '16'}`,
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 36, // 18pt
               color: '1F4E79'
@@ -3660,7 +3677,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'EQUIPE PARTICIPANTE',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 28, // 14pt
               color: '000000'
@@ -3689,7 +3706,7 @@ class ReportDocxGenerator {
             children: [
               new TextRun({
                 text: 'UNIVERSIDADE FEDERAL DE GOIÁS – UFG',
-                font: 'Times New Roman',
+                font: REPORT_DOC_FONT,
                 bold: true,
                 size: 24, // 12pt
                 color: '000000'
@@ -3710,7 +3727,7 @@ class ReportDocxGenerator {
               children: [
                 new TextRun({
                   text: 'Coordenador do Projeto',
-                  font: 'Times New Roman',
+                  font: REPORT_DOC_FONT,
                   bold: true,
                   size: 24, // 12pt
                   color: '000000'
@@ -3728,7 +3745,7 @@ class ReportDocxGenerator {
                 children: [
                   new TextRun({
                     text: name,
-                    font: 'Times New Roman',
+                    font: REPORT_DOC_FONT,
                     bold: false,
                     size: 24, // 12pt
                     color: '000000'
@@ -3748,7 +3765,7 @@ class ReportDocxGenerator {
               children: [
                 new TextRun({
                   text: 'Equipe de Técnica',
-                  font: 'Times New Roman',
+                  font: REPORT_DOC_FONT,
                   bold: true,
                   size: 24, // 12pt
                   color: '000000'
@@ -3766,7 +3783,7 @@ class ReportDocxGenerator {
                 children: [
                   new TextRun({
                     text: name,
-                    font: 'Times New Roman',
+                    font: REPORT_DOC_FONT,
                     bold: false,
                     size: 24, // 12pt
                     color: '000000'
@@ -3788,7 +3805,7 @@ class ReportDocxGenerator {
             children: [
               new TextRun({
                 text: 'FUNDO NACIONAL DE DESENVOLVIMENTO DA EDUCAÇÃO – FNDE',
-                font: 'Times New Roman',
+                font: REPORT_DOC_FONT,
                 bold: true,
                 size: 24, // 12pt
                 color: '000000'
@@ -3817,7 +3834,7 @@ class ReportDocxGenerator {
               children: [
                 new TextRun({
                   text: r,
-                  font: 'Times New Roman',
+                  font: REPORT_DOC_FONT,
                   bold: true,
                   size: 24, // 12pt
                   color: '000000'
@@ -3835,7 +3852,7 @@ class ReportDocxGenerator {
                 children: [
                   new TextRun({
                     text: name,
-                    font: 'Times New Roman',
+                    font: REPORT_DOC_FONT,
                     bold: false,
                     size: 24, // 12pt
                     color: '000000'
@@ -3861,7 +3878,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'ÍNDICE DE FIGURAS',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
               color: '1F4E79'
@@ -3883,13 +3900,13 @@ class ReportDocxGenerator {
         figuresList.forEach(fig => {
           const textRuns = [];
           if (fig.italicWord) {
-            textRuns.push(new TextRun({ text: fig.label, font: 'Times New Roman', size: 24, color: '000000' }));
-            textRuns.push(new TextRun({ text: fig.italicWord, font: 'Times New Roman', italics: true, size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.label, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.italicWord, font: REPORT_DOC_FONT, italics: true, size: 24, color: '000000' }));
             if (fig.afterWord) {
-              textRuns.push(new TextRun({ text: fig.afterWord, font: 'Times New Roman', size: 24, color: '000000' }));
+              textRuns.push(new TextRun({ text: fig.afterWord, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
             }
           } else {
-            textRuns.push(new TextRun({ text: fig.label, font: 'Times New Roman', size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.label, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
           }
 
           const figChildren = [];
@@ -3904,7 +3921,7 @@ class ReportDocxGenerator {
             figChildren.push(...textRuns);
           }
 
-          figChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          figChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (fig.bookmarkId && SimpleField) {
             figChildren.push(
@@ -3912,7 +3929,7 @@ class ReportDocxGenerator {
             );
           } else {
             figChildren.push(
-              new TextRun({ text: String(fig.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(fig.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -3936,13 +3953,13 @@ class ReportDocxGenerator {
         figuresList.forEach(fig => {
           const textRuns = [];
           if (fig.italicWord) {
-            textRuns.push(new TextRun({ text: fig.label, font: 'Times New Roman', size: 24, color: '000000' }));
-            textRuns.push(new TextRun({ text: fig.italicWord, font: 'Times New Roman', italics: true, size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.label, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.italicWord, font: REPORT_DOC_FONT, italics: true, size: 24, color: '000000' }));
             if (fig.afterWord) {
-              textRuns.push(new TextRun({ text: fig.afterWord, font: 'Times New Roman', size: 24, color: '000000' }));
+              textRuns.push(new TextRun({ text: fig.afterWord, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
             }
           } else {
-            textRuns.push(new TextRun({ text: fig.label, font: 'Times New Roman', size: 24, color: '000000' }));
+            textRuns.push(new TextRun({ text: fig.label, font: REPORT_DOC_FONT, size: 24, color: '000000' }));
           }
 
           const figChildren = [];
@@ -3957,7 +3974,7 @@ class ReportDocxGenerator {
             figChildren.push(...textRuns);
           }
 
-          figChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          figChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (fig.bookmarkId && SimpleField) {
             figChildren.push(
@@ -3965,7 +3982,7 @@ class ReportDocxGenerator {
             );
           } else {
             figChildren.push(
-              new TextRun({ text: String(fig.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(fig.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -3987,7 +4004,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'ÍNDICE DE TABELAS',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
               color: '1F4E79'
@@ -4013,17 +4030,17 @@ class ReportDocxGenerator {
               new InternalHyperlink({
                 anchor: tab.bookmarkId,
                 children: [
-                  new TextRun({ text: tab.label, font: 'Times New Roman', size: 24, color: '000000' })
+                  new TextRun({ text: tab.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
                 ]
               })
             );
           } else {
             tabChildren.push(
-              new TextRun({ text: tab.label, font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: tab.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
-          tabChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          tabChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (tab.bookmarkId && SimpleField) {
             tabChildren.push(
@@ -4031,7 +4048,7 @@ class ReportDocxGenerator {
             );
           } else {
             tabChildren.push(
-              new TextRun({ text: String(tab.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(tab.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -4058,17 +4075,17 @@ class ReportDocxGenerator {
               new InternalHyperlink({
                 anchor: tab.bookmarkId,
                 children: [
-                  new TextRun({ text: tab.label, font: 'Times New Roman', size: 24, color: '000000' })
+                  new TextRun({ text: tab.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
                 ]
               })
             );
           } else {
             tabChildren.push(
-              new TextRun({ text: tab.label, font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: tab.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
-          tabChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          tabChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (tab.bookmarkId && SimpleField) {
             tabChildren.push(
@@ -4076,7 +4093,7 @@ class ReportDocxGenerator {
             );
           } else {
             tabChildren.push(
-              new TextRun({ text: String(tab.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(tab.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -4121,7 +4138,7 @@ class ReportDocxGenerator {
           children: [
             new TextRun({
               text: 'SUMÁRIO',
-              font: 'Times New Roman',
+              font: REPORT_DOC_FONT,
               bold: true,
               size: 32, // 16pt
               color: '1F4E79'
@@ -4139,17 +4156,17 @@ class ReportDocxGenerator {
               new InternalHyperlink({
                 anchor: item.bookmarkId,
                 children: [
-                  new TextRun({ text: labelText, font: 'Times New Roman', size: 24, color: '000000' })
+                  new TextRun({ text: labelText, font: REPORT_DOC_FONT, size: 24, color: '000000' })
                 ]
               })
             );
           } else {
             sumChildren.push(
-              new TextRun({ text: labelText, font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: labelText, font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
-          sumChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          sumChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (item.bookmarkId && SimpleField) {
             sumChildren.push(
@@ -4157,7 +4174,7 @@ class ReportDocxGenerator {
             );
           } else {
             sumChildren.push(
-              new TextRun({ text: String(item.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(item.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -4187,7 +4204,7 @@ class ReportDocxGenerator {
             children: [
               new TextRun({
                 text: 'SUMÁRIO',
-                font: 'Times New Roman',
+                font: REPORT_DOC_FONT,
                 bold: true,
                 size: 32,
                 color: '1F4E79'
@@ -4202,17 +4219,17 @@ class ReportDocxGenerator {
               new InternalHyperlink({
                 anchor: item.bookmarkId,
                 children: [
-                  new TextRun({ text: item.label, font: 'Times New Roman', size: 24, color: '000000' })
+                  new TextRun({ text: item.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
                 ]
               })
             );
           } else {
             itemChildren.push(
-              new TextRun({ text: item.label, font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: item.label, font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
-          itemChildren.push(new TextRun({ text: '\t', font: 'Times New Roman', size: 24, color: '000000' }));
+          itemChildren.push(new TextRun({ text: '\t', font: REPORT_DOC_FONT, size: 24, color: '000000' }));
 
           if (item.bookmarkId && SimpleField) {
             itemChildren.push(
@@ -4220,7 +4237,7 @@ class ReportDocxGenerator {
             );
           } else {
             itemChildren.push(
-              new TextRun({ text: String(item.page), font: 'Times New Roman', size: 24, color: '000000' })
+              new TextRun({ text: String(item.page), font: REPORT_DOC_FONT, size: 24, color: '000000' })
             );
           }
 
@@ -4248,7 +4265,7 @@ class ReportDocxGenerator {
           default: {
             document: {
               run: {
-                font: 'Times New Roman',
+                font: REPORT_DOC_FONT,
                 size: 22,
                 color: '000000'
               },
@@ -4259,7 +4276,7 @@ class ReportDocxGenerator {
             },
             heading1: {
               run: {
-                font: 'Times New Roman',
+                font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
                 color: '1F4E79'
@@ -4278,7 +4295,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
                 color: "1F4E79"
@@ -4296,7 +4313,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 32,
                 bold: true,
                 color: "1F4E79"
@@ -4314,7 +4331,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 24,
                 color: "000000"
               },
@@ -4332,7 +4349,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 24,
                 color: "000000"
               },
@@ -4350,7 +4367,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 24,
                 color: "000000"
               },
@@ -4368,7 +4385,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 24,
                 color: "000000"
               },
@@ -4386,7 +4403,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 24,
                 color: "000000"
               },
@@ -4404,7 +4421,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 22,
                 color: "000000"
               },
@@ -4420,7 +4437,7 @@ class ReportDocxGenerator {
               next: "Normal",
               quickFormat: true,
               run: {
-                font: "Times New Roman",
+                font: REPORT_DOC_FONT,
                 size: 22,
                 color: "000000"
               },
@@ -4560,6 +4577,7 @@ class ReportDocxGenerator {
   }
 
   downloadHtmlReportFallback(training, metrics, chartsData = {}) {
+    REPORT_DOC_FONT = this.getDocumentFont(training);
     const coverInfo = this.formatCoverTrainingInfo(training);
     const { sumarioList, tablesList, figuresList } = this.buildReportIndices(training, metrics, chartsData);
     const htmlContent = `
@@ -4569,7 +4587,7 @@ class ReportDocxGenerator {
         <meta charset="UTF-8">
         <title>${coverInfo.numText} - ${coverInfo.polo}</title>
         <style>
-          body { font-family: 'Times New Roman', serif; line-height: 1.6; margin: 0; padding: 0; }
+          body { font-family: '${REPORT_DOC_FONT}', serif; line-height: 1.6; margin: 0; padding: 0; }
           .cover-page {
             background-color: #4D4D4D;
             color: #FFFFFF;
@@ -4735,7 +4753,7 @@ class ReportDocxGenerator {
         <!-- PÁGINA 5: SUMÁRIO -->
         <div class="sumario-page" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding: 2.5cm; box-sizing: border-box;">
           <div>
-            <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: 'Times New Roman', serif;">SUMÁRIO</h2>
+            <h2 style="text-align: center; color: #1F4E79; font-size: 16pt; font-weight: bold; margin-bottom: 1.5rem; font-family: '${REPORT_DOC_FONT}', serif;">SUMÁRIO</h2>
             <div style="font-size: 12pt; line-height: 2;">
               ${sumarioList.map(item => `<div style="display: flex; justify-content: space-between;"><span>${item.label}</span><span>${item.page}</span></div>`).join('')}
             </div>
