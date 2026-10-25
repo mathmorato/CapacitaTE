@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Relatório (adaptador fino do assistente de 12 etapas existente em js/app.js)
- * Versão: v.3.9.9
+ * Versão: v.4.0.0
  */
 
 (function () {
