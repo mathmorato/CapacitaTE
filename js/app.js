@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.2
+ * Versão: v.3.7.3
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.2';
+    this.version = 'v.3.7.3';
   }
 
   /**
@@ -158,6 +158,7 @@ class AutoReportApp {
     }
 
     // Ações específicas de cada view
+    if (viewId === 'settings') this.renderCloudSettings();
     if (viewId === 'dashboard') {
       this.renderDashboard();
     } else if (viewId === 'trainings') {
@@ -176,6 +177,12 @@ class AutoReportApp {
      Tema Claro / Escuro
      ========================================================================== */
   applyTheme(theme) {
+    // Transição suave só durante a troca (evita animar cores em toda renderização)
+    if (this.theme && this.theme !== theme && document.body) {
+      document.body.classList.add('theme-transition');
+      clearTimeout(this._themeTransitionTimer);
+      this._themeTransitionTimer = setTimeout(() => document.body.classList.remove('theme-transition'), 400);
+    }
     this.theme = theme;
     localStorage.setItem('autoreport_theme', theme);
     const themeBtn = document.getElementById('theme-toggle-btn');
@@ -1320,6 +1327,7 @@ class AutoReportApp {
       this.saveCurrentStepData();
     }
 
+    this._stepDirection = targetStep < this.currentStep ? 'back' : 'forward';
     this.currentStep = targetStep;
     window.location.hash = `wizard/${this.currentTraining?.id || ''}/${this.currentStep}`;
 
@@ -1336,7 +1344,12 @@ class AutoReportApp {
     });
 
     const activePanel = document.getElementById(`wizard-step-${this.currentStep}`);
-    if (activePanel) activePanel.classList.add('active');
+    if (activePanel) {
+      // Animação no sentido da navegação (avançar desliza da direita, voltar da esquerda)
+      activePanel.classList.remove('step-enter-forward', 'step-enter-back');
+      void activePanel.offsetWidth; // reinicia a animação
+      activePanel.classList.add('active', this._stepDirection === 'back' ? 'step-enter-back' : 'step-enter-forward');
+    }
 
     // Atualizar título e barra de progresso no topo
     this.updateWizardHeader();
@@ -11166,6 +11179,91 @@ class AutoReportApp {
     return el ? el.value.trim() : '';
   }
 
+  /**
+   * Quadro "Conexão com a Nuvem" (tela Configurações): mostra a origem da configuração em uso
+   */
+  renderCloudSettings() {
+    const urlEl = document.getElementById('cloud-config-url');
+    const keyEl = document.getElementById('cloud-config-key');
+    const statusEl = document.getElementById('cloud-config-status');
+    if (!urlEl || typeof SUPABASE_CONFIG === 'undefined') return;
+    const saved = typeof getSavedCloudConfig === 'function' ? getSavedCloudConfig() : null;
+    urlEl.value = saved ? saved.SUPABASE_URL : (SUPABASE_CONFIG.source ? SUPABASE_CONFIG.url : '');
+    if (keyEl) {
+      keyEl.value = '';
+      keyEl.placeholder = saved ? 'Chave salva neste navegador (digite para trocar)' : 'sb_publishable_...';
+    }
+    if (statusEl) {
+      const origem = SUPABASE_CONFIG.source === 'navegador' ? 'Nuvem configurada neste navegador'
+        : SUPABASE_CONFIG.source === '.env' ? 'Nuvem configurada pelo arquivo .env' : 'Nuvem não configurada neste navegador';
+      statusEl.textContent = origem;
+      statusEl.style.background = SUPABASE_CONFIG.source ? 'var(--accent-emerald-bg)' : 'var(--accent-amber-bg)';
+      statusEl.style.color = SUPABASE_CONFIG.source ? 'var(--accent-emerald-text)' : 'var(--accent-amber-text)';
+    }
+  }
+
+  readCloudSettingsForm() {
+    const url = (document.getElementById('cloud-config-url')?.value || '').trim().replace(/\/+$/, '');
+    const typedKey = (document.getElementById('cloud-config-key')?.value || '').trim();
+    const saved = typeof getSavedCloudConfig === 'function' ? getSavedCloudConfig() : null;
+    const key = typedKey || (saved && saved.SUPABASE_URL === url ? saved.SUPABASE_ANON_KEY : '');
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(url)) {
+      throw new Error('Informe o Project URL no formato https://seu-projeto.supabase.co');
+    }
+    if (!key) throw new Error('Informe a chave pública do projeto.');
+    if (/service_role/i.test(key)) throw new Error('Essa parece ser a chave service_role (secreta). Use a chave pública (publishable/anon).');
+    return { url, key };
+  }
+
+  async testCloudConnection(config = null) {
+    try {
+      const { url, key } = config || this.readCloudSettingsForm();
+      const res = await fetch(`${url}/rest/v1/trainings?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+      if (res.ok) {
+        if (!config) this.showToast('Conexão com a nuvem funcionando.', 'success');
+        return true;
+      }
+      const body = await res.json().catch(() => ({}));
+      const msg = res.status === 401 || res.status === 403 ? 'chave recusada pelo Supabase'
+        : body.code === 'PGRST205' ? 'o projeto não tem as tabelas do app (execute supabase/schema.sql no SQL Editor)'
+        : (body.message || `HTTP ${res.status}`);
+      this.showToast(`Falha na conexão: ${msg}.`, 'error', 7000);
+    } catch (err) {
+      const msg = /fetch/i.test(err.message) ? 'endereço não encontrado ou sem internet' : err.message;
+      this.showToast(`Falha na conexão: ${msg}.`, 'error', 7000);
+    }
+    return false;
+  }
+
+  async saveCloudSettings() {
+    let config;
+    try {
+      config = this.readCloudSettingsForm();
+    } catch (err) {
+      this.showToast(err.message, 'warning', 6000);
+      return;
+    }
+    if (!(await this.testCloudConnection(config))) return;
+    localStorage.setItem('autoreport_supabase_url', config.url);
+    localStorage.setItem('autoreport_supabase_key', config.key);
+    try {
+      await window.db.reconnectSupabase();
+      await this.refreshTrainingsList();
+      this.showToast('Nuvem conectada e sincronizada neste navegador.', 'success');
+    } catch (err) {
+      this.showToast(`Configuração salva, mas a sincronização falhou: ${err.message}`, 'warning', 7000);
+    }
+    this.renderCloudSettings();
+  }
+
+  async clearCloudSettings() {
+    localStorage.removeItem('autoreport_supabase_url');
+    localStorage.removeItem('autoreport_supabase_key');
+    try { await window.db.reconnectSupabase(); } catch (e) { /* sem configuração alternativa: modo local */ }
+    this.renderCloudSettings();
+    this.showToast('Configuração da nuvem removida deste navegador.', 'info');
+  }
+
   initGlobalSettings() {
     const org = localStorage.getItem('autoreport_setting_org') || 'Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO)';
     const funding = localStorage.getItem('autoreport_setting_funding') || 'Fundo Nacional de Desenvolvimento da Educação - FNDE';
@@ -11389,6 +11487,21 @@ class AutoReportApp {
         this.saveCurrentStepData();
       }
     });
+
+    // Microinteração: onda a partir do ponto clicado em botões, menu e abas
+    document.addEventListener('pointerdown', (e) => {
+      const target = e.target.closest('.btn, .nav-item, .step-tab-btn, .filter-tab-btn, .team-tab-btn, .master-team-tab-btn');
+      if (!target || target.disabled || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+      const rect = target.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const ripple = document.createElement('span');
+      ripple.className = 'ui-ripple';
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      target.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    }, { passive: true });
 
     // Window popstate / hashchange
     window.addEventListener('hashchange', () => this.handleRoute());
