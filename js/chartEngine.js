@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Motor de Geração de Gráficos (Chart.js)
- * Versão: v.3.9.7
+ * Versão: v.3.9.8
  */
 
 class ChartEngine {

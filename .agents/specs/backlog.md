@@ -5,10 +5,56 @@
 > escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.7** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.8** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
+
+## 0. Retomada rápida (troca de sessão/conta em 25/10/2026, versão v.3.9.7)
+
+**Onde paramos:** Fases 0–4 concluídas; Fase 3 com pendências menores; Fases 5 e 6 por fazer. A última entrega foi a
+v.3.9.7 (formulários conforme `formularios.md`, PDF, tema escuro, limite de tentativas desligado).
+
+**Primeiro, confirme com o usuário se ele já fez (e teste em seguida):**
+1. Segredos `GMAIL_USER` e `GMAIL_APP_PASSWORD` em Edge Functions > Secrets (sem eles a função `enviar-confirmacao`
+   responde "Configure GMAIL_USER..."). Teste: chamar `POST /functions/v1/enviar-confirmacao` com
+   `{"table":"registrations","record":{"id":"<id>"}}` de uma inscrição real e ver `answers.email_sent_at` e `audit_log`
+   (`email.sent`/`email.error`). A inscrição do usuário na 17ª CTE (`cap_1792950620999`, e-mail matheus.h.h@hotmail.com)
+   ainda não recebeu e-mail.
+2. Migrações **0004e** (gatilhos pg_net do e-mail) e **0004f** (limite desligado; regras de nome/nascimento) no SQL Editor.
+   Teste da 0004e: inscrição nova em formulário de teste → `answers.email_sent_at` preenchido em poucos segundos.
+3. Limpeza das pessoas "Teste Automatizado" (SQL na seção 5).
+
+**Próximas tarefas, em ordem sugerida:**
+1. Fase 5 (seção 13 da especificação): etapas 7 e 8 do Relatório com "Usar dados do CapacitaTE" (montar as linhas no
+   formato de `xlsxExport.registrationRows/attendanceRows/evaluationRows` e passar ao mesmo
+   `excelParser.parseRegistrationRows/parseAttendanceRows/parseEvaluationRows`); registrar `data.sources.*`; conferências
+   cruzadas na etapa 11; Admin › Importar base e Admin › Pessoas (seção 7.3/7.4); RPC `admin_import_people`.
+2. Fase 6: migração 0005 (RLS endurecida em `trainings`/`master_team`, revogar anon), checklist em Configurações,
+   religar o limite de tentativas (`app_settings.rate_limit_enabled = 'true'`) antes de divulgar amplamente.
+3. Pendências menores: inclusão manual de respostas (`staff_submit`, já existe no SQL), modo recepção (QR no telão),
+   gráficos/nuvem de palavras na prévia da avaliação, `scripts/testes-formularios.html` (seção 4.5 do `formularios.md`).
+
+**Como o usuário prefere trabalhar:** português; respostas objetivas; configuração do Supabase por SQL para colar no
+SQL Editor; cada versão vai para `develop` e para `main` (merge num `git worktree` temporário, nunca `git checkout main`
+na pasta dele); atualizar este backlog em toda versão.
+
+**Mapa rápido do código:**
+| O quê | Onde |
+|---|---|
+| Núcleo (config, client, router, registro, auth, permissões, QR, exportação, esquema dos formulários) | `js/core/` |
+| Página da capacitação (3 etapas) | `js/modules/capacitacao/module.js` |
+| Telas de inscrição/presença/avaliação | `js/modules/formularios/base.js` + `js/modules/{inscricao,presenca,avaliacao}/module.js` |
+| Administração | `js/modules/admin/` |
+| Relatório (assistente de 12 etapas, modo cadastro) | `js/app.js` (`openWizard(id, passo, { mode })`) + `js/modules/relatorio/module.js` |
+| Páginas públicas | `publico/` (motor `publico.js`, esquema em `js/core/formSchema.js`) |
+| SQL | `supabase/migrations/0001…0004f` e `supabase/schema.sql` (tudo, idempotente) |
+| Edge Functions | `supabase/functions/admin-invite-user`, `supabase/functions/enviar-confirmacao` |
+| Modelos de e-mail do Auth | `supabase/templates/` |
+| Testes | `scripts/testes-core.html` (+ `node scripts/testes-core.js`), `scripts/validar-exportacao.html` (servidor local) |
+
+**IDs úteis:** 16ª CTE `cap_1792886367131` (Pontes e Lacerda/MT); 17ª CTE `cap_1792950620999` (Goiânia/GO, formulários
+do usuário em rascunho, incluindo 2 formulários de presença por dia do modelo antigo, que ele pode excluir).
 
 ## 1. Decisões combinadas com o usuário
 

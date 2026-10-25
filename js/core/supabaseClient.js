@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Client Único do Supabase (compartilhado pelo painel e pelos módulos)
- * Versão: v.3.9.7
+ * Versão: v.3.9.8
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
