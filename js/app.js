@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.18
+ * Versão: v.3.4.19
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.18';
+    this.version = 'v.3.4.19';
   }
 
   /**
@@ -7431,6 +7431,7 @@ class AutoReportApp {
   renderEvaluationCharts() {
     if (!window.chartEngine || !this.currentTraining) return;
     const isDark = this.theme === 'dark';
+    this.applyChartFont();
     const evals = this.currentTraining.evaluations || [];
 
     // Figura 3: Participação CACS vs Gestor (calculado estritamente a partir das avaliações importadas)
@@ -7622,6 +7623,32 @@ class AutoReportApp {
     this.currentTraining.customWordCloudFont = selected;
     this.currentTraining.wordCloudFontFamily = selected;
     this.renderWordClouds();
+    this.saveCurrentStepData();
+  }
+
+  /**
+   * Aplica a fonte escolhida para os gráficos (Figuras 3 a 6) e sincroniza o seletor da Etapa 8
+   */
+  applyChartFont() {
+    const font = (this.currentTraining && this.currentTraining.chartFontFamily) || 'Plus Jakarta Sans';
+    if (window.chartEngine && typeof window.chartEngine.setFontFamily === 'function') {
+      window.chartEngine.setFontFamily(font);
+    }
+    const select = document.getElementById('chart-font-select');
+    if (select && select.value !== font) select.value = font;
+  }
+
+  handleChartFontChange(fontName) {
+    if (!this.currentTraining) return;
+    this.currentTraining.chartFontFamily = fontName || 'Plus Jakarta Sans';
+    this.renderEvaluationCharts();
+    this.saveCurrentStepData();
+  }
+
+  restoreChartFont() {
+    if (!this.currentTraining) return;
+    this.currentTraining.chartFontFamily = 'Plus Jakarta Sans';
+    this.renderEvaluationCharts();
     this.saveCurrentStepData();
   }
 
@@ -9931,6 +9958,7 @@ class AutoReportApp {
 
   renderReportPreviewCharts() {
     if (!window.chartEngine || !this.currentTraining) return;
+    this.applyChartFont(); // os gráficos da prévia são as imagens inseridas no Word
     // O relatório é um documento impresso formal A4 de fundo branco; tema dos gráficos deve ser sempre claro
     const isDark = false;
     const evals = this.currentTraining.evaluations || [];

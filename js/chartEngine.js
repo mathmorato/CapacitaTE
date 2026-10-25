@@ -1,11 +1,20 @@
 /**
  * AutoReport CECATE - Motor de Geração de Gráficos (Chart.js)
- * Versão: v.3.4.18
+ * Versão: v.3.4.19
  */
 
 class ChartEngine {
   constructor() {
     this.chartInstances = {};
+    // Fonte dos textos dos gráficos (Figuras 3 a 6); definida pelo usuário na Etapa 8, mesmas opções da nuvem de palavras
+    this.fontFamily = 'Plus Jakarta Sans';
+  }
+
+  /**
+   * Define a fonte usada nos próximos gráficos renderizados
+   */
+  setFontFamily(fontFamily) {
+    this.fontFamily = fontFamily || 'Plus Jakarta Sans';
   }
 
   /**
@@ -44,7 +53,7 @@ class ChartEngine {
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+        ctx.font = `600 13px "${this.fontFamily}", sans-serif`;
         ctx.fillStyle = isDark ? '#64748b' : '#94a3b8';
         ctx.fillText('Nenhuma avaliação importada no momento', canvas.width / 2, canvas.height / 2);
         ctx.restore();
@@ -86,7 +95,7 @@ class ChartEngine {
             position: 'bottom',
             labels: {
               color: isDark ? '#e2e8f0' : '#1e293b',
-              font: { family: 'Plus Jakarta Sans', size: 12, weight: '600' },
+              font: { family: this.fontFamily, size: 12, weight: '600' },
               padding: 15
             }
           },
@@ -122,7 +131,7 @@ class ChartEngine {
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+        ctx.font = `600 13px "${this.fontFamily}", sans-serif`;
         ctx.fillStyle = isDark ? '#64748b' : '#94a3b8';
         ctx.fillText('Nenhuma avaliação importada no momento', canvas.width / 2, canvas.height / 2);
         ctx.restore();
@@ -168,12 +177,13 @@ class ChartEngine {
       categoryPercentage: 0.8
     }));
 
+    const chartFont = this.fontFamily; // dentro do plugin, this não é o ChartEngine
     const stackedPercentagePlugin = {
       id: 'stackedBarPercentage',
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         ctx.save();
-        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.font = `bold 10px "${chartFont}", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -219,7 +229,7 @@ class ChartEngine {
               stepSize: 20,
               callback: (value) => value + '%',
               color: isDark ? '#94a3b8' : '#64748b',
-              font: { family: 'Inter', size: 11 }
+              font: { family: this.fontFamily, size: 11 }
             },
             grid: {
               color: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
@@ -229,7 +239,7 @@ class ChartEngine {
             stacked: true,
             ticks: {
               color: isDark ? '#e2e8f0' : '#1e293b',
-              font: { family: 'Plus Jakarta Sans', size: 11, weight: '500' },
+              font: { family: this.fontFamily, size: 11, weight: '500' },
               crossAlign: 'start' // Alinha os rótulos do eixo Y à esquerda
             },
             grid: { display: false }
@@ -241,7 +251,7 @@ class ChartEngine {
             position: 'bottom',
             labels: {
               color: isDark ? '#e2e8f0' : '#1e293b',
-              font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+              font: { family: this.fontFamily, size: 11, weight: '600' },
               padding: 15,
               usePointStyle: true,
               pointStyle: 'rect'
