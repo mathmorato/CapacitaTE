@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.7.4
+ * Versão: v.3.7.5
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.7.4';
+    this.version = 'v.3.7.5';
   }
 
   /**
@@ -159,6 +159,8 @@ class AutoReportApp {
 
     // Assistente ficou visível: posiciona o destaque do seletor de etapas sem animar
     if (viewId === 'wizard') requestAnimationFrame(() => this.moveStepperIndicator(true));
+    // Abas da tela que acabou de aparecer: posiciona o destaque sem animar
+    requestAnimationFrame(() => (this._slideGroups || []).forEach(g => { if (!g.placed) this.moveSlideHighlight(g, true); }));
 
     // Ações específicas de cada view
     if (viewId === 'settings') this.renderCloudSettings();
@@ -1173,11 +1175,10 @@ class AutoReportApp {
   }
 
   /**
-   * Seletor de etapas: marca ativa/concluídas, troca o número por ✓ com animação em sequência
+   * Seletor de etapas: marca ativa/concluídas (o número fica verde e surge com animação em sequência)
    * e desliza o destaque até a etapa ativa
    */
   updateStepperTabs() {
-    const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
     let popOrder = 0;
     document.querySelectorAll('.step-tab-btn').forEach((tab, idx) => {
       const s = idx + 1;
@@ -1189,8 +1190,9 @@ class AutoReportApp {
       if (!num) return;
       num.classList.remove('check-pop', 'num-return');
       tab.classList.remove('just-completed');
+      // A etapa mantém sempre o número (concluída: círculo verde)
+      if (num.textContent.trim() !== String(s) || num.querySelector('svg')) num.textContent = String(s);
       if (isCompleted) {
-        if (!num.querySelector('svg')) num.innerHTML = checkSvg;
         if (!wasCompleted) {
           // Etapas recém-concluídas surgem uma após a outra
           const delay = `${(popOrder++) * 0.07}s`;
@@ -1200,15 +1202,86 @@ class AutoReportApp {
           num.classList.add('check-pop');
           tab.classList.add('just-completed');
         }
-      } else if (num.querySelector('svg') || num.textContent.trim() !== String(s)) {
-        num.textContent = String(s);
-        if (wasCompleted) {
-          void num.offsetWidth;
-          num.classList.add('num-return');
-        }
+      } else if (wasCompleted) {
+        void num.offsetWidth;
+        num.classList.add('num-return');
       }
     });
     this.moveStepperIndicator();
+  }
+
+  /**
+   * Destaque deslizante reutilizável: em cada grupo, um único destaque desliza até o item que recebe .active.
+   * Grupos: menu lateral e abas de filtro (painel, equipe, equipe mestra e estruturas do curso).
+   * Um MutationObserver acompanha a troca da classe .active, então funciona sem alterar as rotinas de cada tela.
+   */
+  initSlidingHighlights() {
+    const groups = [
+      { item: '.nav-menu > .nav-item', variant: 'nav' },
+      { item: '.filter-tab-btn', variant: 'tab' },
+      { item: '.team-tab-btn', variant: 'tab' },
+      { item: '.master-team-tab-btn', variant: 'tab' },
+      { item: '.course-tpl-tab-btn', variant: 'tab' }
+    ];
+    this._slideGroups = [];
+    groups.forEach(g => {
+      const first = document.querySelector(g.item);
+      if (!first || !first.parentElement) return;
+      const container = first.parentElement;
+      if (container.querySelector(':scope > .slide-indicator')) return;
+      container.classList.add('has-slide-indicator');
+      if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+      const indicator = document.createElement('div');
+      indicator.className = `slide-indicator slide-indicator-${g.variant}`;
+      indicator.setAttribute('aria-hidden', 'true');
+      container.insertBefore(indicator, container.firstChild);
+      const group = { container, indicator, itemSelector: g.item, placed: false };
+      this._slideGroups.push(group);
+      new MutationObserver(mutations => {
+        if (mutations.some(m => m.target !== indicator && m.target.matches && m.target.matches(g.item))) {
+          this.scheduleSlideHighlight(group);
+        }
+      }).observe(container, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      this.moveSlideHighlight(group, true);
+    });
+  }
+
+  scheduleSlideHighlight(group) {
+    cancelAnimationFrame(group.raf);
+    group.raf = requestAnimationFrame(() => this.moveSlideHighlight(group));
+  }
+
+  refreshSlideHighlights(instant = true) {
+    (this._slideGroups || []).forEach(group => this.moveSlideHighlight(group, instant));
+  }
+
+  moveSlideHighlight(group, instant = false) {
+    const { container, indicator } = group;
+    const active = Array.from(container.querySelectorAll(':scope > .active')).find(el => el.matches(group.itemSelector));
+    // Sem item ativo ou grupo oculto (outra tela aberta): esconde e reposiciona sem animar quando voltar
+    if (!active || !active.offsetWidth) {
+      indicator.classList.remove('visible');
+      group.placed = false;
+      return;
+    }
+    const place = () => {
+      indicator.style.width = `${active.offsetWidth}px`;
+      indicator.style.height = `${active.offsetHeight}px`;
+      indicator.style.transform = `translate(${active.offsetLeft}px, ${active.offsetTop}px)`;
+    };
+    if (instant || !group.placed) {
+      indicator.classList.add('no-transition');
+      place();
+      void indicator.offsetWidth;
+      indicator.classList.remove('no-transition');
+    } else {
+      indicator.classList.remove('moving');
+      void indicator.offsetWidth;
+      indicator.classList.add('moving');
+      place();
+    }
+    indicator.classList.add('visible');
+    group.placed = true;
   }
 
   moveStepperIndicator(instant = false) {
@@ -11563,10 +11636,16 @@ class AutoReportApp {
       }
     });
 
-    // Destaque do seletor de etapas acompanha mudanças de tamanho da janela
+    // Destaques deslizantes do menu lateral e das abas
+    this.initSlidingHighlights();
+
+    // Destaques acompanham mudanças de tamanho da janela
     window.addEventListener('resize', () => {
       clearTimeout(this._stepperResizeTimer);
-      this._stepperResizeTimer = setTimeout(() => this.moveStepperIndicator(true), 120);
+      this._stepperResizeTimer = setTimeout(() => {
+        this.moveStepperIndicator(true);
+        this.refreshSlideHighlights(true);
+      }, 120);
     });
 
     // Microinteração: onda a partir do ponto clicado em botões, menu e abas

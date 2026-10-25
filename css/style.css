@@ -4314,7 +4314,7 @@ body .stepper-nav.has-indicator .step-tab-btn.active {
   box-shadow: none !important;
 }
 
-/* Número da etapa: troca por um ✓ verde ao concluir */
+/* Número da etapa: fica verde ao concluir e surge com animação */
 .step-tab-num { position: relative; transition: background-color 0.35s var(--ease-out), color 0.35s var(--ease-out), transform 0.35s var(--ease-spring); }
 .step-tab-num svg { width: 13px; height: 13px; display: block; }
 .step-tab-btn.active .step-tab-num { transform: scale(1.12); }
@@ -4368,4 +4368,67 @@ body .stepper-nav.has-indicator .step-tab-btn.active {
 
 @media (prefers-reduced-motion: reduce) {
   .stepper-indicator, .stepper-indicator::before { transition: none !important; animation: none !important; }
+}
+
+/* ==========================================================================
+   Destaque deslizante reutilizável (menu lateral e grupos de abas)
+   O destaque é um único elemento que desliza até o item .active (posicionado por app.js)
+   ========================================================================== */
+.has-slide-indicator > :not(.slide-indicator) { position: relative; z-index: 1; }
+
+.slide-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--radius-md);
+  opacity: 0;
+  transition: transform 0.55s var(--ease-spring), width 0.4s var(--ease-out), height 0.4s var(--ease-out), opacity 0.25s ease;
+  will-change: transform;
+}
+.slide-indicator.visible { opacity: 1; }
+.slide-indicator.no-transition { transition: none !important; }
+.slide-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  background-size: 250% 100%;
+  background-position: 120% 0;
+  opacity: 0;
+}
+.slide-indicator.moving::before { animation: indicatorShine 0.7s var(--ease-out); }
+
+/* Menu lateral: fundo dourado suave com a barra vertical à esquerda */
+.slide-indicator-nav { background: rgba(246, 168, 0, 0.15); }
+.slide-indicator-nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  background: var(--accent-primary);
+}
+
+/* Abas: pílula com borda dourada */
+.slide-indicator-tab {
+  background: var(--accent-blue-bg);
+  border: 1px solid var(--accent-blue-border);
+  box-shadow: 0 0 12px var(--accent-blue-bg);
+}
+body.light-theme .slide-indicator-tab { background: #FFF1CC; border-color: #F6A800; }
+
+/* Com o destaque ativo, o item em si fica sem fundo (o destaque é que aparece) */
+body .has-slide-indicator > .active {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-indicator, .slide-indicator::before { transition: none !important; animation: none !important; }
 }
