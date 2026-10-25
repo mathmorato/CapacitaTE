@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.4.1.7
+ * Versão: v.4.1.8
  */
 
 (function () {
@@ -323,7 +323,7 @@ WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   function pickModal({ title, intro, items, confirmText, danger = false, notes = [], onConfirm }) {
     const boxes = items.map(it => el('input', { type: 'checkbox', checked: it.checked !== false, id: `pk-${it.id}`, 'aria-label': it.label }));
     const all = el('input', { type: 'checkbox', checked: items.every(i => i.checked !== false), id: 'pk-all', 'aria-label': 'Marcar todas' });
-    all.addEventListener('change', () => boxes.forEach(b => { b.checked = all.checked; update(); }));
+    all.addEventListener('change', () => { const on = all.checked; boxes.forEach(b => { b.checked = on; }); update(); });
     const confirm = el('button', { type: 'button', class: `btn ${danger ? 'btn-secondary admin-danger-btn' : 'btn-primary'} btn-sm`, text: confirmText });
     const update = () => {
       const n = boxes.filter(b => b.checked).length;
