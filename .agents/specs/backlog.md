@@ -4,7 +4,7 @@
 > `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.2** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.3** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -39,6 +39,7 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 | Migração 0004 (funções públicas dos formulários) | ✅ aplicada |
 | Migração 0004b (Meu perfil, foto, limite de tentativas, textos "Administrador Chefe") | ✅ aplicada (25/10) |
 | Migração 0004c (notas da avaliação com itens padrão) | ✅ aplicada (teste de 25/10 gravou as 7 notas) |
+| Migração **0004d** (presença em formulário único; registro por dia do envio) | ⏳ **pendente** — o usuário precisa rodar |
 | Migração 0005 (RLS endurecida: tirar acesso anônimo de `trainings`/`master_team`) | ⏳ não escrita (Fase 6) |
 | Edge Function `admin-invite-user` (só ação `invite`) | ✅ publicada pelo painel, "Verify JWT" desligado |
 | SMTP Gmail (smtp.gmail.com:465, user morato@ufg.br, remetente cecate@ufg.br) | ✅ |
@@ -109,14 +110,21 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
   e "CECATE". Diferenças mantidas de propósito: CPF primeiro (auto-preenchimento) e caixas de veracidade/LGPD.
   Texto de apresentação da inscrição com "convoca" e os canais de contato (inclui e-mail cecate@ufg.br).
 - Modais "Sair do preenchimento": barra de carregamento animada e tempo mínimo de 1,2 s (v.3.9.2).
+- **Presença em formulário único (v.3.9.3, decisão do usuário):** um link/QR para todos os dias. Com
+  `session_key = 'unico'`, o servidor grava cada presença com o dia do envio (`_attendance_session`, fuso
+  America/Sao_Paulo, migração 0004d); a pessoa registra presença em cada dia e o quadro de frequência tem uma
+  coluna por dia. Formulários por dia criados antes ficam listados como "modelo anterior" (só excluir).
+- Cartão do formulário em rascunho mostra aviso em destaque com "Abrir agora" (v.3.9.3): o usuário achou que a
+  inscrição "não funcionava" porque o formulário estava em rascunho.
 - Confirmação de senha e medidor de força (v.3.8.9).
 - `input/` e `output/` fora do Git (v.3.7.9) — ainda estão no histórico antigo; reescrever só se o usuário pedir.
 
 ## 5. Pendências do usuário
 
-2. Limpar as pessoas de teste (SQL abaixo).
-3. Confirmar se "Enable sign ups" está desligado.
-4. Testar no celular real e ler o QR (quando existir).
+1. Rodar `supabase/migrations/0004d_presenca_unica.sql` (presença em formulário único).
+2. Abrir os formulários (estão em rascunho) quando quiser divulgar os links.
+3. Limpar as pessoas de teste (SQL abaixo).
+4. Testar no celular real e ler o QR.
 5. Validar o texto de consentimento LGPD com a UFG (`formSchema.DEFAULTS.consentText`).
 6. Enviar a base histórica de pessoas (Fase 5).
 

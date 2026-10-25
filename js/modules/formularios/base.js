@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.3.9.2
+ * Versão: v.3.9.3
  */
 
 (function () {
@@ -240,7 +240,7 @@ E-mail: ${c.email}`;
         el('div', { class: 'form-group' }, [el('label', { class: 'form-label', for: `cfg-max-${form.id}`, text: 'Vagas por município e categoria (acima disso, lista de espera)' }), extraInputs.max])
       );
     }
-    if (mod === 'presenca') {
+    if (mod === 'presenca' && form.session_key !== 'unico') {
       extraInputs.label = el('input', { class: 'form-control', type: 'text', value: cfg.label || '', id: `cfg-label-${form.id}`, placeholder: '23/06/2026 — Manhã' });
       fields.push(el('div', { class: 'form-group', style: 'margin-top:1rem;' }, [el('label', { class: 'form-label', for: `cfg-label-${form.id}`, text: 'Nome da sessão' }), extraInputs.label]));
     }
@@ -292,8 +292,14 @@ E-mail: ${c.email}`;
       }) }) : null
     ]) : null;
 
+    // Rascunho: o link ainda responde "não está disponível" para o público
+    const draftAlert = form.status === 'rascunho' ? el('div', { class: 'forms-alert forms-alert-draft' }, [
+      el('span', { text: 'Em rascunho: o público ainda não consegue responder (o link mostra "Este formulário ainda não está disponível"). Confira a configuração e clique em Abrir para liberar.' }),
+      canEdit ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Abrir agora', onclick: run(async () => { await updateForm(form, { status: 'aberto' }, 'form.open'); toast('Formulário aberto: o link já está funcionando.', 'success'); rerender(); }) }) : null
+    ]) : null;
+
     return el('div', { class: 'glass-card forms-card' }, [
-      munAlert, statusRow, actions,
+      munAlert, draftAlert, statusRow, actions,
       el('div', { class: 'forms-share' }, [qrBox, linkBox]),
       cfgBox
     ]);
