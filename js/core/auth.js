@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Login, Sessão, Perfil e Permissões do Usuário Atual (Supabase Auth)
- * Versão: v.3.8.4
+ * Versão: v.3.8.5
  */
 
 window.CapacitaTE = window.CapacitaTE || {};
@@ -151,6 +151,13 @@ window.CapacitaTE = window.CapacitaTE || {};
         return false;
       }
       this.profile = { is_admin: !!data[0].is_admin, email: user.email };
+      // Superadministrador (migração 0002b): sem a coluna, a consulta falha e o papel fica desligado
+      try {
+        const own = await client.from('profiles').select('is_superadmin').eq('user_id', user.id).maybeSingle();
+        this.profile.is_superadmin = !own.error && !!(own.data && own.data.is_superadmin);
+      } catch (e) {
+        this.profile.is_superadmin = false;
+      }
       this.permissions = data.filter(r => r.module_key).map(r => ({ module_key: r.module_key, action: r.action, training_id: r.training_id }));
       storage.set(PERMS_CACHE_KEY, JSON.stringify({ userId: user.id, profile: this.profile, permissions: this.permissions }));
       return true;
@@ -198,6 +205,10 @@ window.CapacitaTE = window.CapacitaTE || {};
       window.location.reload();
     },
 
+    isSuperadmin() {
+      return this.mode === 'authenticated' && !!(this.profile && this.profile.is_superadmin);
+    },
+
     isAdmin() {
       return this.mode !== 'authenticated' || !!(this.profile && this.profile.is_admin);
     },
@@ -211,7 +222,7 @@ window.CapacitaTE = window.CapacitaTE || {};
       if (this.mode === 'authenticated' && this.user) {
         chip.style.display = 'inline-flex';
         const name = document.getElementById('auth-user-name');
-        if (name) name.textContent = this.user.email + (this.profile?.is_admin ? ' · admin' : '');
+        if (name) name.textContent = this.user.email + (this.profile?.is_superadmin ? ' · superadmin' : (this.profile?.is_admin ? ' · admin' : ''));
       } else {
         chip.style.display = 'none';
       }

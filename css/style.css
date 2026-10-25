@@ -4520,3 +4520,6 @@ body.light-theme .admin-chip { color: var(--accent-primary-hover); }
 .admin-muted { color: var(--text-muted); font-size: 0.8rem; }
 .admin-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 .admin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.admin-name-input { min-width: 180px; padding: 0.35rem 0.6rem; font-size: 0.9rem; }
+.admin-danger-btn { color: var(--accent-danger) !important; border-color: rgba(239, 68, 68, 0.4) !important; }
+.admin-danger-btn:hover { background: rgba(239, 68, 68, 0.12) !important; }

@@ -1,6 +1,6 @@
 /**
- * CapacitaTE - Administração › Usuários (convidar, admin, ativo)
- * Versão: v.3.8.4
+ * CapacitaTE - Administração › Usuários (convidar, admin, ativo; renomear e excluir só pelo superadministrador)
+ * Versão: v.3.8.5
  */
 
 (function () {
@@ -9,6 +9,8 @@
   CapacitaTE.adminViews.usuarios = async function (body) {
     const { el, toast, client, fmtDateTime, errorMessage, permissionColumns, loadUsersAndPerms, ACTION_LABELS, reload } = CapacitaTE.adminUI;
     const { users, perms } = await loadUsersAndPerms();
+    const isSuper = CapacitaTE.auth.isSuperadmin();
+    const me = CapacitaTE.auth.user && CapacitaTE.auth.user.id;
     body.textContent = '';
 
     // Lista
@@ -31,22 +33,69 @@
       const chips = u.is_admin
         ? [el('span', { class: 'admin-chip', text: 'todos (admin)' })]
         : modulesOf(u.user_id).map(m => el('span', { class: 'admin-chip', text: m }));
+      if (u.is_superadmin) chips.unshift(el('span', { class: 'admin-chip', text: 'superadmin' }));
+
+      // Nome: editável só pelo superadministrador (Enter ou sair do campo salva)
+      let nameCell;
+      if (isSuper) {
+        const nameInput = el('input', { type: 'text', class: 'form-control admin-name-input', value: u.full_name || '', 'aria-label': `Nome de ${u.email}` });
+        const saveName = async () => {
+          const value = nameInput.value.trim().replace(/\s+/g, ' ');
+          if (value === (u.full_name || '')) return;
+          if (!value) { nameInput.value = u.full_name || ''; return toast('O nome não pode ficar vazio.', 'warning'); }
+          nameInput.disabled = true;
+          const { error } = await client().rpc('admin_update_profile', { p_user: u.user_id, p_full_name: value });
+          nameInput.disabled = false;
+          if (error) { nameInput.value = u.full_name || ''; return toast(errorMessage(error), 'error'); }
+          u.full_name = value;
+          nameInput.value = value;
+          toast('Nome atualizado.', 'success');
+        };
+        nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); } });
+        nameInput.addEventListener('blur', saveName);
+        nameCell = el('td', {}, nameInput);
+      } else {
+        nameCell = el('td', { text: u.full_name || '—' });
+      }
+
+      // Excluir: só o superadministrador, nunca a própria conta nem outro superadministrador
+      const actions = [];
+      if (isSuper && u.user_id !== me && !u.is_superadmin) {
+        actions.push(el('button', {
+          type: 'button', class: 'btn btn-secondary btn-sm admin-danger-btn', text: 'Excluir', 'aria-label': `Excluir ${u.email}`,
+          onclick: () => window.app.openConfirmModal({
+            title: 'Excluir usuário?',
+            msg: `A conta de ${u.full_name || u.email} (${u.email}) será excluída de vez, com as permissões. A auditoria guarda o registro. Esta ação não pode ser desfeita.`,
+            btnText: 'Sim, excluir',
+            successTitle: 'Exclusão enviada',
+            successMsg: 'A lista de usuários será atualizada.',
+            onConfirm: async () => {
+              const { error } = await client().rpc('admin_delete_user', { p_user: u.user_id });
+              if (error) return toast(errorMessage(error), 'error');
+              toast('Usuário excluído.', 'success');
+              reload('usuarios');
+            }
+          })
+        }));
+      }
+
       return el('tr', {}, [
-        el('td', { text: u.full_name || '—' }),
+        nameCell,
         el('td', { text: u.email }),
         el('td', { class: 'perm-col' }, adminBox),
         el('td', { class: 'perm-col' }, activeBox),
         el('td', { text: fmtDateTime(u.last_seen) }),
-        el('td', {}, chips.length ? chips : el('span', { class: 'admin-muted', text: 'nenhum' }))
+        el('td', {}, chips.length ? chips : el('span', { class: 'admin-muted', text: 'nenhum' })),
+        ...(isSuper ? [el('td', { class: 'perm-col' }, actions.length ? actions : el('span', { class: 'admin-muted', text: '—' }))] : [])
       ]);
     });
     body.appendChild(el('div', { class: 'glass-card', style: 'margin-bottom:1.5rem;' }, [
       el('h3', { style: 'margin:0 0 0.75rem; font-size:1rem;', text: `Usuários (${users.length})` }),
       el('div', { class: 'data-table-container' }, el('table', { class: 'data-table admin-table' }, [
-        el('thead', {}, el('tr', {}, ['Nome', 'E-mail', 'Admin', 'Ativo', 'Último acesso', 'Módulos'].map((h, i) => el('th', { class: i === 2 || i === 3 ? 'perm-col' : null, text: h })))),
+        el('thead', {}, el('tr', {}, ['Nome', 'E-mail', 'Admin', 'Ativo', 'Último acesso', 'Módulos', ...(isSuper ? ['Ações'] : [])].map((h, i) => el('th', { class: i === 2 || i === 3 || i === 6 ? 'perm-col' : null, text: h })))),
         el('tbody', {}, rows)
       ])),
-      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: 'Desativar bloqueia o acesso sem apagar nada. Não há exclusão de usuário pela tela. O último admin ativo não pode ser rebaixado nem desativado.' })
+      el('p', { class: 'admin-muted', style: 'margin:0.75rem 0 0;', text: isSuper ? 'Como superadministrador, você altera nomes (clique no nome, edite e tecle Enter) e exclui contas. Desativar bloqueia o acesso sem apagar nada. O último admin ativo e o superadministrador não podem ser rebaixados nem desativados.' : 'Desativar bloqueia o acesso sem apagar nada. Somente o superadministrador altera nomes e exclui contas. O último admin ativo não pode ser rebaixado nem desativado.' })
     ]));
 
     // Convidar
