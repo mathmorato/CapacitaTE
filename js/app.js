@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Controlador Geral da Aplicação (Wizard, UI e Integração de Módulos)
- * Versão: v.3.4.7
+ * Versão: v.3.4.8
  */
 
 window.icons = {
@@ -42,7 +42,7 @@ class AutoReportApp {
     this.currentTeamFilter = 'all';
     this.currentMasterTeamFilter = 'all';
     this.memberToDelete = null;
-    this.version = 'v.3.4.7';
+    this.version = 'v.3.4.8';
   }
 
   /**
@@ -1519,7 +1519,7 @@ class AutoReportApp {
         source: 'Fonte: Elaborada pelos autores.',
         image: window.educationalTechAssets?.kahoot || ''
       });
-    } else if (!f1.image && window.educationalTechAssets?.kahoot) {
+    } else if (!f1.image && !f1.removed && window.educationalTechAssets?.kahoot) {
       f1.image = window.educationalTechAssets.kahoot;
     }
 
@@ -1533,7 +1533,7 @@ class AutoReportApp {
         source: 'Fonte: Elaborada pelos autores.',
         image: window.educationalTechAssets?.plickers || ''
       });
-    } else if (!f2.image && window.educationalTechAssets?.plickers) {
+    } else if (!f2.image && !f2.removed && window.educationalTechAssets?.plickers) {
       f2.image = window.educationalTechAssets.plickers;
     }
 
@@ -1542,9 +1542,29 @@ class AutoReportApp {
     }
   }
 
+  /**
+   * Atualiza o número das legendas das figuras de Tecnologias Educacionais conforme a numeração vigente do relatório
+   * (as figuras são renumeradas quando alguma é removida ou adicionada)
+   */
+  syncEduTechCaptionNumbers() {
+    const gen = window.reportDocxGenerator;
+    const et = this.currentTraining?.educationalTech;
+    if (!gen || typeof gen.getFigureNumbering !== 'function' || !et) return;
+
+    const { numbers } = gen.getFigureNumbering(this.currentTraining);
+    (et.figures || []).forEach(fig => {
+      if (numbers[fig.id] && fig.caption) fig.caption = gen.applyFigureNumber(fig.caption, numbers[fig.id]);
+    });
+    (et.extraFigures || []).forEach(ef => {
+      const num = numbers[`edu_${ef.id}`];
+      if (num && ef.caption) ef.caption = gen.applyFigureNumber(ef.caption, num);
+    });
+  }
+
   renderEducationalTechStep() {
     if (!this.currentTraining) return;
     this.ensureEducationalTechInitialized();
+    this.syncEduTechCaptionNumbers();
 
     const et = this.currentTraining.educationalTech;
 
@@ -1593,7 +1613,7 @@ class AutoReportApp {
         <div style="position:relative; min-height:180px; background:var(--bg-input); border:2px dashed ${hasImage ? 'var(--border-color)' : 'rgba(59,130,246,0.4)'}; border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0.75rem; overflow:hidden;">
           ${hasImage ? `
             <div style="width:100%; text-align:center;">
-              <img src="${fig.image}" alt="${fig.caption}" style="max-width:100%; max-height:160px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color); box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:100%; max-height:160px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color); box-shadow:0 2px 6px rgba(0,0,0,0.1);">
             </div>
             <div style="display:flex; gap:0.4rem; margin-top:0.6rem; flex-wrap:wrap; justify-content:center;">
               <label class="btn btn-secondary btn-sm" style="cursor:pointer; font-size:0.75rem; padding:0.25rem 0.55rem; display:inline-flex; align-items:center; gap:0.3rem;">
@@ -1605,7 +1625,7 @@ class AutoReportApp {
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
                 Restaurar Imagem Padrão
               </button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="app.removeEduTechImage('${fig.id}')" style="font-size:0.75rem; padding:0.25rem 0.55rem; color:var(--accent-rose, #ef4444); display:inline-flex; align-items:center; gap:0.3rem;" title="Remover imagem desta figura">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="app.removeEduTechImage('${fig.id}')" style="font-size:0.75rem; padding:0.25rem 0.55rem; color:var(--accent-rose, #ef4444); display:inline-flex; align-items:center; gap:0.3rem;" title="Remover esta figura do relatório (as demais figuras são renumeradas)">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 Remover
               </button>
@@ -1613,8 +1633,8 @@ class AutoReportApp {
           ` : `
             <div style="text-align:center; padding:1rem;">
               <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted); margin-bottom:0.5rem;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">Nenhuma imagem anexada</div>
-              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem;">Clique para selecionar ou use a imagem oficial de exemplo</div>
+              <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary); margin-bottom:0.25rem;">${fig.removed ? 'Figura removida do relatório' : 'Nenhuma imagem anexada'}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem;">${fig.removed ? 'As demais figuras foram renumeradas. Anexe uma imagem para incluí-la novamente.' : 'Clique para selecionar ou use a imagem oficial de exemplo'}</div>
               <div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
                 <label class="btn btn-primary btn-sm" style="cursor:pointer; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.3rem;">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -1635,14 +1655,14 @@ class AutoReportApp {
             <label class="form-label" style="font-size:0.78rem; font-weight:700;">
               Nome / Título da Legenda (Exibido ACIMA da figura):
             </label>
-            <input type="text" class="form-control form-control-sm" value="${fig.caption || ''}" placeholder="Ex: Figura 1: Avaliação via ferramenta kahoot." oninput="app.updateEduTechCaption('${fig.id}', this.value)">
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.caption || '')}" placeholder="Ex: Figura 1: Avaliação via ferramenta kahoot." oninput="app.updateEduTechCaption('${fig.id}', this.value)">
           </div>
 
           <div class="form-group" style="margin:0;">
             <label class="form-label" style="font-size:0.78rem; font-weight:700;">
               Fonte da Imagem (Exibido ABAIXO da figura):
             </label>
-            <input type="text" class="form-control form-control-sm" value="${fig.source || 'Fonte: Elaborada pelos autores.'}" placeholder="Ex: Fonte: Elaborada pelos autores." oninput="app.updateEduTechSource('${fig.id}', this.value)">
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}" placeholder="Ex: Fonte: Elaborada pelos autores." oninput="app.updateEduTechSource('${fig.id}', this.value)">
           </div>
         </div>
       </div>
@@ -1666,7 +1686,7 @@ class AutoReportApp {
 
         <div style="position:relative; min-height:160px; background:var(--bg-input); border:2px dashed var(--border-color); border-radius:var(--radius-sm); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0.75rem; overflow:hidden;">
           ${hasImage ? `
-            <img src="${fig.image}" alt="${fig.caption}" style="max-width:100%; max-height:150px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:100%; max-height:150px; object-fit:contain; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
             <label class="btn btn-secondary btn-sm" style="cursor:pointer; font-size:0.75rem; margin-top:0.5rem; display:inline-flex; align-items:center; gap:0.3rem;">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               Trocar Imagem
@@ -1684,15 +1704,15 @@ class AutoReportApp {
         <div style="display:flex; flex-direction:column; gap:0.5rem;">
           <div class="form-group" style="margin:0;">
             <label class="form-label" style="font-size:0.78rem;">Nome da Ferramenta:</label>
-            <input type="text" class="form-control form-control-sm" value="${fig.title || ''}" placeholder="Ex: Mentimeter, Padlet..." oninput="app.updateExtraEduTechTitle('${fig.id}', this.value)">
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.title || '')}" placeholder="Ex: Mentimeter, Padlet..." oninput="app.updateExtraEduTechTitle('${fig.id}', this.value)">
           </div>
           <div class="form-group" style="margin:0;">
             <label class="form-label" style="font-size:0.78rem;">Legenda (Acima da Imagem):</label>
-            <input type="text" class="form-control form-control-sm" value="${fig.caption || ''}" placeholder="Ex: Figura: Avaliação via ferramenta..." oninput="app.updateExtraEduTechCaption('${fig.id}', this.value)">
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.caption || '')}" placeholder="Ex: Figura: Avaliação via ferramenta..." oninput="app.updateExtraEduTechCaption('${fig.id}', this.value)">
           </div>
           <div class="form-group" style="margin:0;">
             <label class="form-label" style="font-size:0.78rem;">Fonte (Abaixo da Imagem):</label>
-            <input type="text" class="form-control form-control-sm" value="${fig.source || 'Fonte: Elaborada pelos autores.'}" oninput="app.updateExtraEduTechSource('${fig.id}', this.value)">
+            <input type="text" class="form-control form-control-sm" value="${this.escapeHtml(fig.source || 'Fonte: Elaborada pelos autores.')}" oninput="app.updateExtraEduTechSource('${fig.id}', this.value)">
           </div>
         </div>
       </div>
@@ -1716,7 +1736,7 @@ class AutoReportApp {
               ${fig.caption || 'Figura. Avaliação via ferramenta pedagógica.'}
             </p>
             <div style="text-align:center;">
-              <img src="${fig.image}" alt="${fig.caption}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
               ${fig.source || 'Fonte: Elaborada pelos autores.'}
@@ -1734,7 +1754,7 @@ class AutoReportApp {
               ${fig.caption || 'Figura. Atividade com tecnologia educacional.'}
             </p>
             <div style="text-align:center;">
-              <img src="${fig.image}" alt="${fig.caption}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+              <img src="${fig.image}" alt="${this.escapeHtml(fig.caption)}" style="max-width:92%; max-height:260px; object-fit:contain; border-radius:2px; border:1px solid var(--border-color); box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             </div>
             <p style="font-family:'Times New Roman', Times, serif; font-size:10pt; color:var(--text-muted); margin-top:4px; margin-bottom:1.5rem; text-align:center;">
               ${fig.source || 'Fonte: Elaborada pelos autores.'}
@@ -1784,22 +1804,29 @@ class AutoReportApp {
     this.showToast('Texto padrão das tecnologias educacionais restaurado com sucesso!', 'success');
   }
 
-  handleEduTechSingleUpload(figId, inputEl) {
+  async handleEduTechSingleUpload(figId, inputEl) {
     if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
     const file = inputEl.files[0];
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-      this.ensureEducationalTechInitialized();
-      const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
-      if (fig) {
-        fig.image = e.target.result;
-        this.renderEducationalTechStep();
-        this.saveCurrentStepData();
-        this.showToast(`Imagem da ${fig.caption ? fig.caption.split(':')[0] : 'figura'} atualizada com sucesso!`, 'success');
-      }
-    };
-    reader.readAsDataURL(file);
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      inputEl.value = '';
+    }
+
+    this.ensureEducationalTechInitialized();
+    const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
+    if (fig) {
+      fig.image = dataUrl;
+      fig.removed = false;
+      this.renderEducationalTechStep();
+      this.saveCurrentStepData();
+      this.showToast(`Imagem da ${fig.caption ? fig.caption.split(':')[0] : 'figura'} atualizada com sucesso!`, 'success');
+    }
   }
 
   useDefaultEduTechImage(figId) {
@@ -1812,6 +1839,7 @@ class AutoReportApp {
     } else if (figId === 'fig_2' && window.educationalTechAssets?.plickers) {
       fig.image = window.educationalTechAssets.plickers;
     }
+    fig.removed = false;
     this.renderEducationalTechStep();
     this.saveCurrentStepData();
     this.showToast(`Imagem oficial de exemplo carregada para ${fig.caption ? fig.caption.split(':')[0] : 'a figura'}!`, 'success');
@@ -1825,9 +1853,11 @@ class AutoReportApp {
 
     if (f1 && window.educationalTechAssets?.kahoot) {
       f1.image = window.educationalTechAssets.kahoot;
+      f1.removed = false;
     }
     if (f2 && window.educationalTechAssets?.plickers) {
       f2.image = window.educationalTechAssets.plickers;
+      f2.removed = false;
     }
     this.renderEducationalTechStep();
     this.saveCurrentStepData();
@@ -1839,9 +1869,10 @@ class AutoReportApp {
     const fig = this.currentTraining.educationalTech.figures.find(f => f.id === figId);
     if (fig) {
       fig.image = '';
+      fig.removed = true;
       this.renderEducationalTechStep();
       this.saveCurrentStepData();
-      this.showToast('Imagem removida.', 'info');
+      this.showToast('Figura removida do relatório. As demais figuras foram renumeradas.', 'info');
     }
   }
 
@@ -1869,10 +1900,14 @@ class AutoReportApp {
     this.ensureEducationalTechInitialized();
     const et = this.currentTraining.educationalTech;
     const count = (et.extraFigures || []).length;
+    // Número provisório: a legenda é renumerada automaticamente quando a imagem for anexada
+    const nextNum = window.reportDocxGenerator?.getFigureNumbering
+      ? window.reportDocxGenerator.getFigureNumbering(this.currentTraining).nextEduNumber
+      : count + 3;
     const newFig = {
       id: `extra_edutech_${Date.now()}`,
       title: `Ferramenta Educacional ${count + 1}`,
-      caption: `Figura ${count + 3}: Atividade pedagógica via tecnologia educacional.`,
+      caption: `Figura ${nextNum}: Atividade pedagógica via tecnologia educacional.`,
       source: 'Fonte: Elaborada pelos autores.',
       image: ''
     };
@@ -1920,22 +1955,28 @@ class AutoReportApp {
     }
   }
 
-  handleExtraEduTechUpload(extraId, inputEl) {
+  async handleExtraEduTechUpload(extraId, inputEl) {
     if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
     const file = inputEl.files[0];
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-      this.ensureEducationalTechInitialized();
-      const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
-      if (fig) {
-        fig.image = e.target.result;
-        this.renderEducationalTechStep();
-        this.saveCurrentStepData();
-        this.showToast('Imagem anexada com sucesso!', 'success');
-      }
-    };
-    reader.readAsDataURL(file);
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      inputEl.value = '';
+    }
+
+    this.ensureEducationalTechInitialized();
+    const fig = (this.currentTraining.educationalTech.extraFigures || []).find(f => f.id === extraId);
+    if (fig) {
+      fig.image = dataUrl;
+      this.renderEducationalTechStep();
+      this.saveCurrentStepData();
+      this.showToast('Imagem anexada com sucesso!', 'success');
+    }
   }
 
   renderContactsStep() {
@@ -7666,7 +7707,13 @@ class AutoReportApp {
     if (slotId) {
       // Slot específico
       const file = imageFiles[0];
-      const dataUrl = await this.fileToDataUrl(file);
+      let dataUrl;
+      try {
+        dataUrl = await this.fileToReportImageDataUrl(file);
+      } catch (err) {
+        this.notifyImageReadError(file, err);
+        return;
+      }
       const slots = this.getStandardPhotoSlots();
       const slot = slots.find(s => s.slotId === slotId);
       let captionToUse = defaultCaption;
@@ -7768,26 +7815,41 @@ class AutoReportApp {
     return 2;
   }
 
+  /**
+   * Número da primeira fotografia no relatório (Figura 9 no modelo oficial; muda quando
+   * figuras de Tecnologias Educacionais são removidas ou adicionadas)
+   */
+  getPhotoFigureStart() {
+    const gen = window.reportDocxGenerator;
+    if (gen && typeof gen.getFigureNumbering === 'function' && this.currentTraining) {
+      return gen.getFigureNumbering(this.currentTraining).photoStart;
+    }
+    return 9;
+  }
+
   getStandardPhotoSlots() {
     const daysCount = this.getTrainingDaysCount();
 
-    const slots = [
-      { slotId: 'fig_9', figNum: 9, defaultTitle: 'Acomodação dos participantes.', defaultCaption: 'Figura 9. Acomodação dos participantes.' },
-      { slotId: 'fig_10', figNum: 10, defaultTitle: 'Apresentação inicial do curso.', defaultCaption: 'Figura 10. Apresentação inicial do curso.' },
-      { slotId: 'fig_11', figNum: 11, defaultTitle: 'Apresentação dos módulos teóricos.', defaultCaption: 'Figura 11. Apresentação dos módulos teóricos.' }
+    // slotId é o identificador fixo do slot; figNum é o número exibido, calculado pela numeração vigente
+    const baseSlots = [
+      { slotId: 'fig_9', defaultTitle: 'Acomodação dos participantes.' },
+      { slotId: 'fig_10', defaultTitle: 'Apresentação inicial do curso.' },
+      { slotId: 'fig_11', defaultTitle: 'Apresentação dos módulos teóricos.' }
     ];
 
     for (let day = 1; day <= daysCount; day++) {
-      const figNum = 11 + day;
-      slots.push({
-        slotId: `fig_${figNum}_day_${day}`,
-        figNum: figNum,
-        defaultTitle: `Final da capacitação do ${day}º dia.`,
-        defaultCaption: `Figura ${figNum}. Final da capacitação do ${day}º dia.`
+      baseSlots.push({
+        slotId: `fig_${11 + day}_day_${day}`,
+        defaultTitle: `Final da capacitação do ${day}º dia.`
       });
     }
 
-    return slots;
+    const start = this.getPhotoFigureStart();
+    return baseSlots.map((slot, idx) => ({
+      ...slot,
+      figNum: start + idx,
+      defaultCaption: `Figura ${start + idx}. ${slot.defaultTitle}`
+    }));
   }
 
   escapeHtml(str) {
@@ -7889,13 +7951,18 @@ class AutoReportApp {
       photo = photos.find(p => p.slotId && p.slotId.endsWith(`_day_${dayPart}`));
     }
     if (!photo) {
-      photo = photos.find(p => p.caption && p.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
+      // Compatibilidade com fotos antigas sem slot: nunca reaproveitar uma foto que já pertence a outro slot
+      photo = photos.find(p => !p.slotId && p.caption && p.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
     }
 
     const defaultPureTitle = this.cleanFigureTitle(slot.figNum, slot.defaultTitle);
     let savedCustom = customTitles[slot.slotId];
     if (!savedCustom && photo && photo.caption && photo.caption !== slot.defaultCaption) {
       savedCustom = this.cleanFigureTitle(slot.figNum, photo.caption, defaultPureTitle);
+      // Título padrão de dia herdado de outro slot (não digitado pelo usuário) acompanha o slot, não a foto
+      if (/^final da capacitação do \d+º dia\.?$/i.test(savedCustom)) {
+        savedCustom = null;
+      }
     }
 
     const isCustom = Boolean(savedCustom && savedCustom.trim() !== defaultPureTitle);
@@ -8143,7 +8210,15 @@ class AutoReportApp {
 
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
-    const dataUrl = await this.fileToDataUrl(file);
+    let dataUrl;
+    try {
+      dataUrl = await this.fileToReportImageDataUrl(file);
+    } catch (err) {
+      this.notifyImageReadError(file, err);
+      return;
+    } finally {
+      if (event.target && 'value' in event.target) event.target.value = '';
+    }
 
     // Recupera título, legenda e fonte vigentes (considerando personalização prévia do usuário)
     const slots = this.getStandardPhotoSlots();
@@ -8185,10 +8260,18 @@ class AutoReportApp {
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
     const slots = this.getStandardPhotoSlots();
+    const isPhotoInSlots = (m) => m.type === 'photo' && slots.some(s => s.slotId === m.slotId);
+    let addedCount = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const dataUrl = await this.fileToDataUrl(file);
+      let dataUrl;
+      try {
+        dataUrl = await this.fileToReportImageDataUrl(file);
+      } catch (err) {
+        this.notifyImageReadError(file, err);
+        continue;
+      }
 
       // Encontrar slot sem foto
       const emptySlot = slots.find(s => !this.currentTraining.media.some(m => m.slotId === s.slotId));
@@ -8204,7 +8287,9 @@ class AutoReportApp {
         targetTitle = slotInfo.title;
         targetSource = slotInfo.sourceFormatted;
       } else {
-        const extraFigNum = slots.length + 9 + i;
+        // Próximo número após os slots padrão e as fotos extras já existentes
+        const existingExtras = this.currentTraining.media.filter(m => m.type === 'photo' && !isPhotoInSlots(m)).length;
+        const extraFigNum = (slots.length > 0 ? slots[0].figNum : this.getPhotoFigureStart()) + slots.length + existingExtras;
         targetSlotId = `fig_extra_${Date.now()}_${i}`;
         targetCaption = `Figura ${extraFigNum}. Registro complementar da capacitação.`;
         targetTitle = `Registro complementar da capacitação.`;
@@ -8221,11 +8306,16 @@ class AutoReportApp {
         source: targetSource,
         fileName: file.name
       });
+      addedCount++;
     }
+
+    if (event.target && 'value' in event.target) event.target.value = '';
 
     this.renderPhotosStep();
     this.saveCurrentStepData();
-    this.showToast(`${files.length} fotos adicionadas à galeria!`, 'success');
+    if (addedCount > 0) {
+      this.showToast(`${addedCount} ${addedCount === 1 ? 'foto adicionada' : 'fotos adicionadas'} à galeria!`, 'success');
+    }
   }
 
   confirmRemovePhoto(slotId) {
@@ -8269,6 +8359,17 @@ class AutoReportApp {
 
     const slots = this.getStandardPhotoSlots();
     const photos = (this.currentTraining.media || []).filter(m => m.type === 'photo');
+
+    // Correção de dados de versões anteriores: foto enviada para um dia (id termina com o slot de origem)
+    // que foi deslocada para o slot de outro dia volta ao slot de origem, se ele estiver vazio
+    const daySlotIds = slots.map(s => s.slotId).filter(id => id.includes('_day_'));
+    photos.forEach(p => {
+      const originSlot = daySlotIds.find(id => p.id && p.id.endsWith(`_${id}`));
+      if (originSlot && p.slotId && p.slotId !== originSlot && daySlotIds.includes(p.slotId) &&
+          !photos.some(o => o.slotId === originSlot)) {
+        p.slotId = originSlot;
+      }
+    });
 
     let html = '';
 
@@ -8375,7 +8476,7 @@ class AutoReportApp {
           <div class="glass-card" 
                ondragover="app.handleDragOver(event)"
                ondragleave="app.handleDragLeave(event)"
-               ondrop="app.handlePhotoDrop('${slot.slotId}', '${slotInfo.caption}', event)"
+               ondrop="app.handlePhotoDrop('${slot.slotId}', '', event)"
                style="padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <strong style="color:var(--text-primary); font-size:0.88rem;">
@@ -8457,10 +8558,14 @@ class AutoReportApp {
 
     // Exibir fotos extras não pertencentes aos slots padronizados
     const extraPhotos = photos.filter(p => !slots.some(s => s.slotId === p.slotId));
+    const extraStart = slots.length > 0 ? slots[0].figNum + slots.length : this.getPhotoFigureStart();
     extraPhotos.forEach((photo, idx) => {
-      const extraFigNum = slots.length + 9 + idx;
+      const extraFigNum = extraStart + idx;
       const cleanTitle = this.cleanFigureTitle(extraFigNum, photo.title || photo.caption || `Registro complementar #${idx + 1}.`, `Registro complementar #${idx + 1}.`);
       const fullCaption = photo.caption && photo.caption.startsWith(`Figura ${extraFigNum}.`) ? photo.caption : this.formatFigureCaption(extraFigNum, cleanTitle);
+      // Mantém a legenda salva sincronizada com a numeração exibida (usada no relatório)
+      photo.caption = fullCaption;
+      photo.title = cleanTitle;
       const extraCleanSource = this.cleanFigureSource(photo.customSource || photo.source || 'Elaborada pelos autores.');
       const extraFullSource = this.formatFigureSource(extraCleanSource);
       const isCustomExtraSource = Boolean(photo.customSource && photo.customSource !== 'Elaborada pelos autores.');
@@ -8582,8 +8687,10 @@ class AutoReportApp {
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
           await page.render({ canvasContext: ctx, viewport }).promise;
-          pageImages.push(canvas.toDataURL('image/png'));
+          pageImages.push(canvas.toDataURL('image/jpeg', 0.88));
         }
         return pageImages;
       } catch (err) {
@@ -8599,10 +8706,21 @@ class AutoReportApp {
 
     if (!this.currentTraining.media) this.currentTraining.media = [];
 
+    let addedCount = 0;
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const dataUrl = await this.fileToDataUrl(file);
-      const pageImages = await this.extractDocPageImages(dataUrl, file.type, file.name);
+      let dataUrl;
+      let pageImages;
+      try {
+        const isImage = file.type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(file.name || '');
+        dataUrl = isImage ? await this.fileToReportImageDataUrl(file) : await this.fileToDataUrl(file);
+        pageImages = await this.extractDocPageImages(dataUrl, isImage ? 'image/jpeg' : file.type, file.name);
+      } catch (err) {
+        console.warn('Falha ao anexar documento de apêndice:', file?.name, err);
+        this.showToast(`Não foi possível anexar "${file?.name || 'arquivo'}". Verifique se o arquivo não está corrompido.`, 'error', 6000);
+        continue;
+      }
+      addedCount++;
 
       this.currentTraining.media.push({
         id: `doc_${type}_${Date.now()}_${i}`,
@@ -8627,7 +8745,9 @@ class AutoReportApp {
 
     this.renderAppendicesStep();
     this.saveCurrentStepData();
-    this.showToast(`Documento anexado com sucesso!`, 'success');
+    if (addedCount > 0) {
+      this.showToast(addedCount === 1 ? 'Documento anexado com sucesso!' : `${addedCount} documentos anexados com sucesso!`, 'success');
+    }
   }
 
   formatFileSize(bytes) {
@@ -9235,6 +9355,15 @@ class AutoReportApp {
       </div>
     `;
 
+    // Numeração das figuras idêntica à do documento Word (renumera quando figuras são removidas/adicionadas)
+    const figGen = window.reportDocxGenerator;
+    const previewNumbering = (figGen && typeof figGen.getFigureNumbering === 'function') ? figGen.getFigureNumbering(t) : null;
+    const numberedCaption = (key, caption) => (previewNumbering && previewNumbering.numbers[key])
+      ? figGen.applyFigureNumber(caption, previewNumbering.numbers[key])
+      : caption;
+    const renumberRefs = (text) => previewNumbering ? figGen.renumberFigureReferences(text, previewNumbering.baseToFinal) : text;
+    const photoKey = (ph) => (figGen && typeof figGen.getPhotoFigureKey === 'function') ? figGen.getPhotoFigureKey(ph) : '';
+
     // 5. Figuras fotográficas em ordem oficial
     const photos = (t.media || []).filter(m => m.type === 'photo');
     const slots = this.getStandardPhotoSlots();
@@ -9247,12 +9376,12 @@ class AutoReportApp {
         p = photos.find(ph => ph.slotId && ph.slotId.endsWith(`_day_${dayPart}`));
       }
       if (!p) {
-        p = photos.find(ph => ph.caption && ph.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
+        p = photos.find(ph => !ph.slotId && ph.caption && ph.caption.toLowerCase().includes(slot.defaultTitle.toLowerCase().slice(0, 15)));
       }
 
       if (p && p.blob) {
         const slotInfo = this.getPhotoSlotInfo(slot);
-        const captionToDisplay = p.caption || slotInfo.caption || slot.defaultCaption;
+        const captionToDisplay = numberedCaption(photoKey(p), p.caption || slotInfo.caption || slot.defaultCaption);
         const sourceToDisplay = p.source || slotInfo.sourceFormatted || 'Fonte: Elaborada pelos autores.';
         photosHtml += `
           <div style="margin: 2rem 0; text-align: center; page-break-inside: avoid;">
@@ -9273,8 +9402,8 @@ class AutoReportApp {
     const extraPhotos = photos.filter(ph => !slots.some(s => s.slotId === ph.slotId));
     extraPhotos.forEach((ph, idx) => {
       if (ph.blob) {
-        const extraFigNum = slots.length + 9 + idx;
-        const captionToDisplay = ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.');
+        const extraFigNum = (slots.length > 0 ? slots[0].figNum : this.getPhotoFigureStart()) + slots.length + idx;
+        const captionToDisplay = numberedCaption(photoKey(ph), ph.caption && ph.caption.startsWith('Figura') ? ph.caption : this.formatFigureCaption(extraFigNum, ph.title || ph.caption || 'Registro fotográfico complementar.'));
         const cleanExtraSource = this.cleanFigureSource(ph.customSource || ph.source || 'Elaborada pelos autores.');
         const sourceToDisplay = this.formatFigureSource(cleanExtraSource);
         photosHtml += `
@@ -9383,18 +9512,18 @@ class AutoReportApp {
     const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
     // Comentários das Figuras da Etapa 8 (Fidelidade aos relatórios de exemplo e editáveis pelo usuário)
-    const fig3Comment = (t.evaluationComments && t.evaluationComments.fig3) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig3', t) : '');
-    const fig4Comment = (t.evaluationComments && t.evaluationComments.fig4) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig4', t) : '');
-    const fig5Comment = (t.evaluationComments && t.evaluationComments.fig5) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig5', t) : '');
-    const fig6Comment = (t.evaluationComments && t.evaluationComments.fig6) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig6', t) : '');
-    const fig7Comment = (t.evaluationComments && t.evaluationComments.fig7) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', t) : '');
-    const fig8Comment = (t.evaluationComments && t.evaluationComments.fig8) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', t) : '');
+    const fig3Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig3) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig3', t) : ''));
+    const fig4Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig4) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig4', t) : ''));
+    const fig5Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig5) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig5', t) : ''));
+    const fig6Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig6) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig6', t) : ''));
+    const fig7Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig7) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', t) : ''));
+    const fig8Comment = renumberRefs((t.evaluationComments && t.evaluationComments.fig8) || (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', t) : ''));
 
     // Títulos e Fontes personalizáveis das Nuvens de Palavras (Figuras 7 e 8)
     const fig7TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig7)
       ? t.customWordCloudTitles.fig7.trim()
       : 'Aspectos que gostaram da capacitação.';
-    const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
+    const fig7Title = numberedCaption('fig_7', fig7TitleRaw);
     const fig7SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig7)
       ? t.customWordCloudSources.fig7.trim()
       : 'Elaborada pelos autores.';
@@ -9405,7 +9534,7 @@ class AutoReportApp {
     const fig8TitleRaw = (t.customWordCloudTitles && t.customWordCloudTitles.fig8)
       ? t.customWordCloudTitles.fig8.trim()
       : 'Aspectos que devem melhorar da capacitação.';
-    const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
+    const fig8Title = numberedCaption('fig_8', fig8TitleRaw);
     const fig8SourceRaw = (t.customWordCloudSources && t.customWordCloudSources.fig8)
       ? t.customWordCloudSources.fig8.trim()
       : 'Elaborada pelos autores.';
@@ -9418,54 +9547,27 @@ class AutoReportApp {
     const eduText = (eduTech.text && eduTech.text.trim()) ? eduTech.text.trim() :
       'Durante o transcorrer dos módulos teóricos e práticos, foram incorporadas dinâmicas interativas mediante o uso de tecnologias educacionais e plataformas de aprendizagem baseada em jogos, com a finalidade de acompanhar o nível de assimilação dos conteúdos e potencializar o engajamento coletivo. Foram empregados os aplicativos Kahoot e Plickers: o Kahoot permitiu a participação em tempo real por meio dos smartphones dos cursistas em questionários dinâmicos; já o Plickers viabilizou a coleta imediata de respostas mediante a leitura óptica de cartões com QR Code (alternativas A, B, C e D) realizada exclusivamente pelo celular do instrutor, contornando eventuais oscilações de sinal de internet e garantindo dinamismo à atividade.';
 
-    const eduFigures = eduTech.figures || [];
-    const fig1 = eduFigures.find(f => f.id === 'fig_1') || {
-      caption: 'Figura 1: Avaliação via ferramenta kahoot.',
-      source: 'Fonte: Elaborada pelos autores.',
-      image: window.educationalTechAssets?.kahoot
-    };
-    const fig2 = eduFigures.find(f => f.id === 'fig_2') || {
-      caption: 'Figura 2: Avaliação via ferramenta Plickers.',
-      source: 'Fonte: Elaborada pelos autores.',
-      image: window.educationalTechAssets?.plickers
-    };
+    // Figuras removidas pelo usuário não entram no relatório; numeração idêntica à do documento Word
+    const eduFigureHtml = (image, caption, source) => `
+        <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${this.escapeHtml(caption)}</p>
+          <div style="text-align:center;">
+            <img src="${image}" alt="${this.escapeHtml(caption)}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          </div>
+          <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${this.escapeHtml(source || 'Fonte: Elaborada pelos autores.')}</p>
+        </div>
+      `;
 
     let eduTechFiguresHtml = '';
-    const fig1Img = fig1.image || window.educationalTechAssets?.kahoot;
-    if (fig1Img) {
-      eduTechFiguresHtml += `
-        <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${fig1.caption || 'Figura 1: Avaliação via ferramenta kahoot.'}</p>
-          <div style="text-align:center;">
-            <img src="${fig1Img}" alt="${fig1.caption || 'Kahoot'}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-          </div>
-          <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig1.source || 'Fonte: Elaborada pelos autores.'}</p>
-        </div>
-      `;
-    }
-    const fig2Img = fig2.image || window.educationalTechAssets?.plickers;
-    if (fig2Img) {
-      eduTechFiguresHtml += `
-        <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${fig2.caption || 'Figura 2: Avaliação via ferramenta Plickers.'}</p>
-          <div style="text-align:center;">
-            <img src="${fig2Img}" alt="${fig2.caption || 'Plickers'}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-          </div>
-          <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${fig2.source || 'Fonte: Elaborada pelos autores.'}</p>
-        </div>
-      `;
-    }
-    (eduTech.extraFigures || []).forEach((ef, idx) => {
+    ['fig_1', 'fig_2'].forEach(figId => {
+      const fig = (figGen && typeof figGen.resolveEduTechFigure === 'function') ? figGen.resolveEduTechFigure(t, figId) : null;
+      if (fig) {
+        eduTechFiguresHtml += eduFigureHtml(fig.image, numberedCaption(figId, fig.caption), fig.source);
+      }
+    });
+    (eduTech.extraFigures || []).forEach(ef => {
       if (ef.image) {
-        eduTechFiguresHtml += `
-          <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-            <p style="font-family:'Times New Roman', serif; font-size:11pt; margin-bottom:0.4rem; color:var(--text-primary); text-align:center;">${ef.caption || `Figura ${3 + idx}: Avaliação via ${ef.title || 'ferramenta educacional'}.`}</p>
-            <div style="text-align:center;">
-              <img src="${ef.image}" alt="${ef.title || 'Ferramenta'}" style="max-width:100%; max-height:280px; border-radius:var(--radius-sm); border:1px solid var(--border-color); object-fit:contain; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            </div>
-            <p style="font-size:10pt; font-family:'Times New Roman', serif; color:var(--text-muted); margin-top:0.4rem; text-align:center;">${ef.source || 'Fonte: Elaborada pelos autores.'}</p>
-          </div>
-        `;
+        eduTechFiguresHtml += eduFigureHtml(ef.image, numberedCaption(`edu_${ef.id}`, ef.caption || `Avaliação via ${ef.title || 'ferramenta educacional'}.`), ef.source);
       }
     });
 
@@ -9561,7 +9663,7 @@ class AutoReportApp {
         <!-- FIGURA 3 (TÓPICO 5) -->
         <p style="text-align:justify; line-height:1.5; margin-bottom:0.75rem;">${fig3Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">Figura 3. Participação segundo o tipo de representação.</p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_3', 'Figura 3. Participação segundo o tipo de representação.'))}</p>
           <div style="max-width:520px; height:280px; position:relative; margin:auto;">
             <canvas id="report-preview-fig3-canvas"></canvas>
           </div>
@@ -9571,7 +9673,7 @@ class AutoReportApp {
         <!-- FIGURA 4 -->
         <p style="text-align:justify; line-height:1.6; margin-bottom:0.75rem;">${fig4Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">Figura 4. Avaliação da capacitação de todos os participantes.</p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_4', 'Figura 4. Avaliação da capacitação de todos os participantes.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig4-canvas"></canvas>
           </div>
@@ -9581,7 +9683,7 @@ class AutoReportApp {
         <!-- FIGURA 5 -->
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig5Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">Figura 5. Avaliação da capacitação dos conselheiros CACS.</p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_5', 'Figura 5. Avaliação da capacitação dos conselheiros CACS.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig5-canvas"></canvas>
           </div>
@@ -9591,7 +9693,7 @@ class AutoReportApp {
         <!-- FIGURA 6 -->
         <p style="text-align:justify; line-height:1.6; margin-top:1.5rem; margin-bottom:0.75rem;">${fig6Comment}</p>
         <div style="margin:2rem 0; text-align:center; page-break-inside:avoid;">
-          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">Figura 6. Avaliação da capacitação dos gestores municipais.</p>
+          <p style="font-family:'Times New Roman', serif; font-size:11pt; text-align:center; margin-bottom:0.75rem;">${this.escapeHtml(numberedCaption('fig_6', 'Figura 6. Avaliação da capacitação dos gestores municipais.'))}</p>
           <div style="max-width:720px; height:340px; position:relative; margin:auto;">
             <canvas id="report-preview-fig6-canvas"></canvas>
           </div>
@@ -10784,6 +10886,30 @@ class AutoReportApp {
       reader.onerror = err => reject(err);
       reader.readAsDataURL(file);
     });
+  }
+
+  /**
+   * Lê um arquivo de imagem já padronizado para o relatório: formato compatível com o Word,
+   * orientação EXIF de fotos de celular aplicada e dimensão máxima de 1600 px.
+   */
+  async fileToReportImageDataUrl(file) {
+    const dataUrl = await this.fileToDataUrl(file);
+    if (window.reportDocxGenerator && typeof window.reportDocxGenerator.normalizeImageDataUrl === 'function') {
+      return window.reportDocxGenerator.normalizeImageDataUrl(dataUrl);
+    }
+    return dataUrl;
+  }
+
+  notifyImageReadError(file, err) {
+    console.warn('Falha ao ler imagem:', file?.name, err);
+    const isHeic = /\.(heic|heif)$/i.test(file?.name || '') || /image\/hei[cf]/i.test(file?.type || '');
+    this.showToast(
+      isHeic
+        ? `A imagem "${file.name}" está em HEIC (iPhone), formato não suportado. Converta para JPG ou PNG e envie novamente.`
+        : `Não foi possível ler a imagem "${file?.name || ''}". Use arquivos JPG, PNG ou WEBP.`,
+      'error',
+      6000
+    );
   }
 
   showToast(message, type = 'info', duration = 3500) {

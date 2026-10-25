@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Banco de Dados Histórico Oficial (Capacitações Nº 6 a 14)
- * Versão: v.3.4.7
+ * Versão: v.3.4.8
  */
 window.HISTORICAL_TRAININGS = [
   {

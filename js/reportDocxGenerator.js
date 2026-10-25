@@ -1,6 +1,6 @@
 /**
  * AutoReport CECATE - Gerador de Relatório Institucional em Formato DOCX (Word)
- * Versão: v.3.4.7
+ * Versão: v.3.4.8
  */
 
 class ReportDocxGenerator {
@@ -159,6 +159,219 @@ class ReportDocxGenerator {
   }
 
   /**
+   * Lê a orientação EXIF (1 a 8) de um JPEG. Retorna 1 quando não houver a informação.
+   */
+  getJpegOrientation(bytes) {
+    if (!bytes || bytes.length < 4 || bytes[0] !== 0xFF || bytes[1] !== 0xD8) return 1;
+    try {
+      let offset = 2;
+      while (offset < bytes.length - 4) {
+        if (bytes[offset] !== 0xFF) return 1;
+        const marker = bytes[offset + 1];
+        const length = (bytes[offset + 2] << 8) | bytes[offset + 3];
+        // APP1 com cabeçalho "Exif\0\0"
+        if (marker === 0xE1 && bytes[offset + 4] === 0x45 && bytes[offset + 5] === 0x78 && bytes[offset + 6] === 0x69 && bytes[offset + 7] === 0x66) {
+          const tiff = offset + 10;
+          const little = bytes[tiff] === 0x49;
+          const read16 = (p) => little ? (bytes[p] | (bytes[p + 1] << 8)) : ((bytes[p] << 8) | bytes[p + 1]);
+          const read32 = (p) => little
+            ? (bytes[p] | (bytes[p + 1] << 8) | (bytes[p + 2] << 16) | (bytes[p + 3] << 24))
+            : ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]);
+          const ifd = tiff + read32(tiff + 4);
+          const entries = read16(ifd);
+          for (let i = 0; i < entries; i++) {
+            const entry = ifd + 2 + i * 12;
+            if (read16(entry) === 0x0112) return read16(entry + 8) || 1;
+          }
+          return 1;
+        }
+        if (marker === 0xDA) return 1;
+        offset += 2 + length;
+      }
+    } catch (e) {
+      console.warn('Erro ao ler orientação EXIF da imagem:', e);
+    }
+    return 1;
+  }
+
+  /**
+   * Padroniza uma imagem (Data URL) para inserção no relatório: converte formatos não suportados
+   * pelo Word (WEBP, GIF, BMP...) para JPEG, aplica a orientação EXIF de fotos de celular
+   * e reduz imagens maiores que maxDim. PNG e JPEG já adequados são mantidos sem alteração.
+   * Rejeita quando o navegador não consegue decodificar a imagem (ex.: HEIC).
+   */
+  async normalizeImageDataUrl(dataUrl, { maxDim = 1600, quality = 0.85 } = {}) {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) return dataUrl;
+
+    const isPng = dataUrl.startsWith('data:image/png');
+    const isJpeg = /^data:image\/jpe?g/i.test(dataUrl);
+    if (isPng || isJpeg) {
+      const bytes = this.base64ToUint8Array(dataUrl);
+      const dims = this.getImageDimensionsFromBytes(bytes);
+      const orientation = isJpeg ? this.getJpegOrientation(bytes) : 1;
+      if (dims && orientation === 1 && Math.max(dims.width, dims.height) <= maxDim) {
+        return dataUrl;
+      }
+    }
+
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error('Formato de imagem não suportado pelo navegador.'));
+      el.src = dataUrl;
+    });
+
+    // O navegador já entrega naturalWidth/naturalHeight e o desenho com a orientação EXIF aplicada
+    const scale = Math.min(1, maxDim / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', quality);
+  }
+
+  /**
+   * Retorna uma cópia da capacitação com todas as imagens do relatório em formato compatível com o Word
+   * (fotos, figuras de Tecnologias Educacionais e páginas dos apêndices), cobrindo dados salvos em versões anteriores.
+   */
+  async prepareTrainingImagesForDocx(training) {
+    if (!training) return training;
+    const safeNormalize = async (dataUrl) => {
+      try {
+        return await this.normalizeImageDataUrl(dataUrl);
+      } catch (e) {
+        console.warn('Imagem não pôde ser convertida para o relatório:', e);
+        return dataUrl;
+      }
+    };
+
+    const media = [];
+    for (const m of (training.media || [])) {
+      const copy = { ...m };
+      if (copy.type === 'photo' && copy.blob) {
+        copy.blob = await safeNormalize(copy.blob);
+      }
+      if (Array.isArray(copy.pageImages) && copy.pageImages.length > 0) {
+        const pages = [];
+        for (const pg of copy.pageImages) pages.push(await safeNormalize(pg));
+        copy.pageImages = pages;
+      }
+      media.push(copy);
+    }
+
+    let educationalTech = training.educationalTech;
+    if (educationalTech) {
+      const figures = [];
+      for (const f of (educationalTech.figures || [])) {
+        figures.push(f && f.image ? { ...f, image: await safeNormalize(f.image) } : f);
+      }
+      const extraFigures = [];
+      for (const ef of (educationalTech.extraFigures || [])) {
+        extraFigures.push(ef && ef.image ? { ...ef, image: await safeNormalize(ef.image) } : ef);
+      }
+      educationalTech = { ...educationalTech, figures, extraFigures };
+    }
+
+    return { ...training, media, educationalTech };
+  }
+
+  /**
+   * Resolve uma figura fixa de Tecnologias Educacionais (fig_1 Kahoot / fig_2 Plickers) com imagem, legenda e fonte vigentes.
+   * Retorna null quando a figura foi removida do relatório pelo usuário.
+   */
+  resolveEduTechFigure(training, figId) {
+    const fig = (training?.educationalTech?.figures || []).find(f => f.id === figId);
+    if (fig && fig.removed) return null;
+    const defaults = {
+      fig_1: { caption: 'Figura 1: Avaliação via ferramenta kahoot.', asset: window.educationalTechAssets?.kahoot },
+      fig_2: { caption: 'Figura 2: Avaliação via ferramenta Plickers.', asset: window.educationalTechAssets?.plickers }
+    };
+    const def = defaults[figId] || {};
+    const image = (fig && fig.image) || def.asset;
+    if (!image) return null;
+    return {
+      ...(fig || {}),
+      id: figId,
+      image,
+      caption: (fig && fig.caption) || def.caption,
+      source: (fig && fig.source) || 'Fonte: Elaborada pelos autores.'
+    };
+  }
+
+  /**
+   * Chave única de uma fotografia na numeração das figuras
+   */
+  getPhotoFigureKey(photo) {
+    return `photo_${photo?.id || photo?.slotId || ''}`;
+  }
+
+  /**
+   * Calcula a numeração sequencial das figuras efetivamente incluídas no relatório:
+   * Tecnologias Educacionais (fixas e extras), gráficos e nuvens (modelo 3 a 8) e fotografias.
+   * - numbers: número final de cada figura (fig_1, fig_2, edu_<id>, fig_3..fig_8, photo_<id>)
+   * - baseToFinal: correspondência entre o número do modelo oficial (1 a 8) e o número final
+   * - photoStart: número da primeira fotografia
+   * chartsData nulo considera que todos os gráficos estarão presentes (uso na interface).
+   */
+  getFigureNumbering(training, chartsData = null) {
+    const numbers = {};
+    const baseToFinal = {};
+    let n = 0;
+
+    ['fig_1', 'fig_2'].forEach((id, i) => {
+      if (this.resolveEduTechFigure(training, id)) {
+        numbers[id] = ++n;
+        baseToFinal[i + 1] = n;
+      }
+    });
+
+    (training?.educationalTech?.extraFigures || []).forEach(ef => {
+      if (ef && ef.image) numbers[`edu_${ef.id}`] = ++n;
+    });
+    const nextEduNumber = n + 1;
+
+    [3, 4, 5, 6, 7, 8].forEach(num => {
+      if (!chartsData || chartsData[`fig${num}`]) {
+        numbers[`fig_${num}`] = ++n;
+        baseToFinal[num] = n;
+      }
+    });
+
+    const photoStart = n + 1;
+    this.getOrderedPhotos(training).forEach(ph => {
+      numbers[this.getPhotoFigureKey(ph)] = ++n;
+    });
+
+    return { numbers, baseToFinal, photoStart, nextEduNumber };
+  }
+
+  /**
+   * Aplica o número final ao prefixo "Figura N" de uma legenda, preservando o separador (":" ou ".").
+   */
+  applyFigureNumber(caption, num) {
+    if (!num) return caption;
+    const text = String(caption || '').trim();
+    const prefix = /^figura\s*\d*\s*([.:\-–—])?\s*/i;
+    if (prefix.test(text)) {
+      return text.replace(prefix, (m, sep) => `Figura ${num}${sep === ':' ? ':' : '.'} `);
+    }
+    return `Figura ${num}. ${text}`;
+  }
+
+  /**
+   * Ajusta as referências textuais "Figura(s) N" escritas na numeração do modelo oficial para a numeração final.
+   */
+  renumberFigureReferences(text, baseToFinal) {
+    if (!text || !baseToFinal) return text;
+    return String(text).replace(/\b(Figuras?)(\s+)(\d+(?:\s*(?:,|e|a)\s*\d+)*)/g, (m, word, space, nums) =>
+      word + space + nums.replace(/\d+/g, d => (baseToFinal[d] != null ? String(baseToFinal[d]) : d))
+    );
+  }
+
+  /**
    * Constrói os nós de parágrafo de uma figura conforme o padrão oficial ABNT de referência:
    * Legenda/Título centralizado ACIMA da imagem, imagem centralizada, e Fonte centralizada ABAIXO.
    */
@@ -288,9 +501,11 @@ class ReportDocxGenerator {
     const used = new Set();
     const standardSlotIds = ['fig_9', 'fig_10', 'fig_11'];
 
-    // Determina número de dias da capacitação
+    // Determina número de dias da capacitação (mesma regra da Etapa de fotos: durationDays tem prioridade sobre as datas)
     let daysCount = 2;
-    if (training?.startDate && training?.endDate) {
+    if (training?.durationDays && parseInt(training.durationDays) > 0) {
+      daysCount = parseInt(training.durationDays);
+    } else if (training?.startDate && training?.endDate) {
       const start = new Date(training.startDate);
       const end = new Date(training.endDate);
       if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
@@ -414,22 +629,24 @@ class ReportDocxGenerator {
 
     // Tecnologias Educacionais
     const eduTechData = training.educationalTech || {};
-    const eduFiguresData = eduTechData.figures || [];
-    const f1Data = eduFiguresData.find(f => f.id === 'fig_1') || { caption: 'Figura 1: Avaliação via ferramenta kahoot.', image: window.educationalTechAssets?.kahoot || true };
-    const f2Data = eduFiguresData.find(f => f.id === 'fig_2') || { caption: 'Figura 2: Avaliação via ferramenta Plickers.', image: window.educationalTechAssets?.plickers || true };
+    const figNumbering = this.getFigureNumbering(training, chartsData);
+    const figNums = figNumbering.numbers;
+    const f1Data = this.resolveEduTechFigure(training, 'fig_1');
+    const f2Data = this.resolveEduTechFigure(training, 'fig_2');
 
     addElement(textBlockHeight(550), true);
 
     let pFig1 = null;
-    if (f1Data && (f1Data.image || window.educationalTechAssets?.kahoot || true)) {
+    if (f1Data) {
       pFig1 = addElement(6600, false, true);
     }
     let pFig2 = null;
-    if (f2Data && (f2Data.image || window.educationalTechAssets?.plickers || true)) {
+    if (f2Data) {
       pFig2 = addElement(6600, false, true);
     }
+    const extraEduPages = {};
     (eduTechData.extraFigures || []).forEach(ef => {
-      if (ef.image) addElement(6600, false, true);
+      if (ef.image) extraEduPages[ef.id] = addElement(6600, false, true);
     });
 
     // Tabela 4: Participação por município (2 colunas lado a lado)
@@ -528,58 +745,54 @@ class ReportDocxGenerator {
     ];
 
     const figuresList = [];
+    // Figuras 1 e 2: mantém o nome da ferramenta em itálico quando a legenda for a padrão
+    const pushEduTechIndexEntry = (figData, page, bookmarkId, toolWord) => {
+      const caption = this.applyFigureNumber(figData.caption, figNums[bookmarkId]);
+      const defaultMatch = caption.match(new RegExp(`^(Figura \\d+[.:] Avaliação via ferramenta )(${toolWord})\\.$`, 'i'));
+      if (defaultMatch) {
+        figuresList.push({ label: defaultMatch[1], italicWord: defaultMatch[2], afterWord: '.', page: String(page), bookmarkId });
+      } else {
+        figuresList.push({ label: caption, page: String(page), bookmarkId });
+      }
+    };
     if (pFig1 != null) {
-      figuresList.push({
-        label: 'Figura 1: Avaliação via ferramenta ',
-        italicWord: 'kahoot',
-        afterWord: '.',
-        page: String(pFig1),
-        bookmarkId: 'fig_1'
-      });
+      pushEduTechIndexEntry(f1Data, pFig1, 'fig_1', 'kahoot');
     }
     if (pFig2 != null) {
-      figuresList.push({
-        label: 'Figura 2: Avaliação via ferramenta ',
-        italicWord: 'Plickers',
-        afterWord: '.',
-        page: String(pFig2),
-        bookmarkId: 'fig_2'
-      });
+      pushEduTechIndexEntry(f2Data, pFig2, 'fig_2', 'Plickers');
     }
     (eduTechData.extraFigures || []).forEach((ef, idx) => {
       if (ef.image) {
-        const extraLabel = ef.caption || `Figura ${3 + idx}. Avaliação via ${ef.title || 'tecnologia educacional'}.`;
-        figuresList.push({ label: extraLabel, page: String(pDesenv), bookmarkId: `fig_extra_${idx}` });
+        const extraLabel = this.applyFigureNumber(ef.caption || `Avaliação via ${ef.title || 'tecnologia educacional'}.`, figNums[`edu_${ef.id}`]);
+        figuresList.push({ label: extraLabel, page: String(extraEduPages[ef.id] || pDesenv), bookmarkId: `fig_extra_${idx}` });
       }
     });
     if (pFig3 != null) {
-      figuresList.push({ label: 'Figura 3. Participação segundo o tipo de representação.', page: String(pFig3), bookmarkId: 'fig_3' });
+      figuresList.push({ label: this.applyFigureNumber('Figura 3. Participação segundo o tipo de representação.', figNums.fig_3), page: String(pFig3), bookmarkId: 'fig_3' });
     }
     if (pFig4 != null) {
-      figuresList.push({ label: 'Figura 4. Avaliação da capacitação de todos os participantes.', page: String(pFig4), bookmarkId: 'fig_4' });
+      figuresList.push({ label: this.applyFigureNumber('Figura 4. Avaliação da capacitação de todos os participantes.', figNums.fig_4), page: String(pFig4), bookmarkId: 'fig_4' });
     }
     if (pFig5 != null) {
-      figuresList.push({ label: 'Figura 5. Avaliação da capacitação dos conselheiros CACS.', page: String(pFig5), bookmarkId: 'fig_5' });
+      figuresList.push({ label: this.applyFigureNumber('Figura 5. Avaliação da capacitação dos conselheiros CACS.', figNums.fig_5), page: String(pFig5), bookmarkId: 'fig_5' });
     }
     if (pFig6 != null) {
-      figuresList.push({ label: 'Figura 6. Avaliação da capacitação dos gestores municipais.', page: String(pFig6), bookmarkId: 'fig_6' });
+      figuresList.push({ label: this.applyFigureNumber('Figura 6. Avaliação da capacitação dos gestores municipais.', figNums.fig_6), page: String(pFig6), bookmarkId: 'fig_6' });
     }
     if (pFig7 != null) {
       const fig7TitleRaw = (training?.customWordCloudTitles && training.customWordCloudTitles.fig7)
         ? training.customWordCloudTitles.fig7.trim()
         : 'Aspectos que gostaram da capacitação.';
-      const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
-      figuresList.push({ label: fig7Title, page: String(pFig7), bookmarkId: 'fig_7' });
+      figuresList.push({ label: this.applyFigureNumber(fig7TitleRaw, figNums.fig_7), page: String(pFig7), bookmarkId: 'fig_7' });
     }
     if (pFig8 != null) {
       const fig8TitleRaw = (training?.customWordCloudTitles && training.customWordCloudTitles.fig8)
         ? training.customWordCloudTitles.fig8.trim()
         : 'Aspectos que devem melhorar da capacitação.';
-      const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
-      figuresList.push({ label: fig8Title, page: String(pFig8), bookmarkId: 'fig_8' });
+      figuresList.push({ label: this.applyFigureNumber(fig8TitleRaw, figNums.fig_8), page: String(pFig8), bookmarkId: 'fig_8' });
     }
     photos.forEach((ph, idx) => {
-      const cap = ph.caption || `Figura ${idx + 9}. Registro fotográfico oficial da capacitação.`;
+      const cap = this.applyFigureNumber(ph.caption || 'Registro fotográfico oficial da capacitação.', figNums[this.getPhotoFigureKey(ph)]);
       const pNum = photoPages[idx] || pFotos;
       figuresList.push({ label: cap, page: String(pNum), bookmarkId: `fig_photo_${idx}` });
     });
@@ -595,6 +808,12 @@ class ReportDocxGenerator {
       alert('Selecione ou salve uma capacitação primeiro.');
       return null;
     }
+
+    // Garante imagens compatíveis com o Word (inclusive as salvas em versões anteriores)
+    training = await this.prepareTrainingImagesForDocx(training);
+    const figNumbering = this.getFigureNumbering(training, chartsData || {});
+    const figNums = figNumbering.numbers;
+    const renumberRefs = (text) => this.renumberFigureReferences(text, figNumbering.baseToFinal);
 
     const {
       Document,
@@ -2023,40 +2242,29 @@ class ReportDocxGenerator {
       );
 
       // Figuras de Tecnologias Educacionais (Kahoot e Plickers - Padrão ABNT: Legenda acima, Fonte abaixo)
-      const eduFigures = eduTech.figures || [];
-      const fig1 = eduFigures.find(f => f.id === 'fig_1') || {
-        caption: 'Figura 1: Avaliação via ferramenta kahoot.',
-        source: 'Fonte: Elaborada pelos autores.',
-        image: window.educationalTechAssets?.kahoot
-      };
-      const fig2 = eduFigures.find(f => f.id === 'fig_2') || {
-        caption: 'Figura 2: Avaliação via ferramenta Plickers.',
-        source: 'Fonte: Elaborada pelos autores.',
-        image: window.educationalTechAssets?.plickers
-      };
-
-      const fig1Img = fig1.image || window.educationalTechAssets?.kahoot;
-      if (fig1Img) {
+      // Figuras removidas pelo usuário não entram no relatório (resolveEduTechFigure retorna null)
+      const fig1 = this.resolveEduTechFigure(training, 'fig_1');
+      if (fig1) {
         const fig1Nodes = this.createFigureWithCaptionAbove(
-          fig1Img,
+          fig1.image,
           520,
           270,
-          fig1.caption || 'Figura 1: Avaliação via ferramenta kahoot.',
-          fig1.source || 'Fonte: Elaborada pelos autores.',
+          this.applyFigureNumber(fig1.caption, figNums.fig_1),
+          fig1.source,
           docxDeps,
           'fig_1'
         );
         docChildren.push(...fig1Nodes);
       }
 
-      const fig2Img = fig2.image || window.educationalTechAssets?.plickers;
-      if (fig2Img) {
+      const fig2 = this.resolveEduTechFigure(training, 'fig_2');
+      if (fig2) {
         const fig2Nodes = this.createFigureWithCaptionAbove(
-          fig2Img,
+          fig2.image,
           520,
           270,
-          fig2.caption || 'Figura 2: Avaliação via ferramenta Plickers.',
-          fig2.source || 'Fonte: Elaborada pelos autores.',
+          this.applyFigureNumber(fig2.caption, figNums.fig_2),
+          fig2.source,
           docxDeps,
           'fig_2'
         );
@@ -2070,7 +2278,7 @@ class ReportDocxGenerator {
             ef.image,
             520,
             270,
-            ef.caption || `Figura ${3 + idx}: Avaliação via ${ef.title || 'ferramenta educacional'}.`,
+            this.applyFigureNumber(ef.caption || `Avaliação via ${ef.title || 'ferramenta educacional'}.`, figNums[`edu_${ef.id}`]),
             ef.source || 'Fonte: Elaborada pelos autores.',
             docxDeps,
             `fig_extra_${idx}`
@@ -2445,16 +2653,16 @@ class ReportDocxGenerator {
       const pctGestResp = totalResp > 0 ? ((gestRespCount / totalResp) * 100).toFixed(1).replace('.', ',') : '62,0';
       const overallMean = metrics?.evalStatsGeneral?.overallMean ? parseFloat(metrics.evalStatsGeneral.overallMean).toFixed(1).replace('.', ',') : '4,7';
 
-      const fig4Comment = (training.evaluationComments && training.evaluationComments.fig4) ||
-                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig4', training) : '');
-      const fig5Comment = (training.evaluationComments && training.evaluationComments.fig5) ||
-                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig5', training) : '');
-      const fig6Comment = (training.evaluationComments && training.evaluationComments.fig6) ||
-                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig6', training) : '');
-      const fig7Comment = (training.evaluationComments && training.evaluationComments.fig7) ||
-                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', training) : '');
-      const fig8Comment = (training.evaluationComments && training.evaluationComments.fig8) ||
-                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', training) : '');
+      const fig4Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig4) ||
+                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig4', training) : ''));
+      const fig5Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig5) ||
+                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig5', training) : ''));
+      const fig6Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig6) ||
+                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig6', training) : ''));
+      const fig7Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig7) ||
+                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig7', training) : ''));
+      const fig8Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig8) ||
+                          (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig8', training) : ''));
 
       docChildren.push(
         new Paragraph({
@@ -2486,8 +2694,8 @@ class ReportDocxGenerator {
       // Figura 3: Gráfico de Participação (Tópico 5)
       // docxDeps já inicializado no topo do método generateAndDownload
       if (chartsData.fig3) {
-        const fig3Comment = (training.evaluationComments && training.evaluationComments.fig3) ||
-                            (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig3', training) : '');
+        const fig3Comment = renumberRefs((training.evaluationComments && training.evaluationComments.fig3) ||
+                            (window.statsEngine ? window.statsEngine.getDefaultEvaluationComment('fig3', training) : ''));
         if (fig3Comment) {
           docChildren.push(
             new Paragraph({
@@ -2497,7 +2705,7 @@ class ReportDocxGenerator {
             })
           );
         }
-        const fig3Nodes = this.createImageParagraph(chartsData.fig3, 480, 240, 'Figura 3. Participação segundo o tipo de representação.', docxDeps, 'fig_3');
+        const fig3Nodes = this.createImageParagraph(chartsData.fig3, 480, 240, this.applyFigureNumber('Figura 3. Participação segundo o tipo de representação.', figNums.fig_3), docxDeps, 'fig_3');
         if (fig3Nodes) docChildren.push(...fig3Nodes);
       }
 
@@ -2512,7 +2720,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig4) {
-        const fig4Nodes = this.createImageParagraph(chartsData.fig4, 520, 250, 'Figura 4. Avaliação da capacitação de todos os participantes.', docxDeps, 'fig_4');
+        const fig4Nodes = this.createImageParagraph(chartsData.fig4, 520, 250, this.applyFigureNumber('Figura 4. Avaliação da capacitação de todos os participantes.', figNums.fig_4), docxDeps, 'fig_4');
         if (fig4Nodes) docChildren.push(...fig4Nodes);
       }
 
@@ -2527,7 +2735,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig5) {
-        const fig5Nodes = this.createImageParagraph(chartsData.fig5, 520, 250, 'Figura 5. Avaliação da capacitação dos conselheiros CACS.', docxDeps, 'fig_5');
+        const fig5Nodes = this.createImageParagraph(chartsData.fig5, 520, 250, this.applyFigureNumber('Figura 5. Avaliação da capacitação dos conselheiros CACS.', figNums.fig_5), docxDeps, 'fig_5');
         if (fig5Nodes) docChildren.push(...fig5Nodes);
       }
 
@@ -2542,7 +2750,7 @@ class ReportDocxGenerator {
         );
       }
       if (chartsData.fig6) {
-        const fig6Nodes = this.createImageParagraph(chartsData.fig6, 520, 250, 'Figura 6. Avaliação da capacitação dos gestores municipais.', docxDeps, 'fig_6');
+        const fig6Nodes = this.createImageParagraph(chartsData.fig6, 520, 250, this.applyFigureNumber('Figura 6. Avaliação da capacitação dos gestores municipais.', figNums.fig_6), docxDeps, 'fig_6');
         if (fig6Nodes) docChildren.push(...fig6Nodes);
       }
 
@@ -2560,7 +2768,7 @@ class ReportDocxGenerator {
         const fig7TitleRaw = (training.customWordCloudTitles && training.customWordCloudTitles.fig7)
           ? training.customWordCloudTitles.fig7.trim()
           : 'Aspectos que gostaram da capacitação.';
-        const fig7Title = fig7TitleRaw.toLowerCase().startsWith('figura 7') ? fig7TitleRaw : `Figura 7. ${fig7TitleRaw}`;
+        const fig7Title = this.applyFigureNumber(fig7TitleRaw, figNums.fig_7);
         const fig7SourceRaw = (training.customWordCloudSources && training.customWordCloudSources.fig7)
           ? training.customWordCloudSources.fig7.trim()
           : 'Elaborada pelos autores.';
@@ -2585,7 +2793,7 @@ class ReportDocxGenerator {
         const fig8TitleRaw = (training.customWordCloudTitles && training.customWordCloudTitles.fig8)
           ? training.customWordCloudTitles.fig8.trim()
           : 'Aspectos que devem melhorar da capacitação.';
-        const fig8Title = fig8TitleRaw.toLowerCase().startsWith('figura 8') ? fig8TitleRaw : `Figura 8. ${fig8TitleRaw}`;
+        const fig8Title = this.applyFigureNumber(fig8TitleRaw, figNums.fig_8);
         const fig8SourceRaw = (training.customWordCloudSources && training.customWordCloudSources.fig8)
           ? training.customWordCloudSources.fig8.trim()
           : 'Elaborada pelos autores.';
@@ -2634,7 +2842,7 @@ class ReportDocxGenerator {
         );
       } else {
         photos.forEach((ph, idx) => {
-          const caption = ph.caption || `Figura ${idx + 9}. Registro fotográfico oficial da capacitação.`;
+          const caption = this.applyFigureNumber(ph.caption || 'Registro fotográfico oficial da capacitação.', figNums[this.getPhotoFigureKey(ph)]);
           const customSource = (training.customPhotoSources && ph.slotId && training.customPhotoSources[ph.slotId])
             ? (training.customPhotoSources[ph.slotId].toLowerCase().startsWith('fonte:')
                 ? training.customPhotoSources[ph.slotId].trim()
