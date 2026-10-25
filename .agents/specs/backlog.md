@@ -1,10 +1,11 @@
 # CapacitaTE — Backlog e estado do projeto
 
-> **Para o agente que continuar:** leia este arquivo depois de `CLAUDE.md`, `.agents/rules/guidelines.md` e
-> `.agents/specs/capacitate-modular.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
+> **Para o agente que continuar:** leia este arquivo depois de `CLAUDE.md`, `.agents/rules/guidelines.md`,
+> `.agents/specs/capacitate-modular.md` e `.agents/specs/formularios.md` (estrutura oficial dos 3 formulários públicos,
+> escrita pelo usuário; vale sobre os PDFs). Para a futura migração a um Supabase local: `.agents/specs/migracao-supabase-local.md`. Ele registra o que já foi feito, o que está aplicado no Supabase,
 > o que falta e as decisões tomadas com o usuário. **Atualize-o a cada versão.**
 
-Última atualização: 25/10/2026 · versão **v.3.9.6** · branch de trabalho `develop` (cada versão também é
+Última atualização: 25/10/2026 · versão **v.3.9.7** · branch de trabalho `develop` (cada versão também é
 sincronizada na `main`, que é o site publicado no GitHub Pages).
 
 ---
@@ -28,6 +29,10 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 - **Segundo fator** dos formulários públicos: data de nascimento (ou e-mail, se não houver data). Não remover sem
   decisão explícita do usuário (LGPD).
 - **Sem domínio próprio por enquanto**; Site URL = GitHub Pages.
+- **Limite de tentativas desligado** (25/10, o usuário estava testando e foi bloqueado): `app_settings.rate_limit_enabled = 'false'`.
+  Religar antes de divulgar amplamente (risco: tentativa de datas de nascimento para ver dados de outra pessoa).
+- **Presença em formulário único** (decisão do usuário no chat, posterior ao `formularios.md`, que ainda fala em um token por sessão): a "sessão" é o dia do envio.
+- **Formulários públicos em tema escuro por padrão** e comprovante em **PDF** (não imagem).
 - **Configuração do Supabase sempre por SQL** (arquivo em `supabase/migrations/` para colar no SQL Editor). Telas do painel
   só para o que o SQL não alcança (publicar Edge Function, segredos das funções, SMTP e modelos de e-mail do Auth).
 
@@ -42,8 +47,9 @@ sincronizada na `main`, que é o site publicado no GitHub Pages).
 | Migração 0004b (Meu perfil, foto, limite de tentativas, textos "Administrador Chefe") | ✅ aplicada (25/10) |
 | Migração 0004c (notas da avaliação com itens padrão) | ✅ aplicada (teste de 25/10 gravou as 7 notas) |
 | Migração 0004d (presença em formulário único; registro por dia do envio) | ✅ aplicada (teste de 25/10: session_key = dia do envio) |
-| Edge Function **`enviar-confirmacao`** (e-mail após inscrição, presença e avaliação) | ⏳ **pendente** — publicar (Verify JWT desligado) e cadastrar segredos GMAIL_USER/GMAIL_APP_PASSWORD |
+| Edge Function **`enviar-confirmacao`** (e-mail após inscrição, presença e avaliação) | ✅ publicada (Verify JWT desligado) · ⏳ **faltam os segredos** `GMAIL_USER` e `GMAIL_APP_PASSWORD` (a função responde "Configure GMAIL_USER...") |
 | Migração **0004e** (gatilhos pg_net que chamam a função; substituem os Database Webhooks do painel) | ⏳ **pendente** — o usuário precisa rodar |
+| Migração **0004f** (limite de tentativas desligado por padrão, liberação dos bloqueados, nome com 2 palavras, nascimento ≥ 1920) | ⏳ **pendente** — o usuário precisa rodar |
 | Migração 0005 (RLS endurecida: tirar acesso anônimo de `trainings`/`master_team`) | ⏳ não escrita (Fase 6) |
 | Edge Function `admin-invite-user` (só ação `invite`) | ✅ publicada pelo painel, "Verify JWT" desligado |
 | SMTP Gmail (smtp.gmail.com:465, user morato@ufg.br, remetente cecate@ufg.br) | ✅ |
@@ -97,12 +103,19 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
 - ✅ QR: `js/vendor/qrcode.min.js` (qrcode-generator 1.4.4, MIT) + `js/core/qr.js`.
 - ✅ **Fase 4 (v.3.9.6):** `js/core/xlsxExport.js` gera as 3 planilhas com abas, cabeçalhos (copiados das originais
   de `input/`, inclusive espaços, `
-` e `
+` e `
+
 `), formatos e a aba "Inscritos" com COUNTIF/COUNTIFS e valores em
   cache. Datas gravadas como número de série calculado do dia/hora de parede (o SheetJS deslocava em 1 h datas de
   épocas com horário de verão: 19/02/2006 virava 18/02/2006 22:59). Botões na etapa 2 (permissão `export`, auditoria).
   Teste `scripts/validar-exportacao.html` (abrir por servidor local): cabeçalhos, valores, ExcelParser e StatsEngine.
 - ✅ A pedido do usuário (v.3.9.6): removidos "Cancelar/Restaurar" das inscrições e "Excluir" dos registros de presença.
+- ✅ **Formulários conforme `formularios.md` (v.3.9.7):** `FORM_SCHEMAS` em `js/core/formSchema.js` (seções, `showIf`,
+  `exportHeader`), renderizador único em `publico/publico.js`: faixa "CPF: ***.xxx.xxx-** — trocar", resumo com "editar"
+  antes de enviar a inscrição, seções condicionais limpas ao trocar a categoria, erro do servidor leva ao campo,
+  "Outro:" na avaliação, legendas "1 = ruim / 5 = excelente", títulos dos comprovantes, botão "Confirmar presença".
+  Tema escuro padrão; comprovante em PDF gerado no navegador (sem biblioteca; Helvetica/WinAnsi). Pendente:
+  `scripts/testes-formularios.html` pedido na seção 4.5 do `formularios.md` (os testes ponta a ponta cobrem os fluxos).
 - ⏳ **Próximo:** Fase 5 (Relatório usando os dados do CapacitaTE nas etapas 7 e 8 + importação da base) e Fase 6
   (segurança final, migração 0005). Pendências menores: inclusão manual (`staff_submit`), modo recepção, gráficos.
 - ⏳ Teste em celular real (QR lido pela câmera) — só o usuário pode fazer.
@@ -138,6 +151,7 @@ Ordem para um projeto novo: `supabase/schema.sql` contém tudo (idempotente). De
 
 ## 5. Pendências do usuário
 
+0. **E-mail de confirmação:** criar os segredos `GMAIL_USER` e `GMAIL_APP_PASSWORD` em Edge Functions > Secrets e rodar a 0004e e a 0004f no SQL Editor.
 1. Configurar o e-mail de confirmação: publicar `enviar-confirmacao` (Verify JWT desligado), segredos `GMAIL_USER` e `GMAIL_APP_PASSWORD`, e rodar `supabase/migrations/0004e_email_gatilhos.sql` (gatilhos no lugar dos webhooks, que no painel novo ficam em Integrations).
    Opcional: colar de novo os modelos de `supabase/templates/` (correção da faixa laranja do topo).
 2. Abrir os formulários (estão em rascunho) quando quiser divulgar os links.

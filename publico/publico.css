@@ -2,45 +2,26 @@
    Mesmos tokens de cor e tipografia de css/style.css. */
 
 :root {
-  --bg-primary: #FAFAF8;
-  --bg-card: #ffffff;
-  --bg-input: #F3F3F1;
-  --border-color: rgba(0, 0, 0, 0.14);
-  --border-focus: #E09900;
-  --text-primary: #202020;
-  --text-secondary: #4D4D4D;
-  --text-muted: #6B6B6B;
+  /* Tema escuro como padrão (pedido do usuário em 25/10/2026), mesmos tokens do painel */
+  --bg-primary: #161616;
+  --bg-card: #202020;
+  --bg-input: #292929;
+  --border-color: rgba(255, 255, 255, 0.14);
+  --border-focus: #F6A800;
+  --text-primary: #FAFAF8;
+  --text-secondary: #C9C9C9;
+  --text-muted: #A6A6A6;
   --accent-primary: #F6A800;
   --accent-primary-hover: #C98A00;
-  --accent-gold-text: #7A5300;
-  --accent-success: #047857;
-  --accent-success-bg: #d1fae5;
-  --accent-danger: #b91c1c;
-  --accent-danger-bg: #fee2e2;
-  --accent-info-bg: #FFF1CC;
-  --shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.15);
+  --accent-gold-text: #FAC35E;
+  --accent-success: #34d399;
+  --accent-success-bg: rgba(16, 185, 129, 0.15);
+  --accent-danger: #fca5a5;
+  --accent-danger-bg: rgba(239, 68, 68, 0.15);
+  --accent-info-bg: rgba(246, 168, 0, 0.14);
+  --shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
   --radius: 12px;
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #161616;
-    --bg-card: #202020;
-    --bg-input: #292929;
-    --border-color: rgba(255, 255, 255, 0.14);
-    --text-primary: #FAFAF8;
-    --text-secondary: #C9C9C9;
-    --text-muted: #A6A6A6;
-    --accent-gold-text: #FAC35E;
-    --accent-success: #34d399;
-    --accent-success-bg: rgba(16, 185, 129, 0.15);
-    --accent-danger: #fca5a5;
-    --accent-danger-bg: rgba(239, 68, 68, 0.15);
-    --accent-info-bg: rgba(246, 168, 0, 0.14);
-    --shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
-    color-scheme: dark;
-  }
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -57,8 +38,7 @@ h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; l
 
 .pub-header { display: flex; justify-content: center; padding: 1.25rem 1rem 0.5rem; }
 .pub-header img { height: 52px; width: auto; }
-.pub-logo-dark { display: none; }
-@media (prefers-color-scheme: dark) { .pub-logo-light { display: none; } .pub-logo-dark { display: block; } }
+.pub-logo-light { display: none; }
 
 .pub-main { max-width: 640px; margin: 0 auto; padding: 0.5rem 1rem 2rem; }
 .pub-card {
@@ -186,7 +166,23 @@ h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; l
 .pub-footer { text-align: center; padding: 1rem 1rem 2rem; color: var(--text-muted); font-size: 0.8rem; }
 .pub-footer-logos { display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
 .pub-footer-logos img { height: 34px; width: auto; }
-@media (prefers-color-scheme: dark) { .pub-footer-logos { background: #ffffff; border-radius: 10px; padding: 0.5rem 0.75rem; display: inline-flex; } }
+.pub-footer-logos { background: #ffffff; border-radius: 10px; padding: 0.5rem 0.75rem; display: inline-flex; }
 
 .pub-loading { text-align: center; color: var(--text-muted); padding: 2rem 0; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* CPF em uso no topo das telas, com "trocar" */
+.pub-cpf-banner { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0 0 1rem; padding: 0.5rem 0.85rem; border-radius: 10px; background: var(--bg-input); border: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary); }
+.pub-cpf-banner .pub-link-btn { padding: 0; min-height: 36px; }
+
+/* Resumo antes do envio (inscrição) */
+.pub-review { margin: 0 0 1.25rem; padding: 0.9rem 1rem; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); }
+.pub-review-title { font-size: 1.02rem; margin: 0 0 0.6rem; }
+.pub-review-section { padding: 0.6rem 0; border-top: 1px solid var(--border-color); }
+.pub-review-section:first-of-type { border-top: none; }
+.pub-review-head { display: flex; justify-content: space-between; align-items: center; }
+.pub-review-head .pub-link-btn { padding: 0; min-height: 36px; }
+.pub-review dl { display: grid; grid-template-columns: minmax(110px, 40%) 1fr; gap: 0.25rem 0.75rem; margin: 0.4rem 0 0; font-size: 0.9rem; }
+.pub-review dt { color: var(--text-muted); }
+.pub-review dd { margin: 0; word-break: break-word; }
+.pub-attendance-name { font-size: 1.35rem !important; font-weight: 700; }

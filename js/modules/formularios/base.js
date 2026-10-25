@@ -2,7 +2,7 @@
  * CapacitaTE - Base das telas internas dos formulários (Inscrição, Presença e Avaliação)
  * Escolha da capacitação, criação e configuração do formulário, abrir/encerrar/agendar, link público e QR Code,
  * troca de link e listas de respostas. Cada módulo registra-se com CapacitaTE.formModules.register(...).
- * Versão: v.3.9.6
+ * Versão: v.3.9.7
  */
 
 (function () {
@@ -86,17 +86,13 @@
     const n = trainingMunicipalities(t).length;
     const ufName = window.reportDocxGenerator && typeof window.reportDocxGenerator.getUfFullName === 'function'
       ? window.reportDocxGenerator.getUfFullName(t.uf) : t.uf;
-    const where = [t.locationVenue, t.polo ? `em ${t.polo}${t.uf ? `/${t.uf}` : ''}` : ''].filter(Boolean).join(', ');
     const c = CapacitaTE.formSchema.DEFAULTS.contacts;
-    return `O Fundo Nacional de Desenvolvimento da Educação (FNDE), em parceria com o Centro Colaborador de Apoio ao Transporte Escolar do Centro Oeste (CECATE-CO), convoca gestores municipais e conselheiros dos CACS-FUNDEB${n ? ` de ${n} municípios` : ''}${ufName ? ` do Estado de ${ufName}` : ''} para a Capacitação em Transporte Escolar${where ? `, que será realizada ${where}` : ''}${t.datesFormatted ? `, nos dias ${t.datesFormatted}` : ''}.
+    return `O Fundo Nacional de Desenvolvimento da Educação (FNDE), em parceria com o Centro Colaborador de Apoio ao Transporte Escolar da Região Centro-Oeste (CECATE-CO), convida gestores municipais e conselheiros do CACS-FUNDEB${n ? ` de ${n} municípios` : ''}${ufName ? ` do Estado de ${ufName}` : ''} para a Capacitação em Transporte Escolar${t.locationVenue ? `, que será realizada no ${t.locationVenue}` : ''}${t.datesFormatted ? `, nos dias ${t.datesFormatted}` : ''}.
 
 A formação visa aprimorar a gestão do Programa Caminho da Escola e do Programa Nacional de Apoio ao Transporte do Escolar (PNATE) nos municípios. Em um ambiente de troca e diálogo, os participantes inscritos terão acesso às informações sobre os normativos dos programas federais de transporte escolar e orientações sobre execução dos recursos e prestação de contas.
 
 Caso surja alguma nova dúvida, entre em contato através dos seguintes canais de comunicação:
-WhatsApp: ${c.whatsapp}
-Site: ${c.site}
-Instagram: ${c.instagram}
-E-mail: ${c.email}`;
+WhatsApp: ${c.whatsapp} · Site: ${c.site} · Instagram: ${c.instagram}`;
   }
 
   // ---------- formulários (Supabase) ----------
@@ -109,7 +105,7 @@ E-mail: ${c.email}`;
   async function createForm(mod, training, sessionKey, extraConfig = {}) {
     const defaults = CapacitaTE.formSchema.DEFAULTS;
     const config = Object.assign({
-      title: { inscricao: 'Capacitação em Transporte Escolar', presenca: `${training.number ? `${training.number} CTE - ` : ''}Lista de Presença`, avaliacao: 'Avaliação da Capacitação' }[mod],
+      title: { inscricao: 'Capacitação em Transporte Escolar', presenca: `${training.number ? `${training.number}CTE - ` : ''}Lista de Presença`, avaliacao: 'Avaliação da Capacitação' }[mod],
       contacts: defaults.contacts,
       municipalities: trainingMunicipalities(training),
       allowEdit: mod === 'inscricao'
