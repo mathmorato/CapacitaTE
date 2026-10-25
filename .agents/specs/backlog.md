@@ -82,6 +82,8 @@ anônimo bloqueado). Restaurar falha se já houver resposta ativa do mesmo CPF.
 
 **v.4.3.2:** os formulários de inscrição, presença e avaliação já nascem **abertos** (`createForm` grava `status: aberto`; textos e aviso atualizados). Atenção: o link já recebe respostas antes de a pessoa conferir a configuração. Não testado no navegador.
 
+**E-mails (25/10/2026, 18:27-18:29):** os 3 e-mails de confirmação (inscrição, presença e avaliação da 17ª CTE) chegaram corretamente ao usuário: validado de ponta a ponta. A 17ª CTE foi recadastrada pelo usuário depois da exclusão acidental.
+
 **Pendências finais (25/10/2026):**
 1. **Usuário, SQL Editor, nesta ordem:** `0004h`, `0004i`, `0004j` (botões Excluir permanentemente, Pessoas/Importar base, Importar respostas históricas).
 2. **Usuário, conferir no navegador** (tudo o que foi feito desde a v.4.0.3 foi validado só por sintaxe e testes de SQL/REST): Relatórios › Relatório final; etapas 2 e 3; adicionar cidade (manual e por planilha) e atualização automática das cidades do formulário; Excluir/Lixeira/Restaurar; Modo recepção; Incluir manualmente; gráficos da avaliação; checklist; Admin › Pessoas e Importar base (incluindo respostas históricas com a planilha de uma capacitação antiga); sincronização automática; Excluir capacitação só para administrador.
