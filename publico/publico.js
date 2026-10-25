@@ -1,10 +1,10 @@
 /**
  * CapacitaTE - Motor dos Formulários Públicos (inscrição, presença e avaliação; sem login)
- * Versão: v.3.9.1
+ * Versão: v.3.9.2
  */
 
 (function () {
-  const VERSION = 'v.3.9.1';
+  const VERSION = 'v.3.9.2';
   const MODULE = document.body.dataset.module; // inscricao | presenca | avaliacao
   const RPC_SUBMIT = { inscricao: 'public_submit_registration', presenca: 'public_submit_attendance', avaliacao: 'public_submit_evaluation' };
   const MODULE_TITLES = { inscricao: 'Formulário de Inscrição', presenca: 'Lista de Presença', avaliacao: 'Avaliação da Capacitação' };
@@ -92,12 +92,28 @@
     return el('section', { class: 'pub-card' }, children);
   }
 
+  // Cabeçalho no desenho de cada formulário do Google usado pelo CECATE
   function header() {
     const t = state.training || {};
-    return [
-      el('h1', { class: 'pub-title', text: state.config.title || MODULE_TITLES[MODULE] }),
-      el('p', { class: 'pub-subtitle', text: [trainingLabel(), sessionLabel() || t.datesFormatted].filter(Boolean).join(' · ') })
-    ];
+    const title = el('h1', { class: 'pub-title', text: state.config.title || MODULE_TITLES[MODULE] });
+    if (MODULE === 'presenca') {
+      return [
+        title,
+        el('p', { class: 'pub-subtitle pub-subtitle-strong', text: [t.polo, t.uf].filter(Boolean).join(' - ') }),
+        el('p', { class: 'pub-subtitle pub-subtitle-strong', text: [t.datesFormatted, sessionLabel()].filter(Boolean).join(' · ') })
+      ];
+    }
+    if (MODULE === 'avaliacao') {
+      const sub = state.config.subtitle || `${[t.number ? `${t.number} CTE` : '', t.polo ? `${t.polo}${t.uf ? ` (${t.uf})` : ''}` : ''].filter(Boolean).join(' - ')} ${t.datesFormatted || ''}`.trim();
+      return [title, el('p', { class: 'pub-subtitle pub-subtitle-strong', text: sub })];
+    }
+    return [title, el('p', { class: 'pub-subtitle', text: [trainingLabel(), t.datesFormatted].filter(Boolean).join(' · ') })];
+  }
+
+  // Texto de apresentação: o da configuração ou, na presença, o texto de boas-vindas padrão
+  function introText() {
+    if (state.config.intro) return state.config.intro;
+    return MODULE === 'presenca' ? schema.DEFAULTS.attendanceWelcome : '';
   }
 
   function alertBox(text, type = 'error') {
@@ -172,7 +188,7 @@
     });
     render(card([
       ...header(),
-      state.config.intro ? el('p', { class: 'pub-intro', text: state.config.intro }) : null,
+      introText() ? el('p', { class: 'pub-intro', text: introText() }) : null,
       el('p', { class: 'pub-help', text: 'Comece pelo seu CPF. Se você já participou de outra capacitação, poderemos preencher seus dados automaticamente.' }),
       form
     ]));
@@ -267,7 +283,7 @@
 
   // Etapas visíveis: some a etapa cujos campos ficaram todos ocultos pelas condições
   function visibleSteps() {
-    return state.steps.filter(s => s.fields.some(f => !f.when || f.when(state.data)));
+    return state.steps.filter(s => (!s.when || s.when(state.data)) && s.fields.some(f => !f.when || f.when(state.data)));
   }
 
   function startSteps() {

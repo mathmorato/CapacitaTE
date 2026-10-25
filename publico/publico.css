@@ -71,6 +71,8 @@ h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; l
 }
 .pub-title { margin: 0 0 0.25rem; font-size: 1.35rem; }
 .pub-subtitle { margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.95rem; }
+.pub-subtitle-strong { margin: 0 0 0.25rem; font-weight: 700; color: var(--text-primary); }
+.pub-subtitle-strong:last-of-type { margin-bottom: 1rem; }
 .pub-intro { color: var(--text-secondary); font-size: 0.95rem; white-space: pre-line; margin: 0 0 1rem; }
 
 /* Barra de progresso das etapas */
@@ -81,7 +83,7 @@ h1, h2, h3 { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; l
 
 /* Campos */
 .pub-field { margin: 0 0 1.1rem; }
-.pub-label { display: block; font-weight: 600; margin: 0 0 0.4rem; font-size: 0.98rem; }
+.pub-label { display: block; font-weight: 600; margin: 0 0 0.4rem; font-size: 0.98rem; white-space: pre-line; }
 .pub-req { color: var(--accent-danger); margin-left: 0.15rem; }
 .pub-input, .pub-select, .pub-textarea {
   width: 100%;
