@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Módulo Inscrição (formulário, painel de vagas por município e inscrições)
- * Versão: v.4.1.9
+ * Versão: v.4.2.0
  */
 
 (function () {
@@ -31,9 +31,6 @@
         return;
       }
 
-      body.append(c.formCard(form, c));
-      if (canEdit) body.append(c.manualBox(form));
-
       const { data, error } = await c.client().from('registrations').select('*').eq('training_id', training.id).order('submitted_at');
       if (error) throw error;
       const regs = data || [];
@@ -62,6 +59,9 @@
         canEdit ? c.addMunicipalityBox(form) : null,
         c.table(['Município', 'Inscritos', 'CACS-FUNDEB', 'Gestão municipal'], vagasRows)
       ]));
+
+      body.append(c.formCard(form, c));
+      if (canEdit) body.append(c.manualBox(form));
 
       // Inscrições
       const listBox = el('div');
