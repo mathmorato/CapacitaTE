@@ -1,6 +1,6 @@
 /**
  * CapacitaTE - Administração › Permissões (matriz usuários × módulos/ações, salva na hora)
- * Versão: v.4.1.7
+ * Versão: v.4.1.8
  */
 
 (function () {
